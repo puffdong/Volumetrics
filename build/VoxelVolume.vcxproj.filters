@@ -31,6 +31,12 @@
     <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\WorldObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\raymarcher\raymarcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\raymarcher\rayscene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -1,110 +1,85 @@
 #include "Camera.h"
 
-Camera::Camera(glm::vec3 front)
+Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
+    : position(position),
+      worldUp(up),
+      yaw(yaw),
+      pitch(pitch),
+      front(glm::vec3(0.0f, 0.0f, -1.0f)),
+      movement_speed(5.0f),
+      rotation_speed(50.0f)
 {
-	dir = glm::normalize(front);
-	up_vector = glm::vec3(0.f, 1.f, 0.f);
-	pitch = 0.f;
-	current_distance = kTargetDistance;
-	yaw = acos(glm::dot(dir, up_vector) / (glm::length(up_vector) * glm::length(dir)));
-	position = glm::vec3(0.0f);
+    update_camera_vectors();
 }
 
-void Camera::updateTargetPos(glm::vec3 new_target)
+void Camera::update_camera_vectors()
 {
-	target = new_target; // player->getPosition();
+    // Calculate the new Front vector
+    glm::vec3 frontVec;
+    frontVec.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    frontVec.y = sin(glm::radians(pitch));
+    frontVec.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front = glm::normalize(frontVec);
+    // Re-calculate the Right and Up vectors
+    right = glm::normalize(glm::cross(front, worldUp));  // Normalize the vectors
+    up = glm::normalize(glm::cross(right, front));
 }
 
-glm::mat4 Camera::getLookAt()
+glm::mat4 Camera::get_view_matrix()
 {
-
-	glm::vec3 dir(
-		cos(yaw) * cos(pitch),
-		sin(pitch),
-		sin(yaw) * cos(pitch)
-	);
-	dir = glm::normalize(dir);
-
-	return glm::lookAt(getPosition(), target, up_vector);
+    return glm::lookAt(position, position + front, up);
 }
 
-glm::vec3 Camera::getPosition()
-{
-	return target - dir * current_distance;
+glm::vec3 Camera::get_position() {
+	return position;
 }
 
-void Camera::tick(float delta, ButtonMap bm)
+void Camera::process_keyboard(const ButtonMap& bm, float deltaTime)
 {
-	
-
-	int pitchDir = 0;
-	int yawDir = 0;
-
-	if (bm.Up)
-		pitchDir -= 1;
-	if (bm.Down)
-		pitchDir += 1;
-	if (bm.Left)
-		yawDir += 1;
-	if (bm.Right)
-		yawDir -= 1;
-
-	if (pitchDir != 0 || yawDir != 0) {
-		rotate(
-			(float)pitchDir * kSensitivity * delta,
-			(float)yawDir * kSensitivity * delta
-		);
-	}
-
-	glm::vec3 movement = glm::vec3(0.0);
-
-	if (bm.W) {
-		movement += glm::vec3(
-			sin(yaw),
-			0.0,
-			cos(yaw));
-	}
-		
-	if (bm.S) {
-		movement -= glm::vec3(
-			sin(yaw),
-			0.0,
-			cos(yaw));
-		}
-		
-	if (bm.Space)
-		movement += glm::vec3(0.f, 1.0, 0.0);
-
-	if (bm.Ctrl)
-		movement += glm::vec3(0.f, -1.0, 0.0);
-
-	position += movement * 5.f * delta;
-
-	updateTargetPos(position);
+    float velocity = movement_speed * deltaTime;
+    if (bm.W)
+        position += front * velocity;
+    if (bm.S)
+        position -= front * velocity;
+    if (bm.A)
+        position -= right * velocity;
+    if (bm.D)
+        position += right * velocity;
+    if (bm.Space)
+        position += worldUp * velocity;
+    if (bm.Ctrl)
+        position -= worldUp * velocity;
 }
 
-void Camera::rotate(float pitchDiff, float yawDiff)
+void Camera::process_rotation(const ButtonMap& bm, float deltaTime)
 {
-	pitch += pitchDiff * kSensitivity;
-	yaw += yawDiff * kSensitivity;
-	const float pi = 3.14159265358979323846;
-	float angleLimit = (float)(pi / 2.f * 0.99f);
-	if (pitch > angleLimit)
-		pitch = angleLimit;
-	else if (pitch < -angleLimit)
-		pitch = -angleLimit;
-
-	glm::vec3 tmpdir(0.f);
-	// tmpdir.x = cos(mYaw - pPlayerYaw) * cos(mPitch);
-	// tmpdir.y = sin(mPitch);
-	// tmpdir.z = sin(mYaw - pPlayerYaw) * cos(mPitch);
-	tmpdir.x = cos(yaw) * cos(pitch);
-	tmpdir.y = sin(pitch);
-	tmpdir.z = sin(yaw) * cos(pitch);
-	dir = glm::normalize(tmpdir);
+    float rotation = rotation_speed * deltaTime;
+    if (bm.Left)
+        yaw -= rotation;
+    if (bm.Right)
+        yaw += rotation;
+    if (bm.Up)
+    {
+        pitch += rotation;
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+    }
+    if (bm.Down)
+    {
+        pitch -= rotation;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+    }
+    // Update Front, Right and Up Vectors using the updated Euler angles
+    update_camera_vectors();
 }
 
-std::string Camera::toString()
+void Camera::tick(float deltaTime, const ButtonMap& bm)
 {
-	return "Target position: " + glm::to_string(target) + ", Direction: " + glm::to_string(dir) + ", Pitch: " + std::to_string(pitch) + ", Yaw: " + std::to_string(yaw);
+    process_keyboard(bm, deltaTime);
+    process_rotation(bm, deltaTime);
 }
+
+
+
+

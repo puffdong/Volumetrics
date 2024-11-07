@@ -21,6 +21,8 @@
 
 #include "Utils/ButtonMap.h"
 
+#include "Utils/perlin_noise_generator.hpp"
+
 ButtonMap bm;
 
 Space* space;
@@ -102,6 +104,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
+GLuint generatePerlin2D() {
+    PerlinNoiseTexture perlinTexture2D(512, 512);
+    GLuint textureID2D = perlinTexture2D.getTextureID();
+    return textureID2D;
+}
+
+GLuint generatePerlin3D() {
+    PerlinNoiseTexture perlinTexture3D(128, 128, 128);
+    GLuint textureID3D = perlinTexture3D.getTextureID();
+    return textureID3D;
+}
+
+void save_perlin() {
+    PerlinNoiseTexture perlinTexture2D(512, 512, "C:/Dev/OpenGL/Volumetrics/testing/test.ppm");
+}
+
 int main(void)
 {
     // std::filesystem::path currentPath = std::filesystem::current_path();
@@ -142,7 +160,6 @@ int main(void)
         std::cout << "glew init Error!" << std::endl;
     }
 
-    
 
     GLCall(glViewport(0, 0, 1600, 900));
     GLCall(glClearColor(0.1f, 0.1f, 0.8f, 1.0f)); // Set background to a dark gray
@@ -161,6 +178,13 @@ int main(void)
 
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
+    // std::cout << "Generating perlin noise" << std::endl;
+
+    // GLuint perlin2d = generatePerlin2D();
+    // GLuint perlin3d = generatePerlin3D();
+    // save_perlin();
+    // std::cout << "Finished generating perlin noise" << std::endl;
+
     space = new Space();
 
     float lastTime = glfwGetTime();
@@ -175,10 +199,6 @@ int main(void)
         lastTime = currentTime;
 
         renderer.Clear();
-
-        if (bm.A == true) {
-            std::cout << "cp cp cp ";
-        }
 
         space->tick(deltaTime, bm);
         space->renderWorld(deltaTime);

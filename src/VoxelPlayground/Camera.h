@@ -1,29 +1,37 @@
+
 #pragma once
-#include <string>
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtx/string_cast.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "../Utils/ButtonMap.h"
 
 class Camera
 {
-private:
-	const float kSensitivity = 1.f;
-	float kTargetDistance = 5.f;
-
 public:
-	glm::vec3 position; // The position of camera in free r
-	glm::vec3 target, dir, up_vector; // what the camera looks at, the direction, up-vector
-	float pitch, yaw, current_distance;
-	Camera(glm::vec3 front);
+    glm::vec3 position;    // Position of the camera
+    glm::vec3 front;       // Direction camera is facing
+    glm::vec3 up;          // Up vector
+    glm::vec3 right;       // Right vector
+    glm::vec3 worldUp;     // World's up vector
 
-	glm::mat4 getLookAt();
-	glm::vec3 getPosition();
-	void rotate(float pitchDiff, float yawDiff);
-	void tick(float delta, ButtonMap bm);
+    float yaw;
+    float pitch;
 
-	std::string toString();
+    float movement_speed;
+    float rotation_speed;
+
+    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
+           glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+           float yaw = -90.0f,
+           float pitch = 0.0f);
+
+    glm::mat4 get_view_matrix();
+	glm::vec3 get_position();
+
+    // Updates camera based on input
+    void tick(float deltaTime, const ButtonMap& bm);
 
 private:
-	void updateTargetPos(glm::vec3 new_target);
+    void process_keyboard(const ButtonMap& bm, float deltaTime);
+    void process_rotation(const ButtonMap& bm, float deltaTime);
+    void update_camera_vectors();
 };

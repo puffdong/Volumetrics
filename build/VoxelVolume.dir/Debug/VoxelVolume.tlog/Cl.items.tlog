@@ -8,4 +8,6 @@ C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\Skybox.cpp;C:\Dev\OpenGL\Volumetri
 C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\Space.cpp;C:\Dev\OpenGL\Volumetrics\build\VoxelVolume.dir\Debug\Space.obj
 C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\Volumetrics\VoxelStructure.cpp;C:\Dev\OpenGL\Volumetrics\build\VoxelVolume.dir\Debug\VoxelStructure.obj
 C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\WorldObject.cpp;C:\Dev\OpenGL\Volumetrics\build\VoxelVolume.dir\Debug\WorldObject.obj
+C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\raymarcher\raymarcher.cpp;C:\Dev\OpenGL\Volumetrics\build\VoxelVolume.dir\Debug\raymarcher.obj
+C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\raymarcher\rayscene.cpp;C:\Dev\OpenGL\Volumetrics\build\VoxelVolume.dir\Debug\rayscene.obj
 C:\Dev\OpenGL\Volumetrics\src\main.cpp;C:\Dev\OpenGL\Volumetrics\build\VoxelVolume.dir\Debug\main.obj

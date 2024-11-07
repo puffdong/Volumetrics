@@ -184,6 +184,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\Space.cpp" />
     <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\Volumetrics\VoxelStructure.cpp" />
     <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\WorldObject.cpp" />
+    <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\raymarcher\raymarcher.cpp" />
+    <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\VoxelPlayground\raymarcher\rayscene.cpp" />
     <ClCompile Include="C:\Dev\OpenGL\Volumetrics\src\main.cpp" />
     <ClInclude Include="C:\Dev\OpenGL\Volumetrics\src\LoadTGA.h" />
     <ClInclude Include="C:\Dev\OpenGL\Volumetrics\src\OBJLoader.h" />

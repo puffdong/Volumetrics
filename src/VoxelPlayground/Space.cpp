@@ -5,13 +5,17 @@ Space::Space()
 {
 	// player->setPosition(playerStartPos);
 
-	glm::vec3 cameraDir(0.f, 0.f, 1.f);
+	glm::vec3 cameraDir(1.f, 0.f, 0.f);
 	camera = new Camera(cameraDir);
 
+	// voxel stuff -> in progress 
 	vox = new VoxelStructure(10, 25, 7, glm::ivec3(1, 1, 1), 1, 0.5f);
 	vox->setVoxelValue(2, 2, 2, 3);
 	std::cout << vox->getVoxelValue(2, 2, 2) << std::endl;
 	std::cout << vox->getVoxelValue(2, 2, 3) << std::endl;
+	
+	// raymarcher
+	raymarcher = new Raymarcher();
 
 	loadLevel1();
 }
@@ -23,17 +27,26 @@ void Space::tick(float delta, ButtonMap bm)
 
 void Space::renderWorld(float delta)
 {
-	glm::mat4 viewMatrix = camera->getLookAt();
+	glm::mat4 view_matrix = camera->get_view_matrix();
 
 	skybox->draw(proj, camera);
 
 	for (WorldObject* o : wObjects)
 	{
 		o->tick(delta);
-		o->draw(proj, viewMatrix, o->getModelMatrix());
+		o->draw(proj, view_matrix, o->getModelMatrix());
 	}
 
-	vox->drawVoxels(proj, viewMatrix);
+	// raymarcher
+	glm::vec3 cam_pos = camera->get_position();
+	// std::cout << "x y z : " << cam_pos.x << " " << cam_pos.y << " " << cam_pos.z << std::endl;
+
+	// voxel stuff
+	vox->drawVoxels(proj, view_matrix);
+
+	raymarcher->render(cam_pos, view_matrix);
+
+	
 }
 
 void Space::loadLevel1()

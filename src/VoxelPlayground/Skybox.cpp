@@ -14,8 +14,8 @@ void Skybox::draw(glm::mat4 projMatrix, Camera* camera)
 	shader->Bind();
 	texture->Bind(0);
 	shader->SetUniform1i("u_Texture", 0);
-	glm::mat4 modelTrans = glm::translate(glm::mat4(1.f), camera->getPosition());
-	glm::mat4 mvp = projMatrix * camera->getLookAt() * modelTrans;
+	glm::mat4 modelTrans = glm::translate(glm::mat4(1.f), camera->get_position());
+	glm::mat4 mvp = projMatrix * camera->get_view_matrix() * modelTrans;
 	shader->SetUniformMat4("u_MVP", mvp);
 
 	// To draw the skybox it need special treatment to avoid drawing it wrong

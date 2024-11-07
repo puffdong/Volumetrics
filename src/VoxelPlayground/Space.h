@@ -11,6 +11,7 @@
 #include "Skybox.h"
 
 #include "Volumetrics/VoxelStructure.h"
+#include "raymarcher/raymarcher.hpp"
 
 
 #include "../Utils/ButtonMap.h"
@@ -25,6 +26,7 @@ private:
 	Camera* camera;
 
 	VoxelStructure* vox;
+	Raymarcher* raymarcher;
 
 public:
 	Space();
