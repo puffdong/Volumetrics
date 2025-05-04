@@ -27,13 +27,41 @@ ButtonMap bm;
 
 Space* space;
 
+// ─── Mouse‑look state ─────────────────────────────────────────
+static bool  firstMouse = true;
+static float lastX = 800.0f;     // will be reset on first callback
+static float lastY = 450.0f;
+
+//  You said Space owns the camera, so expose one getter:
+//    Camera& cam = space->getCamera();
+
+void mouse_callback(GLFWwindow*, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = (float)xpos;
+        lastY = (float)ypos;
+        firstMouse = false;
+    }
+
+    float xOffset = (float)xpos - lastX;
+    float yOffset = lastY - (float)ypos;   // y‑axis is inverted
+    lastX = (float)xpos;
+    lastY = (float)ypos;
+
+    space->getCamera()->process_mouse(xOffset, yOffset);
+}
+
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     // Close the window when the user presses the ESC key
+    // ESC = release mouse; second ESC = close window
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
+        if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        else
+            glfwSetWindowShouldClose(window, true);
     }
-
     if (action == GLFW_PRESS) {
         switch (key) {
         case GLFW_KEY_W:
@@ -153,6 +181,8 @@ int main(void)
     glfwSwapInterval(1); // sync with refresh rate
 
     glfwSetKeyCallback(window, key_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide & capture
+    glfwSetCursorPosCallback(window, mouse_callback);              // ↖ register
 
     glewExperimental = GL_TRUE;
 

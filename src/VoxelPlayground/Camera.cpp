@@ -7,7 +7,8 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
       pitch(pitch),
       front(glm::vec3(0.0f, 0.0f, -1.0f)),
       movement_speed(5.0f),
-      rotation_speed(50.0f)
+      rotation_speed(50.0f),
+      mouse_sensitivity(0.1f)
 {
     update_camera_vectors();
 }
@@ -71,6 +72,24 @@ void Camera::process_rotation(const ButtonMap& bm, float deltaTime)
             pitch = -89.0f;
     }
     // Update Front, Right and Up Vectors using the updated Euler angles
+    update_camera_vectors();
+}
+
+
+void Camera::process_mouse(float xOffset, float yOffset, bool constrainPitch)
+{
+    xOffset *= mouse_sensitivity;
+    yOffset *= mouse_sensitivity;
+
+    yaw   += xOffset;
+    pitch += yOffset;
+
+    if (constrainPitch)
+    {
+        if (pitch > 89.0f)  pitch = 89.0f;
+        if (pitch < -89.0f) pitch = -89.0f;
+    }
+
     update_camera_vectors();
 }
 

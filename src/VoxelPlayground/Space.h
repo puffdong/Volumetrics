@@ -12,6 +12,7 @@
 
 #include "Volumetrics/VoxelStructure.h"
 #include "raymarcher/raymarcher.hpp"
+#include "raymarcher/rayscene.hpp"
 
 
 #include "../Utils/ButtonMap.h"
@@ -25,8 +26,14 @@ private:
 	glm::mat4 proj = glm::perspective(glm::radians(70.f), 16.f / 9.0f, 1.0f, 256.0f);
 	Camera* camera;
 
+	float time = 0.0;
+
 	VoxelStructure* vox;
 	Raymarcher* raymarcher;
+	RayScene* ray_scene;
+
+	RaySphere* sphere1;
+	RaySphere* sphere2;
 
 public:
 	Space();
@@ -34,6 +41,7 @@ public:
 	void tick(float delta, ButtonMap bm);
 
 	void renderWorld(float delta);
+	Camera* Space::getCamera() { return camera; }   // where `camera` is your member
 
 private:
 	void loadLevel1();

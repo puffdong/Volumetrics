@@ -5,21 +5,18 @@
 #include <vector>
 #include "../../OBJLoader.h"
 #include "../../Shader.h" 
-
-struct RaySphere {
-    glm::vec3 pos;
-    float radius;
-    glm::vec3 color;
-};
+#include "rayscene.hpp"
 
 class Raymarcher {
 private:
     Shader* shader;
     unsigned int quadVAO, quadVBO;
+    RayScene* ray_scene;
+    float time = 0.0;
 
 public:
-    Raymarcher();
-    void render(glm::vec3 camera_pos, glm::mat4 view_matrix);
+    Raymarcher(RayScene* scene);
+    void render(glm::vec3 camera_pos, glm::mat4 view_matrix, float delta);
 };
 
 

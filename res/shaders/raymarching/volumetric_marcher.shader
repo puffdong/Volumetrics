@@ -39,12 +39,6 @@ float sdfSphere(vec3 position, vec3 center, float radius) {
     return length(position - center) - radius;
 };
 
-float sdfBox( vec3 p, vec3 b )
-{
-  vec3 q = abs(p) - b;
-  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
-};
-
 float sdfTorus(vec3 p, vec2 t)
 {   
     return length(vec2(length(p.xz)-t.x, p.y) ) - t.y;
@@ -55,8 +49,7 @@ float sceneSDF(vec3 position) {
     float tmp = 1000;
     for (int i = 0; i < 5; i++) {
         if (i < num_spheres) {
-            // tmp = smin(sdfSphere(position, sphere_positions[i], sphere_radiuses[i]), tmp, 2.0);
-            tmp = smin(sdfSphere(position, sphere_positions[i], 5), tmp, 2.0);
+            tmp = smin(sdfSphere(position, sphere_positions[i], sphere_radiuses[i]), tmp, 2.0);
         }
     }
 

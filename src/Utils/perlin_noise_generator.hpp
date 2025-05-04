@@ -1,3 +1,7 @@
+#pragma once
+#include <iostream>  // std::cout, std::cerr, std::endl
+#include <fstream>   // std::ofstream
+// …your existing includes…
 #include <cmath>
 #include <vector>
 #include <algorithm>

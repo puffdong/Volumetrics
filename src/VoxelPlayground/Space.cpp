@@ -15,14 +15,27 @@ Space::Space()
 	std::cout << vox->getVoxelValue(2, 2, 3) << std::endl;
 	
 	// raymarcher
-	raymarcher = new Raymarcher();
+	ray_scene = new RayScene(glm::vec3(0.0, 0.0, 0.0));
+	raymarcher = new Raymarcher(ray_scene);
+	sphere1 = ray_scene->add_sphere(glm::vec3(10.0f, 0.0f, 0.0f), 5.0f, glm::vec4(1.0, 0.4, 0.1, 0.8));
+    sphere2 = ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.4, 0.1, 0.8));
 
 	loadLevel1();
 }
 
 void Space::tick(float delta, ButtonMap bm)
-{
+{	
+	time += delta;
+
 	camera->tick(delta, bm);
+
+	sphere1->pos.x = 13 * sin(time * 0.1);
+	sphere1->pos.z = 13 * cos(time * 0.1);
+
+	sphere2->pos.x = 7 * sin(-time * 0.15);
+	sphere2->pos.z = 7 * cos(-time * 0.15);
+
+
 }
 
 void Space::renderWorld(float delta)
@@ -44,7 +57,7 @@ void Space::renderWorld(float delta)
 	// voxel stuff
 	vox->drawVoxels(proj, view_matrix);
 
-	raymarcher->render(cam_pos, view_matrix);
+	raymarcher->render(cam_pos, view_matrix, delta);
 
 	
 }

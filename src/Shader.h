@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <GL/glew.h>
+#include <filesystem>  
 #include <unordered_map>
 #include "glm/glm.hpp"
 
@@ -14,6 +15,7 @@ class Shader
 private:
 	std::string m_FilePath;
 	unsigned int m_RendererID;
+	std::filesystem::file_time_type m_LastWriteTime;
 	// caching for uniforms
 	std::unordered_map<std::string, int> m_UniformLocationCache;
 public:
@@ -22,6 +24,7 @@ public:
 
 	void Bind() const;
 	void Unbind() const;
+	void HotReloadIfChanged();
 	unsigned int GetRendererID() const;
 
 	// Set uniforms
