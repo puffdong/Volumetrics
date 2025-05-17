@@ -14,7 +14,7 @@ void Skybox::draw(glm::mat4 projMatrix, Camera* camera)
 	shader->Bind();
 	texture->Bind(0);
 	shader->SetUniform1i("u_Texture", 0);
-	glm::mat4 modelTrans = glm::translate(glm::mat4(1.f), camera->get_position());
+	glm::mat4 modelTrans = glm::scale(glm::translate(glm::mat4(1.f), camera->get_position()), glm::vec3(5.f, 5.f, 5.f));
 	glm::mat4 mvp = projMatrix * camera->get_view_matrix() * modelTrans;
 	shader->SetUniformMat4("u_MVP", mvp);
 

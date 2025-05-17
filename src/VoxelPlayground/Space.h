@@ -18,12 +18,18 @@
 #include "../Utils/ButtonMap.h"
 #include "../Utils/LightSource.h"
 
+#include <iostream>
+
 class Space {
 private:
 	std::vector<WorldObject*> wObjects; 
 	Skybox* skybox;
 
+	float fov = 70.f;
+	float near = 1.0f;
+	float far =  256.0f;
 	glm::mat4 proj = glm::perspective(glm::radians(70.f), 16.f / 9.0f, 1.0f, 256.0f);
+
 	Camera* camera;
 
 	float time = 0.0;
@@ -41,7 +47,9 @@ public:
 	void tick(float delta, ButtonMap bm);
 
 	void renderWorld(float delta);
-	Camera* Space::getCamera() { return camera; }   // where `camera` is your member
+	Camera* Space::get_camera() { return camera; }   // where `camera` is your member
+	void change_fov(double xoffset, double yoffset);
+
 
 private:
 	void loadLevel1();

@@ -19,48 +19,66 @@
 
 #include "VoxelPlayground/Camera.h"
 
+// Utils
 #include "Utils/ButtonMap.h"
-
 #include "Utils/perlin_noise_generator.hpp"
 
 ButtonMap bm;
-
 Space* space;
 
-// ─── Mouse‑look state ─────────────────────────────────────────
+static bool mouse_active = true;
 static bool  firstMouse = true;
-static float lastX = 800.0f;     // will be reset on first callback
+static float lastX = 800.0f;
 static float lastY = 450.0f;
 
-//  You said Space owns the camera, so expose one getter:
-//    Camera& cam = space->getCamera();
-
 void mouse_callback(GLFWwindow*, double xpos, double ypos)
-{
-    if (firstMouse)
-    {
-        lastX = (float)xpos;
-        lastY = (float)ypos;
-        firstMouse = false;
+{   
+    if (mouse_active) {
+        if (firstMouse) {
+            lastX = (float) xpos;
+            lastY = (float) ypos;
+            firstMouse = false;
+        }
+
+        float xoffset = (float) xpos - lastX;
+        float yoffset = lastY - (float) ypos;   // y‑axis is inverted
+        lastX = (float) xpos;
+        lastY = (float) ypos;
+
+        space->get_camera()->process_mouse(xoffset, yoffset);
     }
-
-    float xOffset = (float)xpos - lastX;
-    float yOffset = lastY - (float)ypos;   // y‑axis is inverted
-    lastX = (float)xpos;
-    lastY = (float)ypos;
-
-    space->getCamera()->process_mouse(xOffset, yOffset);
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide cursor and take control of it
+        mouse_active = true;
+        firstMouse = true;
+    }
+
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    space->change_fov(xoffset, yoffset);
+}
+
+// static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+// {
+//     space->process_cursor_position(xpos, ypos);
+// }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     // Close the window when the user presses the ESC key
     // ESC = release mouse; second ESC = close window
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+        if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        else
+            mouse_active = false;
+        }
+        else {
             glfwSetWindowShouldClose(window, true);
+        }
     }
     if (action == GLFW_PRESS) {
         switch (key) {
@@ -138,11 +156,11 @@ GLuint generatePerlin2D() {
     return textureID2D;
 }
 
-GLuint generatePerlin3D() {
-    PerlinNoiseTexture perlinTexture3D(128, 128, 128);
-    GLuint textureID3D = perlinTexture3D.getTextureID();
-    return textureID3D;
-}
+// GLuint generatePerlin3D() {
+//     PerlinNoiseTexture perlinTexture3D(128, 128, 128);
+//     GLuint textureID3D = perlinTexture3D.getTextureID();
+//     return textureID3D;
+// }
 
 void save_perlin() {
     PerlinNoiseTexture perlinTexture2D(512, 512, "C:/Dev/OpenGL/Volumetrics/testing/test.ppm");
@@ -150,14 +168,8 @@ void save_perlin() {
 
 int main(void)
 {
-    // std::filesystem::path currentPath = std::filesystem::current_path();
-    // std::cout << "Current path: " << currentPath << std::endl;
-    // return 0;
-
-
     GLFWwindow* window;
 
-    /* Initialize the library */
     if (!glfwInit())
         return -1;
 
@@ -167,7 +179,7 @@ int main(void)
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1600, 900, "Project Birdo", NULL, NULL);
+    window = glfwCreateWindow(1600, 900, "Volumetrics", NULL, NULL);
     if (!window)
     {
         std::cout << "umm glfw didnt work" << std::endl;
@@ -175,15 +187,17 @@ int main(void)
         return -1;
     }
 
-    /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
     glfwSwapInterval(1); // sync with refresh rate
-
+    
     glfwSetKeyCallback(window, key_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide & capture
-    glfwSetCursorPosCallback(window, mouse_callback);              // ↖ register
-
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide cursor and take control of it
+    glfwSetCursorPosCallback(window, mouse_callback);              // set the cursor callback
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    // glfwSetCursorPosCallback(window, cursor_position_callback);
+    
     glewExperimental = GL_TRUE;
 
     if (glewInit() != GLEW_OK) {
@@ -219,7 +233,6 @@ int main(void)
 
     float lastTime = glfwGetTime();
 
-    /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -233,10 +246,8 @@ int main(void)
         space->tick(deltaTime, bm);
         space->renderWorld(deltaTime);
 
-        /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
-        /* Poll for and process events */
         glfwPollEvents();
     }
 

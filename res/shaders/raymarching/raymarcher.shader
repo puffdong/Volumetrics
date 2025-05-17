@@ -1,23 +1,43 @@
 #shader vertex
 #version 330 core
 layout (location = 0) in vec3 aPos;
+
+uniform mat4 invprojview;
+uniform float near_plane;
+uniform float far_plane;
+
+out vec3 origin;
+out vec3 ray;
+
 void main() {
     gl_Position = vec4(aPos, 1.0);
-};
+
+    vec2 pos = vec2(aPos); // clear the aPos third argument, it ain't needed
+    gl_Position = vec4(pos, 0.0, 1.0);
+    origin = (invprojview * vec4(pos, -1.0, 1.0) * near_plane).xyz;
+    ray = (invprojview * vec4(pos * (far_plane - near_plane), far_plane + near_plane, far_plane - near_plane)).xyz;
+
+    // equivalent calculation:
+    // ray = (invprojview * (vec4(pos, 1.0, 1.0) * far - vec4(pos, -1.0, 1.0) * near)).xyz
+}
 
 #shader fragment
 #version 330 core
 
 layout(location = 0) out vec4 color;
 
-uniform mat4 view_matrix;
-uniform vec2 iResolution;
-uniform vec3 camera_pos;
-// uniform vec3 camera_dir;
+uniform float near_plane;
+uniform float far_plane;
+
+in vec3 origin;
+in vec3 ray;
+
+uniform sampler3D noise_texture;
+
 uniform float time;
 
 const float MAX_DIST = 100.0;
-const float MIN_DIST = 0.001;
+const float MIN_DIST = 0.000001;
 const int MAX_STEPS = 128;
 
 uniform vec3 sphere_positions[5];
@@ -61,9 +81,6 @@ float sceneSDF(vec3 position) {
     }
 
     return tmp;
-
-    // float hmm = min(sdfSphere(position, vec3(10.0, 10.0, 3.0), 1.0), sdfSphere(position, vec3(-10.0, -10.0, 3.0), 1.0));
-    // return hmm; //sdfSphere(position, vec3(10.0, 10.0, 3.0), 1.0);
 };
 
 // Raymarching function to calculate the distance to the nearest surface
@@ -92,14 +109,58 @@ vec3 getNormal(vec3 position) {
     return normalize(vec3(dx, dy, dz));
 };
 
+vec4 volumetric_march(vec3 origin, vec3 dir) {
+    float distance = 0.0;
+    float collected_noise;
+    bool first_hit = true;
+    vec3 hit_point;
+
+    for (int i = 0; i < MAX_STEPS; i++) {
+        vec3 pos = origin + dir * distance;
+        float distToScene = sceneSDF(pos);
+        
+        if (distToScene < MIN_DIST) { // we are inside, aka "smoke"
+            if (first_hit) {
+                first_hit = false;
+                pos = hit_point;
+            }
+
+            collected_noise += texture(noise_texture, pos * 0.1).x * 0.019;
+        }
+
+        if (first_hit) {
+            distance += distToScene;
+        } else {
+            distance += 0.1;
+        }
+
+        if (distance > MAX_DIST * 100) {
+            break;
+        }
+        if (collected_noise > 1.0) {
+            collected_noise = 1.0;
+            break;
+        }
+    }
+
+    vec3 normal = getNormal(hit_point);
+    float lightIntensity = dot(normal, normalize(vec3(1.0, 1.0, 1.0))) * 0.5 + 0.5;
+    vec4 result = vec4(1.0 * lightIntensity, 0.5 * lightIntensity, 0.2 * lightIntensity, collected_noise);
+    // vec4 result = vec4(1.0, 0.5, 0.2, collected_noise);
+
+    return result;
+};
+
 vec4 render(vec3 rayOrigin, vec3 rayDirection) {
     float distance = rayMarch(rayOrigin, rayDirection);
     if (distance < MAX_DIST) {
         vec3 hitPoint = rayOrigin + rayDirection * distance;
+        float noise = texture(noise_texture, hitPoint * 0.1).x;
+
         vec3 normal = getNormal(hitPoint);
         float lightIntensity = dot(normal, normalize(vec3(1.0, 1.0, 1.0))) * 0.5 + 0.5;
         vec4 result = vec4(1.0 * lightIntensity, 0.5 * lightIntensity, 0.2 * lightIntensity, 1.0);
-        return result; // Orange-ish color with diffuse lighting
+        return result * noise; // Orange-ish color with diffuse lighting
     }
     return vec4(0.0); // Background color (black)
 };
@@ -107,25 +168,10 @@ vec4 render(vec3 rayOrigin, vec3 rayDirection) {
 
 
 void main() {
-    // Normalized pixel coordinates (from -1 to 1)
-    vec2 uv = (gl_FragCoord.xy / iResolution.xy) * 2.0 - 1.0; // - 1.0;
-    uv.x *= iResolution.x / iResolution.y;
 
-    // Extract rotation matrix from view matrix and invert it
-    mat3 viewRotation = mat3(view_matrix);
-    mat3 inverseRotation = transpose(viewRotation);
+    vec3 rayDir = normalize(ray);
 
-    // Define the ray direction in camera space (looking down negative Z-axis)
-    vec3 rayDirectionCameraSpace = normalize(vec3(uv.x, uv.y, -1.0));
+    vec4 result = volumetric_march(origin, rayDir);
 
-    // Transform the ray direction to world space
-    vec3 rayDirection = inverseRotation * rayDirectionCameraSpace;
-
-    // Normalize the ray direction after transformation
-    rayDirection = normalize(rayDirection);
-
-    vec3 rayOrigin = camera_pos;
-
-    vec4 result = render(rayOrigin, rayDirection);
     color = result;
 };

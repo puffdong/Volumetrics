@@ -29,8 +29,8 @@ void Space::tick(float delta, ButtonMap bm)
 
 	camera->tick(delta, bm);
 
-	sphere1->pos.x = 13 * sin(time * 0.1);
-	sphere1->pos.z = 13 * cos(time * 0.1);
+	// sphere1->pos.x = 13 * sin(time * 0.1);
+	// sphere1->pos.z = 13 * cos(time * 0.1);
 
 	sphere2->pos.x = 7 * sin(-time * 0.15);
 	sphere2->pos.z = 7 * cos(-time * 0.15);
@@ -57,9 +57,14 @@ void Space::renderWorld(float delta)
 	// voxel stuff
 	vox->drawVoxels(proj, view_matrix);
 
-	raymarcher->render(cam_pos, view_matrix, delta);
+	raymarcher->render(cam_pos, view_matrix, proj, delta, near, far);
 
 	
+}
+
+void Space::change_fov(double xoffset, double yoffset) { 
+	fov -= (float) yoffset;
+	proj = glm::perspective(glm::radians(fov), 16.f / 9.0f, 1.0f, 256.0f); 
 }
 
 void Space::loadLevel1()
