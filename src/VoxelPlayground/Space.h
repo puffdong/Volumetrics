@@ -14,6 +14,8 @@
 #include "raymarcher/raymarcher.hpp"
 #include "raymarcher/rayscene.hpp"
 
+#include "water/WaterSurface.hpp"
+// #include "doohickeys/Sun.hpp"
 
 #include "../Utils/ButtonMap.h"
 #include "../Utils/LightSource.h"
@@ -30,9 +32,14 @@ private:
 	float far =  256.0f;
 	glm::mat4 proj = glm::perspective(glm::radians(70.f), 16.f / 9.0f, 1.0f, 256.0f);
 
+	
+
 	Camera* camera;
 
 	float time = 0.0;
+
+	WaterSurface* water_surface;
+	// Sun* sun;
 
 	VoxelStructure* vox;
 	Raymarcher* raymarcher;

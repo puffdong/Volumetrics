@@ -103,7 +103,6 @@ private:
         noiseData.resize(width * height * depth);
         float frequency = 0.05f;
         for (int z = 0; z < depth; ++z) {
-            std::cout << z << std::endl;
             for (int y = 0; y < height; ++y) {
                 for (int x = 0; x < width; ++x) {
                     float xf = x * frequency;

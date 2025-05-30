@@ -8,8 +8,11 @@ Space::Space()
 	glm::vec3 cameraDir(1.f, 0.f, 0.f);
 	camera = new Camera(cameraDir);
 
+	water_surface = new WaterSurface(glm::vec3(5.f, -10.f, 5.f), 20.f, 20.f);
+	// sun = new Sun(glm::vec3(1.f, 0.0f, 0.0f));
+
 	// voxel stuff -> in progress 
-	vox = new VoxelStructure(10, 25, 7, glm::ivec3(1, 1, 1), 1, 0.5f);
+	vox = new VoxelStructure(10, 25, 7, glm::vec3(-20, 1, 1), 1, 0.5f);
 	vox->setVoxelValue(2, 2, 2, 3);
 	std::cout << vox->getVoxelValue(2, 2, 2) << std::endl;
 	std::cout << vox->getVoxelValue(2, 2, 3) << std::endl;
@@ -41,8 +44,13 @@ void Space::tick(float delta, ButtonMap bm)
 void Space::renderWorld(float delta)
 {
 	glm::mat4 view_matrix = camera->get_view_matrix();
+	glm::vec3 cam_pos = camera->get_position();
 
 	skybox->draw(proj, camera);
+
+	// sun->render(camera, proj);
+
+	water_surface->render(proj, view_matrix, cam_pos);
 
 	for (WorldObject* o : wObjects)
 	{
@@ -51,7 +59,7 @@ void Space::renderWorld(float delta)
 	}
 
 	// raymarcher
-	glm::vec3 cam_pos = camera->get_position();
+	
 	// std::cout << "x y z : " << cam_pos.x << " " << cam_pos.y << " " << cam_pos.z << std::endl;
 
 	// voxel stuff

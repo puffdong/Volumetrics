@@ -55,8 +55,10 @@ void Raymarcher::render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 p
 
     ray_scene->upload_primitives_to_gpu(shader);
 
-    GLCall(glDisable(GL_DEPTH_TEST));
+    // GLCall(glDisable(GL_DEPTH_TEST));
+    glDepthMask(GL_FALSE); 
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    GLCall(glEnable(GL_DEPTH_TEST));
+    glDepthMask(GL_TRUE); 
+    // GLCall(glEnable(GL_DEPTH_TEST));
 }

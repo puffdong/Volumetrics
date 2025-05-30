@@ -20,6 +20,7 @@ void WorldObject::tick(float deltaTIme) {
 }
 
 void WorldObject::draw(glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 modelMatrix) {
+	shader->HotReloadIfChanged();
 	shader->Bind();
 	shader->SetUniformMat4("u_MVP", projMatrix * worldMatrix * modelMatrix);
 	shader->SetUniformMat4("modelMatrix", modelMatrix);

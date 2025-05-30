@@ -59,12 +59,6 @@ float sdfSphere(vec3 position, vec3 center, float radius) {
     return length(position - center) - radius;
 };
 
-float sdfBox( vec3 p, vec3 b )
-{
-  vec3 q = abs(p) - b;
-  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
-};
-
 float sdfTorus(vec3 p, vec2 t)
 {   
     return length(vec2(length(p.xz)-t.x, p.y) ) - t.y;
@@ -81,23 +75,6 @@ float sceneSDF(vec3 position) {
     }
 
     return tmp;
-};
-
-// Raymarching function to calculate the distance to the nearest surface
-float rayMarch(vec3 rayOrigin, vec3 rayDirection) {
-    float distance = 0.0;
-    for (int i = 0; i < MAX_STEPS; i++) {
-        vec3 currentPosition = rayOrigin + rayDirection * distance;
-        float distToScene = sceneSDF(currentPosition);
-        if (distToScene < MIN_DIST) {
-            return distance;
-        }
-        distance += distToScene;
-        if (distance > MAX_DIST) {
-            break;
-        }
-    }
-    return MAX_DIST;
 };
 
 // Shading function to calculate color based on the distance to the scene
@@ -150,22 +127,6 @@ vec4 volumetric_march(vec3 origin, vec3 dir) {
 
     return result;
 };
-
-vec4 render(vec3 rayOrigin, vec3 rayDirection) {
-    float distance = rayMarch(rayOrigin, rayDirection);
-    if (distance < MAX_DIST) {
-        vec3 hitPoint = rayOrigin + rayDirection * distance;
-        float noise = texture(noise_texture, hitPoint * 0.1).x;
-
-        vec3 normal = getNormal(hitPoint);
-        float lightIntensity = dot(normal, normalize(vec3(1.0, 1.0, 1.0))) * 0.5 + 0.5;
-        vec4 result = vec4(1.0 * lightIntensity, 0.5 * lightIntensity, 0.2 * lightIntensity, 1.0);
-        return result * noise; // Orange-ish color with diffuse lighting
-    }
-    return vec4(0.0); // Background color (black)
-};
-
-
 
 void main() {
 

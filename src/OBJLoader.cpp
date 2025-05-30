@@ -416,17 +416,21 @@ void ModelObject::createFlatGround(float width, float depth, int numRows, int nu
 
             // Add positions, normals, and texture coordinates for each vertex of the quad
             vertices.insert(vertices.end(), {
-                x, 0.0f, z,          0.0f, 1.0f, 0.0f,      static_cast<float>(col) / numCols, static_cast<float>(row) / numRows,
-                x + quadWidth, 0.0f, z,          0.0f, 1.0f, 0.0f,      static_cast<float>(col + 1) / numCols, static_cast<float>(row) / numRows,
-                x + quadWidth, 0.0f, z + quadDepth, 0.0f, 1.0f, 0.0f,      static_cast<float>(col + 1) / numCols, static_cast<float>(row + 1) / numRows,
-                x, 0.0f, z + quadDepth, 0.0f, 1.0f, 0.0f,      static_cast<float>(col) / numCols, static_cast<float>(row + 1) / numRows
+                // Vertex 0 (top-left of quad)
+                x, 0.0f, z,                             0.0f, 1.0f, 0.0f,      static_cast<float>(col) / numCols, static_cast<float>(row) / numRows,
+                // Vertex 1 (top-right of quad)
+                x + quadWidth, 0.0f, z,                 0.0f, 1.0f, 0.0f,      static_cast<float>(col + 1) / numCols, static_cast<float>(row) / numRows,
+                // Vertex 2 (bottom-right of quad)
+                x + quadWidth, 0.0f, z + quadDepth,    0.0f, 1.0f, 0.0f,      static_cast<float>(col + 1) / numCols, static_cast<float>(row + 1) / numRows,
+                // Vertex 3 (bottom-left of quad)
+                x, 0.0f, z + quadDepth,                 0.0f, 1.0f, 0.0f,      static_cast<float>(col) / numCols, static_cast<float>(row + 1) / numRows
                 });
 
             // Add indices for the quad
             unsigned int baseIndex = (row * numCols + col) * 4;
             indices.insert(indices.end(), {
-                baseIndex, baseIndex + 1, baseIndex + 2,
-                baseIndex + 2, baseIndex + 3, baseIndex
+                baseIndex + 0, baseIndex + 3, baseIndex + 2, // Triangle 1 (v0, v3, v2) - CCW
+                baseIndex + 0, baseIndex + 2, baseIndex + 1  // Triangle 2 (v0, v2, v1) - CCW
                 });
         }
     }
@@ -459,5 +463,8 @@ void ModelObject::createFlatGround(float width, float depth, int numRows, int nu
     m_VAO = VAO;
     m_VBO = VBO;
     m_EBO = EBO;
+    
+    // std::cout << m_VAO << " " << m_VBO << " " << m_EBO << std::endl; // This line was present in the original
+
     m_indexCount = static_cast<GLsizei>(indices.size());
 }

@@ -157,9 +157,9 @@ void Shader::HotReloadIfChanged()
         m_RendererID = newID;
         m_UniformLocationCache.clear();          // locations changed!
         m_LastWriteTime = now;
-        std::cout << "[shader] hot‑reloaded " << m_FilePath << '\n';
+        std::cout << "[shader] hot-reloaded " << m_FilePath << '\n';
     } else {
-        std::cout << "[shader] reload failed – keeping old program\n";
+        std::cout << "[shader] reload failed! keeping old program\n";
     }
 }
 

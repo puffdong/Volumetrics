@@ -206,28 +206,18 @@ int main(void)
 
 
     GLCall(glViewport(0, 0, 1600, 900));
-    GLCall(glClearColor(0.1f, 0.1f, 0.8f, 1.0f)); // Set background to a dark gray
+    // GLCall(glClearDepth(1.0f));
+    GLCall(glDepthFunc(GL_LESS));
+    GLCall(glClearColor(0.3f, 0.3f, 0.3f, 1.0f)); // Set background to a dark gray
 
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     GLCall(glEnable(GL_DEPTH_TEST));
     glEnable(GL_CULL_FACE);
-
-    Renderer renderer;
-
-    Texture texture("C:/Dev/OpenGL/Volumetrics/res/textures/grass.tga");
-    texture.Bind();
-    texture.Unbind();
+    glCullFace(GL_BACK);
 
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-
-    // std::cout << "Generating perlin noise" << std::endl;
-
-    // GLuint perlin2d = generatePerlin2D();
-    // GLuint perlin3d = generatePerlin3D();
-    // save_perlin();
-    // std::cout << "Finished generating perlin noise" << std::endl;
 
     space = new Space();
 
@@ -236,12 +226,13 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
+        
+        GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)); // clear yuh
 
         float currentTime = glfwGetTime();
         float deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
-        renderer.Clear();
 
         space->tick(deltaTime, bm);
         space->renderWorld(deltaTime);
