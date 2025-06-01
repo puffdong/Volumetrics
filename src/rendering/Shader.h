@@ -32,7 +32,7 @@ public:
 	void SetUniform4f(const std::string& name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 	void SetUniform4fv(const std::string& name, std::vector<glm::vec4> inVector);
 	void SetUniform3fv(const std::string& name, std::vector<glm::vec3> inVector);
-	void SetUniform2fv(const std::string& name, std::vector<glm::vec2> inVector); 
+	void SetUniform2fv(const std::string& name, std::vector<glm::vec2> inVector);
 	void SetUniform1fv(const std::string& name, std::vector<float> inVector);
 	void SetUniform1i(const std::string& name, GLint i);
 	void SetUniform1iv(const std::string& name, std::vector<int> inVector);

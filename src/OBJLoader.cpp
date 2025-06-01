@@ -463,7 +463,7 @@ void ModelObject::createFlatGround(float width, float depth, int numRows, int nu
     m_VAO = VAO;
     m_VBO = VBO;
     m_EBO = EBO;
-    
+
     // std::cout << m_VAO << " " << m_VBO << " " << m_EBO << std::endl; // This line was present in the original
 
     m_indexCount = static_cast<GLsizei>(indices.size());

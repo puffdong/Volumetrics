@@ -2,13 +2,13 @@
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     : position(position),
-      worldUp(up),
-      yaw(yaw),
-      pitch(pitch),
-      front(glm::vec3(0.0f, 0.0f, -1.0f)),
-      movement_speed(5.0f),
-      rotation_speed(50.0f),
-      mouse_sensitivity(0.1f)
+    worldUp(up),
+    yaw(yaw),
+    pitch(pitch),
+    front(glm::vec3(0.0f, 0.0f, -1.0f)),
+    movement_speed(5.0f),
+    rotation_speed(50.0f),
+    mouse_sensitivity(0.1f)
 {
     update_camera_vectors();
 }
@@ -32,7 +32,7 @@ glm::mat4 Camera::get_view_matrix()
 }
 
 glm::vec3 Camera::get_position() {
-	return position;
+    return position;
 }
 
 void Camera::process_keyboard(const ButtonMap& bm, float deltaTime)
@@ -81,7 +81,7 @@ void Camera::process_mouse(float xOffset, float yOffset, bool constrainPitch)
     xOffset *= mouse_sensitivity;
     yOffset *= mouse_sensitivity;
 
-    yaw   += xOffset;
+    yaw += xOffset;
     pitch += yOffset;
 
     if (constrainPitch)

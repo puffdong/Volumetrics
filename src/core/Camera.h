@@ -21,12 +21,12 @@ public:
     float mouse_sensitivity;
 
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
-           glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-           float yaw = -90.0f,
-           float pitch = 0.0f);
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+        float yaw = -90.0f,
+        float pitch = 0.0f);
 
     glm::mat4 get_view_matrix();
-	glm::vec3 get_position();
+    glm::vec3 get_position();
     void process_mouse(float xOffset, float yOffset, bool constrainPitch = true);
 
     // Updates camera based on input

@@ -8,12 +8,11 @@
 
 #include "Camera.h"
 #include "WorldObject.h"
-#include "../feature/Skybox.h"
 
+#include "../feature/Skybox.h"
 #include "../feature/Volumetrics/VoxelStructure.h"
 #include "../feature/raymarcher/raymarcher.hpp"
 #include "../feature/raymarcher/rayscene.hpp"
-
 #include "../feature/water/WaterSurface.hpp"
 
 #include "../utils/ButtonMap.h"
@@ -23,15 +22,15 @@
 
 class Space {
 private:
-	std::vector<WorldObject*> wObjects; 
+	std::vector<WorldObject*> wObjects;
 	Skybox* skybox;
 
 	float fov = 70.f;
 	float near = 1.0f;
-	float far =  256.0f;
+	float far = 256.0f;
 	glm::mat4 proj = glm::perspective(glm::radians(70.f), 16.f / 9.0f, 1.0f, 256.0f);
 
-	
+
 
 	Camera* camera;
 

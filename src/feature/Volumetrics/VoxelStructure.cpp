@@ -38,7 +38,7 @@ int VoxelStructure::getVoxelValue(int x, int y, int z) {
 
 glm::vec3 VoxelStructure::getVoxelToWorldSpace(int x, int y, int z) {
 	glm::vec3 voxelPos = glm::vec3(x, y, z) * cellSize - position;
-	
+
 	return voxelPos;
 }
 
@@ -58,7 +58,7 @@ void VoxelStructure::drawVoxels(glm::mat4 projMatrix, glm::mat4 viewMatrix) {
 				shader->SetUniformMat4("model", getModelMatrix(h, d, w));
 				voxelCube->render();
 			}
-		} 
+		}
 	}
 }
 

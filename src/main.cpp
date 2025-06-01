@@ -32,18 +32,18 @@ static float lastX = 800.0f;
 static float lastY = 450.0f;
 
 void mouse_callback(GLFWwindow*, double xpos, double ypos)
-{   
+{
     if (mouse_active) {
         if (firstMouse) {
-            lastX = (float) xpos;
-            lastY = (float) ypos;
+            lastX = (float)xpos;
+            lastY = (float)ypos;
             firstMouse = false;
         }
 
-        float xoffset = (float) xpos - lastX;
-        float yoffset = lastY - (float) ypos;   // y‑axis is inverted
-        lastX = (float) xpos;
-        lastY = (float) ypos;
+        float xoffset = (float)xpos - lastX;
+        float yoffset = lastY - (float)ypos;   // y‑axis is inverted
+        lastX = (float)xpos;
+        lastY = (float)ypos;
 
         space->get_camera()->process_mouse(xoffset, yoffset);
     }
@@ -190,14 +190,14 @@ int main(void)
     glfwMakeContextCurrent(window);
 
     glfwSwapInterval(1); // sync with refresh rate
-    
+
     glfwSetKeyCallback(window, key_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide cursor and take control of it
     glfwSetCursorPosCallback(window, mouse_callback);              // set the cursor callback
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
     // glfwSetCursorPosCallback(window, cursor_position_callback);
-    
+
     glewExperimental = GL_TRUE;
 
     if (glewInit() != GLEW_OK) {
@@ -226,7 +226,7 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        
+
         GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)); // clear yuh
 
         float currentTime = glfwGetTime();

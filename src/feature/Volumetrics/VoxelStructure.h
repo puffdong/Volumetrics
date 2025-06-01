@@ -12,7 +12,7 @@ private:
 	int height;
 	int width;
 	int depth;
-	
+
 	glm::vec3 position; // Where it is placed in WorldSpace
 
 	std::vector<int> voxels;
@@ -21,7 +21,7 @@ private:
 
 	Shader* shader; // the debugging voxel viewqa
 	ModelObject* voxelCube; // used for representing a voxel
-	GLuint instanceVBO; 
+	GLuint instanceVBO;
 
 public:
 	VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue, float cellSize);

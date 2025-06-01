@@ -11,7 +11,7 @@ Shader::Shader(const std::string& filepath) : m_FilePath(filepath), m_RendererID
 {
     ShaderProgramSource source = ParseShader(filepath);
     m_RendererID = CreateShader(source.VertexSource, source.FragmentSource);
-    m_LastWriteTime      = std::filesystem::last_write_time(filepath);
+    m_LastWriteTime = std::filesystem::last_write_time(filepath);
     std::cout << "Compiled shader: " << filepath << std::endl;
 }
 
@@ -150,7 +150,7 @@ void Shader::HotReloadIfChanged()
     if (now == m_LastWriteTime) return;          // nothing changed
 
     ShaderProgramSource s = ParseShader(m_FilePath);
-    unsigned int newID    = CreateShader(s.VertexSource, s.FragmentSource);
+    unsigned int newID = CreateShader(s.VertexSource, s.FragmentSource);
 
     if (newID) {                                 // re‑compile succeeded
         glDeleteProgram(m_RendererID);
@@ -158,7 +158,8 @@ void Shader::HotReloadIfChanged()
         m_UniformLocationCache.clear();          // locations changed!
         m_LastWriteTime = now;
         std::cout << "[shader] hot-reloaded " << m_FilePath << '\n';
-    } else {
+    }
+    else {
         std::cout << "[shader] reload failed! keeping old program\n";
     }
 }

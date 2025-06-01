@@ -7,14 +7,14 @@ Raymarcher::Raymarcher(RayScene* scene)
     : quadVAO(0), quadVBO(0), ray_scene(scene)
 {
     shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/raymarching/raymarcher.shader");
-    
+
     float quadVertices[] = { // draw something on the entirety of the screen :)
     -1.0f, -1.0f, 0.0f,
      1.0f, -1.0f, 0.0f,
      1.0f,  1.0f, 0.0f,
     -1.0f,  1.0f, 0.0f
     };
-    
+
     GLCall(glGenVertexArrays(1, &quadVAO));
     GLCall(glGenBuffers(1, &quadVBO));
     GLCall(glBindVertexArray(quadVAO));
@@ -32,7 +32,7 @@ Raymarcher::Raymarcher(RayScene* scene)
     perlin3d = textureID3D;
     std::cout << "Finished generating perlin noise" << std::endl;
 
-    std::cout << "Raymarcher engaged! VAO: " << quadVAO << " VBO: "<< quadVBO << std::endl;
+    std::cout << "Raymarcher engaged! VAO: " << quadVAO << " VBO: " << quadVBO << std::endl;
 }
 
 
@@ -40,7 +40,7 @@ void Raymarcher::render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 p
     time += delta;
 
     glm::mat4 invprojview = glm::inverse(projMatrix * view_matrix);
-    
+
     shader->HotReloadIfChanged();
     shader->Bind();
     shader->SetUniform1f("time", time);
@@ -50,15 +50,15 @@ void Raymarcher::render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 p
     shader->SetUniformMat4("invprojview", invprojview);
 
     GLCall(glActiveTexture(GL_TEXTURE0));
-	GLCall(glBindTexture(GL_TEXTURE_3D, perlin3d));
+    GLCall(glBindTexture(GL_TEXTURE_3D, perlin3d));
     shader->SetUniform1i("noise_texture", 0);
 
     ray_scene->upload_primitives_to_gpu(shader);
 
     // GLCall(glDisable(GL_DEPTH_TEST));
-    glDepthMask(GL_FALSE); 
+    glDepthMask(GL_FALSE);
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glDepthMask(GL_TRUE); 
+    glDepthMask(GL_TRUE);
     // GLCall(glEnable(GL_DEPTH_TEST));
 }

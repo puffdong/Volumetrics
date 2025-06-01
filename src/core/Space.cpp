@@ -16,18 +16,18 @@ Space::Space()
 	vox->setVoxelValue(2, 2, 2, 3);
 	std::cout << vox->getVoxelValue(2, 2, 2) << std::endl;
 	std::cout << vox->getVoxelValue(2, 2, 3) << std::endl;
-	
+
 	// raymarcher
 	ray_scene = new RayScene(glm::vec3(0.0, 0.0, 0.0));
 	raymarcher = new Raymarcher(ray_scene);
 	sphere1 = ray_scene->add_sphere(glm::vec3(10.0f, 0.0f, 0.0f), 5.0f, glm::vec4(1.0, 0.4, 0.1, 0.8));
-    sphere2 = ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.4, 0.1, 0.8));
+	sphere2 = ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.4, 0.1, 0.8));
 
 	loadLevel1();
 }
 
 void Space::tick(float delta, ButtonMap bm)
-{	
+{
 	time += delta;
 
 	camera->tick(delta, bm);
@@ -59,7 +59,7 @@ void Space::renderWorld(float delta)
 	}
 
 	// raymarcher
-	
+
 	// std::cout << "x y z : " << cam_pos.x << " " << cam_pos.y << " " << cam_pos.z << std::endl;
 
 	// voxel stuff
@@ -67,12 +67,12 @@ void Space::renderWorld(float delta)
 
 	raymarcher->render(cam_pos, view_matrix, proj, delta, near, far);
 
-	
+
 }
 
-void Space::change_fov(double xoffset, double yoffset) { 
-	fov -= (float) yoffset;
-	proj = glm::perspective(glm::radians(fov), 16.f / 9.0f, 1.0f, 256.0f); 
+void Space::change_fov(double xoffset, double yoffset) {
+	fov -= (float)yoffset;
+	proj = glm::perspective(glm::radians(fov), 16.f / 9.0f, 1.0f, 256.0f);
 }
 
 void Space::loadLevel1()
