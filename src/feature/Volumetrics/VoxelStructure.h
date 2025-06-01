@@ -4,7 +4,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
 #include "../../OBJLoader.h"
-#include "../../Shader.h" 
+#include "../../rendering/Shader.h" 
 
 class VoxelStructure {
 private:

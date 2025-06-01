@@ -10,18 +10,18 @@
 #include <filesystem>
 
 
-#include "Renderer.h"
-#include "Shader.h"
-#include "Texture.h"
+#include "./rendering/Renderer.h"
+#include "./rendering/Shader.h"
+#include "./rendering/Texture.h"
 
 
-#include "VoxelPlayground/Space.h"
+#include "core/Space.h"
 
-#include "VoxelPlayground/Camera.h"
+#include "core/Camera.h"
 
-// Utils
-#include "Utils/ButtonMap.h"
-#include "Utils/perlin_noise_generator.hpp"
+// utils
+#include "utils/ButtonMap.h"
+#include "utils/perlin_noise_generator.hpp"
 
 ButtonMap bm;
 Space* space;

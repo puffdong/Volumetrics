@@ -32,11 +32,11 @@ void Space::tick(float delta, ButtonMap bm)
 
 	camera->tick(delta, bm);
 
-	// sphere1->pos.x = 13 * sin(time * 0.1);
-	// sphere1->pos.z = 13 * cos(time * 0.1);
+	// sphere1->pos.x = 13 * sin(time * 0.1f);
+	// sphere1->pos.z = 13 * cos(time * 0.1f);
 
-	sphere2->pos.x = 7 * sin(-time * 0.15);
-	sphere2->pos.z = 7 * cos(-time * 0.15);
+	sphere2->pos.x = 7 * sin(-time * 0.15f);
+	sphere2->pos.z = 7 * cos(-time * 0.15f);
 
 
 }

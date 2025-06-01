@@ -1,24 +1,23 @@
 #pragma once
 
 #include "../OBJLoader.h"
-#include "../Texture.h"
+#include "../rendering/Texture.h"
 
 #include "glm/glm.hpp"
 #include <vector>
 
 #include "Camera.h"
 #include "WorldObject.h"
-#include "Skybox.h"
+#include "../feature/Skybox.h"
 
-#include "Volumetrics/VoxelStructure.h"
-#include "raymarcher/raymarcher.hpp"
-#include "raymarcher/rayscene.hpp"
+#include "../feature/Volumetrics/VoxelStructure.h"
+#include "../feature/raymarcher/raymarcher.hpp"
+#include "../feature/raymarcher/rayscene.hpp"
 
-#include "water/WaterSurface.hpp"
-// #include "doohickeys/Sun.hpp"
+#include "../feature/water/WaterSurface.hpp"
 
-#include "../Utils/ButtonMap.h"
-#include "../Utils/LightSource.h"
+#include "../utils/ButtonMap.h"
+#include "../utils/LightSource.h"
 
 #include <iostream>
 

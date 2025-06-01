@@ -1,8 +1,8 @@
 #pragma once
 #include "../OBJLoader.h"
-#include "../Shader.h"
-#include "../Texture.h"
-#include "Camera.h"
+#include "../rendering/Shader.h"
+#include "../rendering/Texture.h"
+#include "../core/Camera.h"
 
 struct Skybox {
 	ModelObject* model;

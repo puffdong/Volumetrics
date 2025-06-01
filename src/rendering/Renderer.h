@@ -1,11 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
-
-
 #include "Shader.h"
-
-#include "OBJLoader.h"
 
 // Error handling
 #define ASSERT(x) if (!(x)) __debugbreak();

@@ -1,5 +1,5 @@
 #include "WaterSurface.hpp"
-#include "../../Renderer.h"
+#include "../../rendering/Renderer.h"
 #include <iostream>
 
 WaterSurface::WaterSurface(glm::vec3 position, float height, float width) 

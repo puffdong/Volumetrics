@@ -1,6 +1,6 @@
 #include "VoxelStructure.h"
 
-#include "../../Renderer.h"
+#include "../../rendering/Renderer.h"
 
 VoxelStructure::VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue, float cellSize)
 	: height(h), width(w), depth(d), position(pos), cellSize(cellSize)

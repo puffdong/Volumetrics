@@ -3,9 +3,9 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
-#include "../../Utils/perlin_noise_generator.hpp"
+#include "../../utils/perlin_noise_generator.hpp"
 #include "../../OBJLoader.h"
-#include "../../Shader.h" 
+#include "../../rendering/Shader.h" 
 #include "rayscene.hpp"
 
 class Raymarcher {

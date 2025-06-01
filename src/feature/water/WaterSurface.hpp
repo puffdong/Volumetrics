@@ -2,9 +2,9 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
-#include "../../Shader.h"
+#include "../../rendering/Shader.h"
 #include "../../OBJLoader.h"
-#include "../../Utils/ButtonMap.h"
+#include "../../utils/ButtonMap.h"
 
 class WaterSurface {
 private:
