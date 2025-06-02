@@ -70,7 +70,7 @@ void main()
 		result_color = result_color + lightColor * spec * specularStrength ;
 	}
 
-	color = texture(u_Texture, v_texCoord * textureScale) * vec4(result_color, 0.5);
+	color = texture(u_Texture, v_texCoord * textureScale) * vec4(result_color, 1.0);
 	//color = texture(u_Texture, v_texCoord * 100) * vec4(result_color, 1.0);
 	//color = vec4(result_color, 1.0);
 };
