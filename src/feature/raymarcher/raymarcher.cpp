@@ -6,7 +6,7 @@
 Raymarcher::Raymarcher(RayScene* scene)
     : quadVAO(0), quadVBO(0), ray_scene(scene)
 {
-    shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/raymarching/raymarcher.shader");
+    shader = new Shader("C:/Dev/OpenGL/volumetrics/res/shaders/raymarching/raymarcher.shader");
 
     float quadVertices[] = { // draw something on the entirety of the screen :)
     -1.0f, -1.0f, 0.0f,

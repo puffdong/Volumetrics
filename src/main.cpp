@@ -163,7 +163,7 @@ GLuint generatePerlin2D() {
 // }
 
 void save_perlin() {
-    PerlinNoiseTexture perlinTexture2D(512, 512, "C:/Dev/OpenGL/Volumetrics/testing/test.ppm");
+    PerlinNoiseTexture perlinTexture2D(512, 512, "C:/Dev/OpenGL/volumetrics/testing/test.ppm");
 }
 
 int main(void)
@@ -179,7 +179,7 @@ int main(void)
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1600, 900, "Volumetrics", NULL, NULL);
+    window = glfwCreateWindow(1600, 900, "volumetrics", NULL, NULL);
     if (!window)
     {
         std::cout << "umm glfw didnt work" << std::endl;
@@ -189,7 +189,9 @@ int main(void)
 
     glfwMakeContextCurrent(window);
 
+    
     glfwSwapInterval(1); // sync with refresh rate
+
 
     glfwSetKeyCallback(window, key_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide cursor and take control of it

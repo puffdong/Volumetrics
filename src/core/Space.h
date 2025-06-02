@@ -10,15 +10,13 @@
 #include "WorldObject.h"
 
 #include "../feature/Skybox.h"
-#include "../feature/Volumetrics/VoxelStructure.h"
+#include "../feature/volumetrics/VoxelStructure.h"
 #include "../feature/raymarcher/raymarcher.hpp"
 #include "../feature/raymarcher/rayscene.hpp"
 #include "../feature/water/WaterSurface.hpp"
 
 #include "../utils/ButtonMap.h"
 #include "../utils/LightSource.h"
-
-#include <iostream>
 
 class Space {
 private:
@@ -29,8 +27,6 @@ private:
 	float near = 1.0f;
 	float far = 256.0f;
 	glm::mat4 proj = glm::perspective(glm::radians(70.f), 16.f / 9.0f, 1.0f, 256.0f);
-
-
 
 	Camera* camera;
 
