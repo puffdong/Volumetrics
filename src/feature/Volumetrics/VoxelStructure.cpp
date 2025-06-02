@@ -5,8 +5,8 @@
 VoxelStructure::VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue, float cellSize)
 	: height(h), width(w), depth(d), position(pos), cellSize(cellSize)
 {
-	shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/VoxelShaders/VoxelDebug.shader");
-	voxelCube = new ModelObject("/Users/puff/Developer/graphics/Volumetrics/res/models/VoxelModels/defaultCube.obj");
+	shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/VoxelShaders/VoxelDebug.shader");
+	voxelCube = new ModelObject("C:/Dev/OpenGL/Volumetrics/res/models/VoxelModels/defaultCube.obj");
 
 	voxels.resize(height * width * depth);
 	length = height * width * depth;

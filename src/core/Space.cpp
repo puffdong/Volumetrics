@@ -89,14 +89,14 @@ void Space::update_projection_matrix_aspect_ratio(float aspectRatio) {
 void Space::loadLevel1()
 {
 	skybox = new Skybox(
-		std::string("/Users/puff/Developer/graphics/Volumetrics/res/models/skybox-full-tweaked.obj"),
-		std::string("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Skybox.shader"),
-		std::string("/Users/puff/Developer/graphics/Volumetrics/res/textures/skybox/cloud-landscape.tga")
+		std::string("C:/Dev/OpenGL/Volumetrics/res/models/skybox-full-tweaked.obj"),
+		std::string("C:/Dev/OpenGL/Volumetrics/res/shaders/Skybox.shader"),
+		std::string("C:/Dev/OpenGL/Volumetrics/res/textures/skybox/cloud-landscape.tga")
 	);
 
 
 	// Setup shader with lighting
-	Shader* worldShader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/WorldObject.shader");
+	Shader* worldShader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/WorldObject.shader");
 	LightSource newLightSources[] = {
 				LightSource(glm::vec3(1.f, 1.f, 1.f), glm::vec3(1.f, 1.f, 0.f), true)
 	};
@@ -117,7 +117,7 @@ void Space::loadLevel1()
 	worldShader->SetUniform1iv("isDirectional", isDirectional);
 
 	// load all the world objects and set up the world
-	WorldObject* teapotObject = new WorldObject(worldShader, "/Users/puff/Developer/graphics/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 0.f), glm::vec3(0.f));
+	WorldObject* teapotObject = new WorldObject(worldShader, "C:/Dev/OpenGL/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 0.f), glm::vec3(0.f));
 	wObjects.push_back(teapotObject);
 }
 
