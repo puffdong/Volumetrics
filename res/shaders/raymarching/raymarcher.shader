@@ -18,9 +18,8 @@ void main() {
     ray = (invprojview * vec4(pos * (far_plane - near_plane), far_plane + near_plane, far_plane - near_plane)).xyz;
 
     // equivalent calculation:
-    // ray = (invprojview * (vec4(pos, 1.0, 1.0) * far - vec4(pos, -1.0, 1.0) * near)).xyz
+    // ray = (invprojview * (vec4(pos, 1.0, 1.0) * far_plane - vec4(pos, -1.0, 1.0) * near_plane)).xyz;
 }
-
 #shader fragment
 #version 330 core
 
@@ -50,19 +49,19 @@ float smin( float a, float b, float k )
     k *= 1.0;
     float r = exp2(-a/k) + exp2(-b/k);
     return -k*log2(r);
-};
+}
 
 // Signed Distance Function for a sphere
 float sdfSphere(vec3 position, vec3 center, float radius) {
     // center.x = center.x + 5 * sin(time);
 
     return length(position - center) - radius;
-};
+}
 
 float sdfTorus(vec3 p, vec2 t)
 {   
     return length(vec2(length(p.xz)-t.x, p.y) ) - t.y;
-};
+}
 
 // Scene function - add more SDFs here to create complex scenes
 float sceneSDF(vec3 position) {
@@ -75,7 +74,7 @@ float sceneSDF(vec3 position) {
     }
 
     return tmp;
-};
+}
 
 // Shading function to calculate color based on the distance to the scene
 vec3 getNormal(vec3 position) {
@@ -84,12 +83,13 @@ vec3 getNormal(vec3 position) {
     float dy = sceneSDF(position + vec3(epsilon.y, epsilon.x, epsilon.y)) - sceneSDF(position - vec3(epsilon.y, epsilon.x, epsilon.y));
     float dz = sceneSDF(position + vec3(epsilon.y, epsilon.y, epsilon.x)) - sceneSDF(position - vec3(epsilon.y, epsilon.y, epsilon.x));
     return normalize(vec3(dx, dy, dz));
-};
+}
 
 vec4 volumetric_march(vec3 origin, vec3 dir) {
     float distance = 0.0;
     float collected_noise;
     bool first_hit = true;
+    bool hit_something = false;
     vec3 hit_point;
 
     for (int i = 0; i < MAX_STEPS; i++) {
@@ -98,8 +98,9 @@ vec4 volumetric_march(vec3 origin, vec3 dir) {
         
         if (distToScene < MIN_DIST) { // we are inside, aka "smoke"
             if (first_hit) {
+                hit_something = true;
                 first_hit = false;
-                pos = hit_point;
+                hit_point = pos;
             }
 
             collected_noise += texture(noise_texture, pos * 0.1).x * 0.019;
@@ -119,14 +120,17 @@ vec4 volumetric_march(vec3 origin, vec3 dir) {
             break;
         }
     }
+    vec4 result = vec4(0.0);
 
-    vec3 normal = getNormal(hit_point);
-    float lightIntensity = dot(normal, normalize(vec3(1.0, 1.0, 1.0))) * 0.5 + 0.5;
-    vec4 result = vec4(1.0 * lightIntensity, 0.5 * lightIntensity, 0.2 * lightIntensity, collected_noise);
+    if (hit_something) {
+        vec3 normal = getNormal(hit_point);
+        float lightIntensity = dot(normal, normalize(vec3(1.0, 1.0, 1.0))) * 0.5 + 0.5;
+        result = vec4(1.0 * lightIntensity, 0.5 * lightIntensity, 0.2 * lightIntensity, 1.0);
+    }
     // vec4 result = vec4(1.0, 0.5, 0.2, collected_noise);
 
     return result;
-};
+}
 
 void main() {
 
@@ -135,4 +139,4 @@ void main() {
     vec4 result = volumetric_march(origin, rayDir);
 
     color = result;
-};
+}

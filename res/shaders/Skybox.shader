@@ -12,7 +12,7 @@ void main()
 {
 	v_texCoord = aTexCoord;
 	gl_Position = u_MVP * vec4(aPos, 1.0f);
-};
+}
 
 #shader fragment
 #version 330 core
@@ -26,4 +26,4 @@ uniform sampler2D u_Texture;
 void main()
 {
 	color = texture(u_Texture, v_texCoord) * vec4(1.0, 1.0, 1.0, 1.0);
-};
+}

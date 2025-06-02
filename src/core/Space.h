@@ -26,7 +26,8 @@ private:
 	float fov = 70.f;
 	float near = 1.0f;
 	float far = 256.0f;
-	glm::mat4 proj = glm::perspective(glm::radians(70.f), 16.f / 9.0f, 1.0f, 256.0f);
+	float aspect_ratio = 16.f / 9.0f;
+	glm::mat4 proj;
 
 	Camera* camera;
 
@@ -48,8 +49,9 @@ public:
 	void tick(float delta, ButtonMap bm);
 
 	void renderWorld(float delta);
-	Camera* Space::get_camera() { return camera; }   // where `camera` is your member
-	void change_fov(double xoffset, double yoffset);
+	Camera* get_camera();
+	void change_fov(double xoffset, double yoffset); 
+	void update_projection_matrix_aspect_ratio(float aspectRatio);
 
 
 private:

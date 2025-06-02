@@ -34,7 +34,7 @@ void main()
     //gl_Position = proj * view * model * vec4(aPos, 1.0);
     gl_Position = proj * view * model * vec4(aPos, 1.0);
 
-};
+}
 
 #shader fragment
 #version 330 core
@@ -84,4 +84,4 @@ void main()
         icolor = vec3(0.2, 0.2, 0.2); // In shadow
 
     color = vec4(icolor, 1.0) * texture(u_Texture, v_texCoord);
-};
+}

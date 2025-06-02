@@ -1,5 +1,5 @@
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "OBJloader.h"
+#include "OBJLoader.h"
 #include "./rendering/Renderer.h"
 #include "tiny_obj_loader.h"
 #include <iostream>

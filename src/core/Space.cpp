@@ -4,7 +4,8 @@
 Space::Space()
 {
 	// player->setPosition(playerStartPos);
-
+	proj = glm::perspective(glm::radians(70.f), aspect_ratio, 1.0f, 256.0f);
+	
 	glm::vec3 cameraDir(1.f, 0.f, 0.f);
 	camera = new Camera(cameraDir);
 
@@ -72,20 +73,30 @@ void Space::renderWorld(float delta)
 
 void Space::change_fov(double xoffset, double yoffset) {
 	fov -= (float)yoffset;
-	proj = glm::perspective(glm::radians(fov), 16.f / 9.0f, 1.0f, 256.0f);
+	proj = glm::perspective(glm::radians(fov), aspect_ratio, near, far);
 }
+
+void Space::update_projection_matrix_aspect_ratio(float aspectRatio) {
+    if (aspectRatio <= 0) {
+		aspectRatio = 16.f / 9.f;
+	} else {
+		aspect_ratio = aspectRatio;
+	}
+    change_fov(0.0, 0.0);
+}
+
 
 void Space::loadLevel1()
 {
 	skybox = new Skybox(
-		std::string("C:/Dev/OpenGL/volumetrics/res/models/skybox-full-tweaked.obj"),
-		std::string("C:/Dev/OpenGL/volumetrics/res/shaders/Skybox.shader"),
-		std::string("C:/Dev/OpenGL/volumetrics/res/textures/skybox/cloud-landscape.tga")
+		std::string("/Users/puff/Developer/graphics/Volumetrics/res/models/skybox-full-tweaked.obj"),
+		std::string("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Skybox.shader"),
+		std::string("/Users/puff/Developer/graphics/Volumetrics/res/textures/skybox/cloud-landscape.tga")
 	);
 
 
 	// Setup shader with lighting
-	Shader* worldShader = new Shader("C:/Dev/OpenGL/volumetrics/res/shaders/WorldObject.shader");
+	Shader* worldShader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/WorldObject.shader");
 	LightSource newLightSources[] = {
 				LightSource(glm::vec3(1.f, 1.f, 1.f), glm::vec3(1.f, 1.f, 0.f), true)
 	};
@@ -106,9 +117,13 @@ void Space::loadLevel1()
 	worldShader->SetUniform1iv("isDirectional", isDirectional);
 
 	// load all the world objects and set up the world
-	WorldObject* teapotObject = new WorldObject(worldShader, "C:/Dev/OpenGL/volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 0.f), glm::vec3(0.f));
+	WorldObject* teapotObject = new WorldObject(worldShader, "/Users/puff/Developer/graphics/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 0.f), glm::vec3(0.f));
 	wObjects.push_back(teapotObject);
 }
+
+Camera* Space::get_camera() { 
+	return camera; 
+};
 
 
 

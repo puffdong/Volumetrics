@@ -20,7 +20,6 @@
 
 
 #include "core/Space.h"
-
 #include "core/Camera.h"
 
 // utils
@@ -34,6 +33,9 @@ static bool mouse_active = true;
 static bool  firstMouse = true;
 static float lastX = 800.0f;
 static float lastY = 450.0f;
+
+static int currentFbWidth_main = 1600; // Default
+static int currentFbHeight_main = 900; // Default
 
 void mouse_callback(GLFWwindow*, double xpos, double ypos)
 {
@@ -154,6 +156,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
+// At the top of main.cpp with other globals, or pass Space* via glfwSetWindowUserPointer
+// For simplicity, assuming 'space' is accessible globally here as it is in your current code.
+// int currentFramebufferWidth = 1600; // Initial, will be updated
+// int currentFramebufferHeight = 900;
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    // Update glViewport to cover the new framebuffer size
+    glViewport(0, 0, width, height);
+    currentFbWidth_main = width;   // Update global static width
+    currentFbHeight_main = height; // Update global static height
+    if (space) { // Ensure the space object exists
+        space->update_projection_matrix_aspect_ratio((float)width / (float)height);
+    }
+}
+
 GLuint generatePerlin2D() {
     PerlinNoiseTexture perlinTexture2D(512, 512);
     GLuint textureID2D = perlinTexture2D.getTextureID();
@@ -167,7 +184,7 @@ GLuint generatePerlin2D() {
 // }
 
 void save_perlin() {
-    PerlinNoiseTexture perlinTexture2D(512, 512, "C:/Dev/OpenGL/volumetrics/testing/test.ppm");
+    PerlinNoiseTexture perlinTexture2D(512, 512, "/Users/puff/Developer/graphics/Volumetrics/testing/test.ppm");
 }
 
 int main(void)
@@ -194,6 +211,8 @@ int main(void)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // sync with refresh rate
 
+    // std::cout << glGetString(GL_VERSION) << std::endl; // 4.1 INTEL-23.0.26
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -208,6 +227,7 @@ int main(void)
     glfwSetCursorPosCallback(window, mouse_callback);              // set the cursor callback
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     // glfwSetCursorPosCallback(window, cursor_position_callback);
 
     glewExperimental = GL_TRUE;
@@ -219,23 +239,33 @@ int main(void)
     if (glewInit() != GLEW_OK) {
         std::cout << "glew init Error!" << std::endl;
     }
+    
+    int initialFbWidth, initialFbHeight;
+    glfwGetFramebufferSize(window, &initialFbWidth, &initialFbHeight);
 
-
-    GLCall(glViewport(0, 0, 1600, 900));
+    glViewport(0, 0, initialFbWidth, initialFbHeight);
     // GLCall(glClearDepth(1.0f));
-    GLCall(glDepthFunc(GL_LESS));
-    GLCall(glClearColor(0.3f, 0.3f, 0.3f, 1.0f)); // Set background to a dark gray
+    glDepthFunc(GL_LESS);
+    glClearColor(1.0f, 0.0f, 0.3f, 1.0f); // Set background to a dark gray
 
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GLCall(glEnable(GL_BLEND));
+    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     GLCall(glEnable(GL_DEPTH_TEST));
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+    GLCall(glEnable(GL_CULL_FACE));
+    GLCall(glCullFace(GL_BACK));
+
+    GLuint globalVao = 0;
+    GLCall(glGenVertexArrays(1, &globalVao));
+    GLCall(glBindVertexArray(globalVao));
 
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
     space = new Space();
+
+    if (space) {
+        space->update_projection_matrix_aspect_ratio((float)initialFbWidth / (float)initialFbHeight);
+    }
 
     float lastTime = glfwGetTime();
 
@@ -248,7 +278,7 @@ int main(void)
         ImGui::NewFrame();
         ImGui::ShowDemoWindow(); // Show demo window! :)
 
-        GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)); // clear yuh
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear yuh
 
         float currentTime = glfwGetTime();
         float deltaTime = currentTime - lastTime;

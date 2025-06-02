@@ -6,7 +6,7 @@
 Raymarcher::Raymarcher(RayScene* scene)
     : quadVAO(0), quadVBO(0), ray_scene(scene)
 {
-    shader = new Shader("C:/Dev/OpenGL/volumetrics/res/shaders/raymarching/raymarcher.shader");
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/raymarching/raymarcher.shader");
 
     float quadVertices[] = { // draw something on the entirety of the screen :)
     -1.0f, -1.0f, 0.0f,
@@ -27,7 +27,7 @@ Raymarcher::Raymarcher(RayScene* scene)
 
     // GLuint perlin2d = generatePerlin2D();
     PerlinNoiseTexture perlinTexture3D(128, 128, 128);
-    GLuint textureID3D = perlinTexture3D.getTextureID();
+    GLCall(GLuint textureID3D = perlinTexture3D.getTextureID());
 
     perlin3d = textureID3D;
     std::cout << "Finished generating perlin noise" << std::endl;
@@ -56,9 +56,12 @@ void Raymarcher::render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 p
     ray_scene->upload_primitives_to_gpu(shader);
 
     // GLCall(glDisable(GL_DEPTH_TEST));
+    glDisable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     glDepthMask(GL_TRUE);
     // GLCall(glEnable(GL_DEPTH_TEST));
 }

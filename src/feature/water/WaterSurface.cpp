@@ -5,7 +5,7 @@
 WaterSurface::WaterSurface(glm::vec3 position, float height, float width) 
 : pos(position), height(height), width(width), time(0.f)
 {
-    shader = new Shader("C:/Dev/OpenGL/volumetrics/res/shaders/WaterSurface.shader");
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/WaterSurface.shader");
     model = new ModelObject(height, width, 20, 20); // float width, float depth, int numRows, int numCols
 }
 

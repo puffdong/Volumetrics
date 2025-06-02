@@ -45,7 +45,10 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath) {
         }
         else
         {
-            ss[(int)type] << line << '\n';
+            if (type != ShaderType::NONE) 
+                {
+                    ss[(int)type] << line << '\n';
+                }
         }
     }
 
@@ -95,6 +98,15 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
     unsigned int vs = CompileShader(vertexShader, GL_VERTEX_SHADER);
     unsigned int fs = CompileShader(fragmentShader, GL_FRAGMENT_SHADER);
 
+    // if (vs == 0 || fs == 0) {
+    //     // Clean up if one compiled but the other didn't, or if program was created
+    //     if (vs != 0) glDeleteShader(vs);
+    //     if (fs != 0) glDeleteShader(fs);
+    //     if (program != 0) glDeleteProgram(program);
+    //     std::cout << "Failed to create shader program due to vertex or fragment shader compilation failure." << std::endl;
+    //     return 0; 
+    // }
+
     glAttachShader(program, vs);
     glAttachShader(program, fs);
 
@@ -120,12 +132,20 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
     if (validateSuccess == GL_FALSE) {
         int length;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length * sizeof(char));
-        glGetProgramInfoLog(program, length, &length, message);
-        std::cout << "Failed to validate shader program!" << std::endl;
-        std::cout << message << std::endl;
-        glDeleteProgram(program);
-        return 0;
+        // Ensure message buffer is safely allocated, especially if length can be large
+        std::vector<char> messageBuffer(length); 
+        glGetProgramInfoLog(program, length, &length, messageBuffer.data());
+        
+        // Change this to a warning and DON'T delete the program or return 0
+        // if linking was successful.
+        std::cout << "Warning: Shader program (ID: " << program 
+                  << ", Path: " << m_FilePath // Assuming m_FilePath is accessible or pass it
+                  << ") validation failed!" << std::endl;
+        std::cout << "Validation InfoLog: " << messageBuffer.data() << std::endl;
+        
+        // DO NOT delete the program here if linking was okay:
+        // glDeleteProgram(program); 
+        // return 0; 
     }
 
     // Cleanup
@@ -140,7 +160,7 @@ void Shader::Bind() const {
 }
 
 void Shader::Unbind() const {
-    GLCall(glUseProgram(0));
+    glUseProgram(0);
 }
 
 void Shader::HotReloadIfChanged()
