@@ -87,7 +87,7 @@ vec3 getNormal(vec3 position) {
 
 vec4 volumetric_march(vec3 origin, vec3 dir) {
     float distance = 0.0;
-    float collected_noise;
+    float collected_noise = 0.0;
     bool first_hit = true;
     bool hit_something = false;
     vec3 hit_point;
@@ -125,9 +125,8 @@ vec4 volumetric_march(vec3 origin, vec3 dir) {
     if (hit_something) {
         vec3 normal = getNormal(hit_point);
         float lightIntensity = dot(normal, normalize(vec3(1.0, 1.0, 1.0))) * 0.5 + 0.5;
-        result = vec4(1.0 * lightIntensity, 0.5 * lightIntensity, 0.2 * lightIntensity, 1.0);
+        result = vec4(1.0 * lightIntensity, 0.5 * lightIntensity, 0.2 * lightIntensity, collected_noise);
     }
-    // vec4 result = vec4(1.0, 0.5, 0.2, collected_noise);
 
     return result;
 }
