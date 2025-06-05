@@ -7,7 +7,7 @@ RayScene::RayScene(glm::vec3 world_origin) : origin(world_origin) {
 }
 
 VolumetricCube* RayScene::add_volumetric_cube(glm::vec3 position, glm::vec3 dimemsions) {
-    if (vol_cube = nullptr) {
+    if (vol_cube == nullptr) {
         std::cout << "Generating perlin noise" << std::endl;
         auto perlin = PerlinNoiseTexture(128, 128, 128);
         int textureID = perlin.getTextureID();

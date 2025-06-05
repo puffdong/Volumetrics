@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "WorldObject.h"
 
+#include "../feature/Sun.hpp"
 #include "../feature/Skybox.h"
 #include "../feature/volumetrics/VoxelStructure.h"
 #include "../feature/raymarcher/raymarcher.hpp"
@@ -21,6 +22,8 @@
 class Space {
 private:
 	std::vector<WorldObject*> wObjects;
+
+	Sun* sun;
 	Skybox* skybox;
 
 	float fov = 70.f;
@@ -52,8 +55,4 @@ public:
 	Camera* get_camera();
 	void change_fov(double xoffset, double yoffset); 
 	void update_projection_matrix_aspect_ratio(float aspectRatio);
-
-
-private:
-	void loadLevel1();
 };

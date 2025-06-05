@@ -35,6 +35,10 @@ glm::vec3 Camera::get_position() {
     return position;
 }
 
+glm::vec3 Camera::get_right() {
+    return right;
+}
+
 void Camera::process_keyboard(const ButtonMap& bm, float deltaTime)
 {
     float velocity = movement_speed * deltaTime;

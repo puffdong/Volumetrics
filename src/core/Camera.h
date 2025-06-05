@@ -27,6 +27,7 @@ public:
 
     glm::mat4 get_view_matrix();
     glm::vec3 get_position();
+    glm::vec3 get_right();
     void process_mouse(float xOffset, float yOffset, bool constrainPitch = true);
 
     // Updates camera based on input

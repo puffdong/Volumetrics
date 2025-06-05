@@ -190,9 +190,13 @@ void ModelObject::createFlatGround(float width, float depth) {
     };
 
     // Create index data
-    std::vector<unsigned int> indices = {
-        0, 1, 2,
-        2, 3, 0
+    // std::vector<unsigned int> indices = {
+    //     0, 1, 2,
+    //     2, 3, 0
+    // };
+    std::vector<unsigned int> indices = { // vector should be up eh????
+        2, 1, 0,
+        0, 3, 2
     };
 
     GLuint VAO, VBO, EBO;
@@ -219,11 +223,6 @@ void ModelObject::createFlatGround(float width, float depth) {
     // Unbind the VAO
     glBindVertexArray(0);
 
-    // Store the VAO and other related information in your ModelObject class, assuming you have the following member variables:
-    // GLuint m_VAO;
-    // GLuint m_VBO;
-    // GLuint m_EBO;
-    // GLsizei m_indexCount;
     m_VAO = VAO;
     m_VBO = VBO;
     m_EBO = EBO;
