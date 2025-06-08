@@ -1,5 +1,5 @@
 #include "Sun.hpp"
-#include "../rendering/Renderer.h"
+#include "../core/rendering/Renderer.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp> // For glm::lookAt (though not used directly in final method)
 #include <glm/geometric.hpp>          // For glm::normalize, glm::cross, glm::length, glm::dot

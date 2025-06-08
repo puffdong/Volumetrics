@@ -4,7 +4,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
 #include "../../OBJLoader.h"
-#include "../../rendering/Shader.h" 
+#include "../../core/rendering/Shader.h" 
 
 class VoxelStructure {
 private:
@@ -16,7 +16,7 @@ private:
 	glm::vec3 position; // Where it is placed in WorldSpace
 
 	std::vector<int> voxels;
-	int length; // 3D squashed to 1D array
+	int numVoxels; // 3D squashed to 1D array
 	float cellSize; // The size it takes of it in the world
 
 	Shader* shader; // the debugging voxel viewqa
@@ -25,6 +25,7 @@ private:
 
 public:
 	VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue, float cellSize);
+	~VoxelStructure();
 
 	void setVoxelValue(int x, int y, int z, int value);
 	int getVoxelValue(int x, int y, int z);

@@ -14,9 +14,9 @@
 #include <filesystem>
 
 
-#include "./rendering/Renderer.h"
-#include "./rendering/Shader.h"
-#include "./rendering/Texture.h"
+#include "./core/rendering/Renderer.h"
+#include "./core/rendering/Shader.h"
+#include "./core/rendering/Texture.h"
 
 
 #include "core/Space.h"

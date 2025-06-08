@@ -5,7 +5,7 @@
 #include <vector>
 #include "../../utils/perlin_noise_generator.hpp"
 #include "../../OBJLoader.h"
-#include "../../rendering/Shader.h" 
+#include "../../core/rendering/Shader.h" 
 #include "rayscene.hpp"
 
 class Raymarcher {

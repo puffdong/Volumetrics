@@ -3,10 +3,10 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "../OBJLoader.h"
-#include "../rendering/Texture.h"
+#include "../core/rendering/Texture.h"
 
 #include <string>
-#include "../rendering/Shader.h"
+#include "../core/rendering/Shader.h"
 
 class WorldObject {
 protected:

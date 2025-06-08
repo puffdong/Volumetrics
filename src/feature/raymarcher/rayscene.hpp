@@ -1,6 +1,6 @@
 #pragma once
 #include "glm/glm.hpp"
-#include "../../rendering/Shader.h"
+#include "../../core/rendering/Shader.h"
 #include <vector>
 
 struct RaySphere {

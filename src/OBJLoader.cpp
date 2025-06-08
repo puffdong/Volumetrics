@@ -1,6 +1,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "OBJLoader.h"
-#include "./rendering/Renderer.h"
+#include "./core/rendering/Renderer.h"
 #include "tiny_obj_loader.h"
 #include <iostream>
 #include <unordered_map>
@@ -169,6 +169,10 @@ void ModelObject::render() {
 
 GLuint ModelObject::getVAO() {
     return m_VAO;
+}
+
+GLsizei ModelObject::getIndexCount() const { // Added getter
+    return m_indexCount;
 }
 
 void ModelObject::Bind() const {

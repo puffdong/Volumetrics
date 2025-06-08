@@ -12,7 +12,7 @@ Space::Space()
 	sun = new Sun(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	// voxel stuff -> in progress 
-	vox = new VoxelStructure(10, 25, 7, glm::vec3(-20, 1, 1), 1, 0.5f);
+	vox = new VoxelStructure(20, 20, 20, glm::vec3(20, 1, 1), 1, 0.75f);
 	vox->setVoxelValue(2, 2, 2, 3);
 	std::cout << vox->getVoxelValue(2, 2, 2) << std::endl;
 	std::cout << vox->getVoxelValue(2, 2, 3) << std::endl;
@@ -36,6 +36,11 @@ Space::Space()
 				LightSource(glm::vec3(1.f, 1.f, 1.f), glm::vec3(1.f, 1.f, 0.f), true)
 	};
 
+	std::vector<LinePrimitive> lines = {{glm::vec3(5.f, 0.0f, 0.0f), glm::vec3(-5.0f, 0.0f, 0.0f)},
+										{glm::vec3(0.f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -5.0f)},
+										{glm::vec3(0.f, 5.0f, 0.0f), glm::vec3(0.0f, -5.0f, 0.0f)},
+										{glm::vec3(2.f, 2.0f, 2.0f), glm::vec3(-2.0f, -2.0f, -2.0f)}};
+	line = new Line(lines);
 	
 
 	// std::vector<glm::vec3> lightColors;
@@ -97,8 +102,9 @@ void Space::renderWorld(float delta)
 	// std::cout << "x y z : " << cam_pos.x << " " << cam_pos.y << " " << cam_pos.z << std::endl;
 
 	// voxel stuff
-	// vox->drawVoxels(proj, view_matrix);
+	vox->drawVoxels(proj, view_matrix);
 
+	line->render(proj, view_matrix);
 	// raymarcher->render(cam_pos, view_matrix, proj, delta, near, far);
 
 

@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <random>
 #include <GL/glew.h>
-#include "../rendering/Renderer.h"    
+#include "../core/rendering/Renderer.h"    
 
 class PerlinNoiseTexture {
 public:

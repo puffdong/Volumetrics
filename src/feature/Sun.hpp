@@ -2,7 +2,7 @@
 #include <GL/glew.h>
 #include "glm/glm.hpp"
 #include "../core/Camera.h"
-#include "../rendering/Shader.h"
+#include "../core/rendering/Shader.h"
 
 
 

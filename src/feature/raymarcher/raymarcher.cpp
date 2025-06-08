@@ -1,6 +1,6 @@
 #include "raymarcher.hpp"
 #include <iostream>
-#include "../../rendering/Renderer.h"
+#include "../../core/rendering/Renderer.h"
 #include <vector>
 
 Raymarcher::Raymarcher(RayScene* scene)

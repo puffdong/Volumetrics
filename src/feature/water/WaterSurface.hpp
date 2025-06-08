@@ -2,7 +2,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
-#include "../../rendering/Shader.h"
+#include "../../core/rendering/Shader.h"
 #include "../../OBJLoader.h"
 #include "../../utils/ButtonMap.h"
 

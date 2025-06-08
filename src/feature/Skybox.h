@@ -1,7 +1,7 @@
 #pragma once
 #include "../OBJLoader.h"
-#include "../rendering/Shader.h"
-#include "../rendering/Texture.h"
+#include "../core/rendering/Shader.h"
+#include "../core/rendering/Texture.h"
 #include "../core/Camera.h"
 
 struct Skybox {

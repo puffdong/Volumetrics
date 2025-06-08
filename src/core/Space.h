@@ -1,13 +1,14 @@
 #pragma once
 
 #include "../OBJLoader.h"
-#include "../rendering/Texture.h"
+#include "../core/rendering/Texture.h"
 
 #include "glm/glm.hpp"
 #include <vector>
 
 #include "Camera.h"
 #include "WorldObject.h"
+#include "Line.hpp"
 
 #include "../feature/Sun.hpp"
 #include "../feature/Skybox.h"
@@ -27,7 +28,7 @@ private:
 	Skybox* skybox;
 
 	float fov = 70.f;
-	float near = 1.0f;
+	float near = 1.0f; // hmm... what is too close/too far? 
 	float far = 256.0f;
 	float aspect_ratio = 16.f / 9.0f;
 	glm::mat4 proj;
@@ -45,6 +46,8 @@ private:
 
 	RaySphere* sphere1;
 	RaySphere* sphere2;
+
+	Line* line;
 
 public:
 	Space();
