@@ -3,7 +3,6 @@
 
 Space::Space()
 {
-	// player->setPosition(playerStartPos);
 	proj = glm::perspective(glm::radians(70.f), aspect_ratio, 1.0f, 256.0f);
 	
 	camera = new Camera();
@@ -87,9 +86,9 @@ void Space::renderWorld(float delta)
 	skybox->draw(proj, camera);
 	sun->render(proj, camera);
 
-	// sun->render(camera, proj);
+	sun->render(proj, camera);
 
-	// water_surface->render(proj, view_matrix, cam_pos);
+	water_surface->render(proj, view_matrix, cam_pos);
 
 	for (WorldObject* o : wObjects)
 	{
