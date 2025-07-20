@@ -12,25 +12,33 @@ layout (location = 2) in vec3 aEnd;   // End position of the line
 uniform mat4 projection;
 uniform mat4 view;
 
+flat out int instanceID;
+
 void main()
 {
-    // Linearly interpolate between the start and end points using aExtrusion.
-    // If aExtrusion is 0.0, we get aStart.
-    // If aExtrusion is 1.0, we get aEnd.
+
     vec3 position = mix(aStart, aEnd, aExtrusion);
 
-    // Standard transformation to clip space
+
     gl_Position = projection * view * vec4(position, 1.0);
+    instanceID = gl_InstanceID;
 }
 
 #shader fragment
 #version 330 core
 
+flat in int instanceID;
+
 // The output color of the fragment
 out vec4 FragColor;
 
 void main()
-{
+{   
+    vec4 color = vec4(1.0);
+    if (instanceID == 1) {
+        color = vec4(1.0, 0.5, 0.0, 1.0);
+    }
     // Set the line color to a solid white
-    FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    // FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    FragColor = color;
 }

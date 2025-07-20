@@ -59,6 +59,7 @@ void Line::init_render_stuff() {
 }
 
 void Line::render(glm::mat4 proj, glm::mat4 view) {
+    shader->HotReloadIfChanged();
     shader->Bind();
     glEnable(GL_LINE_SMOOTH);
     shader->SetUniformMat4("projection", proj);
