@@ -55,6 +55,7 @@ public:
 	void tick(float delta, ButtonMap bm);
 
 	void renderWorld(float delta);
+	void enqueue_renderables();
 	Camera* get_camera();
 	void change_fov(double xoffset, double yoffset); 
 	void update_projection_matrix_aspect_ratio(float aspectRatio);

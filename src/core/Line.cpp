@@ -1,5 +1,6 @@
 #include "Line.hpp"
 
+
 Line::Line(glm::vec3 start, glm::vec3 end) {
     line_primitives.reserve(2);
     line_primitives.push_back({start, end});
@@ -59,13 +60,34 @@ void Line::init_render_stuff() {
 }
 
 void Line::render(glm::mat4 proj, glm::mat4 view) {
+    // shader->HotReloadIfChanged();
+    // shader->Bind();
+    // glEnable(GL_LINE_SMOOTH);
+    // shader->SetUniformMat4("projection", proj);
+    // shader->SetUniformMat4("view", view);
+    // glBindVertexArray(VAO);
+    // glDrawArraysInstanced(GL_LINES, 0, 2, num_lines);
+    // glBindVertexArray(0);
+    // glDisable(GL_LINE_SMOOTH);
+
     shader->HotReloadIfChanged();
     shader->Bind();
-    glEnable(GL_LINE_SMOOTH);
     shader->SetUniformMat4("projection", proj);
     shader->SetUniformMat4("view", view);
-    glBindVertexArray(VAO);
-    glDrawArraysInstanced(GL_LINES, 0, 2, num_lines);
-    glBindVertexArray(0);
-    glDisable(GL_LINE_SMOOTH);
+
+    enqueue();           // <–– all actual drawing deferred
+}
+
+void Line::enqueue(RenderPass pass) const
+{
+    RenderCommand cmd{};
+    cmd.vao            = VAO;
+    cmd.drawType       = DrawType::ArraysInstanced;
+    cmd.primitive      = GL_LINES;
+    cmd.count          = 2;
+    cmd.instanceCount  = num_lines;
+    cmd.shader         = shader;          // raw ptr, we’re fine
+    cmd.model          = glm::mat4(1.0f); // lines are already in world space
+
+    Renderer::Submit(pass, cmd);
 }

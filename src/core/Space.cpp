@@ -103,10 +103,13 @@ void Space::renderWorld(float delta)
 	// voxel stuff
 	vox->drawVoxels(proj, view_matrix);
 
-	line->render(proj, view_matrix);
+	// line->render(proj, view_matrix);
 	// raymarcher->render(cam_pos, view_matrix, proj, delta, near, far);
 
+}
 
+void Space::enqueue_renderables() {
+	line->render(proj, camera->get_view_matrix());
 }
 
 void Space::change_fov(double xoffset, double yoffset) {

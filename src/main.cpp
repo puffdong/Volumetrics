@@ -273,11 +273,12 @@ int main(void)
     {
         glfwPollEvents();
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        ImGui::ShowDemoWindow(); // Show demo window! :)
-
+        // ImGui_ImplOpenGL3_NewFrame();
+        // ImGui_ImplGlfw_NewFrame();
+        // ImGui::NewFrame();
+        // ImGui::ShowDemoWindow(); // Show demo window! :)
+        Renderer::BeginFrame({0.1f, 0.1f, 0.2f, 1.0f});
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear yuh
 
         float currentTime = glfwGetTime();
@@ -286,9 +287,14 @@ int main(void)
 
         space->tick(deltaTime, bm);
         space->renderWorld(deltaTime);
+        space->enqueue_renderables();
+        Renderer::Flush(RenderPass::Forward);
+        // Renderer::EndFrame(); 
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+
+        // ImGui::Render();
+        // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
 
