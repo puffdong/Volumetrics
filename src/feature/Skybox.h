@@ -12,4 +12,5 @@ struct Skybox {
 	Skybox(const std::string& modelPath, const std::string& shaderPath, const std::string& texturePath);
 
 	void draw(glm::mat4 projMatrix, Camera* camera);
+	void enqueue(RenderPass pass = RenderPass::Forward) const;
 };

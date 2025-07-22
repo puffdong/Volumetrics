@@ -14,6 +14,8 @@
 void GLClearError();
 bool GLLogCall(const char* function, const char* file, int line);
 
+static RenderState current {};  
+
 // Renderer.hpp
 class Renderer
 {
@@ -24,5 +26,6 @@ public:
     static void EndFrame();               // will handle swap‑buffers outsid
 private:
     static std::vector<RenderCommand> queues[int(RenderPass::UI)+1];
+    static void applyState(RenderState s);
     static void executeCommand(const RenderCommand& cmd);
 };

@@ -3,7 +3,6 @@
 #include <iostream>
 
 
-
 void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
@@ -16,7 +15,6 @@ bool GLLogCall(const char* function, const char* file, int line) {
     return true;
 }
 
-// Renderer.cpp  (pseudo‑implementation)
 std::vector<RenderCommand> Renderer::queues[int(RenderPass::UI)+1];
 
 void Renderer::BeginFrame(const glm::vec4& clear)
@@ -37,14 +35,40 @@ void Renderer::Flush(RenderPass pass)
         executeCommand(cmd);
 }
 
+void Renderer::applyState(RenderState s) { // figure out what to do with this
+    auto apply = [](bool desired, bool enabled_cap, int GL_FUNC)
+    {
+        if (desired && !enabled_cap) glEnable(GL_FUNC);
+        if (!desired && enabled_cap) glDisable(GL_FUNC);
+    };
+
+    apply(s.depth_test, current.depth_test, GL_DEPTH_TEST);
+    apply(s.cull_face, current.cull_face, GL_CULL_FACE); // what if i wanna do GL_FRONT culling, look into how this works
+    apply(s.line_smooth, current.line_smooth, GL_LINE_SMOOTH);
+
+    if (s.depth_write != current.depth_write)
+        glDepthMask(s.depth_write ? GL_TRUE : GL_FALSE);
+}
+
 void Renderer::executeCommand(const RenderCommand& c)
 {
+    applyState(c.state); 
+
     c.shader->Bind();
-    c.shader->SetUniformMat4("model", c.model);  // basic per‑object uniform
+    c.shader->SetUniformMat4("model", c.model);  
 
     glBindVertexArray(c.vao);
 
-    switch (c.drawType)
+    for (const auto& t : c.textures) {
+        glActiveTexture(GL_TEXTURE0 + t.unit);
+        glBindTexture(t.target, t.id);
+
+        if (t.uniform_name) {
+            c.shader->SetUniform1i(t.uniform_name, t.unit);
+        }
+    }
+
+    switch (c.draw_type)
     {
     case DrawType::Arrays:
         glDrawArrays(c.primitive, 0, c.count);
@@ -53,10 +77,10 @@ void Renderer::executeCommand(const RenderCommand& c)
         glDrawElements(c.primitive, c.count, GL_UNSIGNED_INT, 0);
         break;
     case DrawType::ArraysInstanced:
-        glDrawArraysInstanced(c.primitive, 0, c.count, c.instanceCount);
+        glDrawArraysInstanced(c.primitive, 0, c.count, c.instance_count);
         break;
     case DrawType::ElementsInstanced:
-        glDrawElementsInstanced(c.primitive, c.count, GL_UNSIGNED_INT, 0, c.instanceCount);
+        glDrawElementsInstanced(c.primitive, c.count, GL_UNSIGNED_INT, 0, c.instance_count);
         break;
     }
 }

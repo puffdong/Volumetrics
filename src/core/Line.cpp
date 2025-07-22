@@ -24,7 +24,7 @@ Line::~Line() {
 }
 
 void Line::init_render_stuff() {
-    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Line.shader");
+    shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/Line.shader");
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &instanceVBO);
