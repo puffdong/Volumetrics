@@ -7,7 +7,7 @@
 
 Sun::Sun(glm::vec3 direction, glm::vec4 color) 
     : dir(direction), color(color), time(0.0f) {
-        shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/sun.shader");
+        shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/sun.shader");
         init_billboard_model();
     }
 
@@ -58,10 +58,10 @@ void Sun::init_billboard_model() {
 }
 
 void Sun::render(glm::mat4 proj, Camera* camera) {
-    glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
+    // glDisable(GL_DEPTH_TEST);
+	// glDepthMask(GL_FALSE);
 
-    // i caved in and used ai, man i need to refine my math skills, I thought i had it down. i was close tho so yay?
+    // shitty shitty start ///////
     glm::vec3 cam_pos = camera->get_position();
 
     glm::vec3 norm_sun_dir = glm::normalize(this->dir); 
@@ -82,17 +82,30 @@ void Sun::render(glm::mat4 proj, Camera* camera) {
 
     glm::mat4 trans = glm::translate(glm::mat4(1.0f), sun_pos);
     glm::mat4 model_matrix = trans * rot;
+    // shitty shitty end ///////
 
     glm::mat4 mvp = proj * camera->get_view_matrix() * model_matrix;
 
     shader->Bind();
     shader->SetUniform3f("sun_dir", this->dir); 
-    shader->SetUniformMat4("mvp", mvp);
+    // // shader->SetUniformMat4("mvp", mvp);
 
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    // glBindVertexArray(VAO);
+    // glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
+    // glBindVertexArray(0);
 
-    glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
+    // glEnable(GL_DEPTH_TEST);
+	// glDepthMask(GL_TRUE);
+
+    RenderCommand cmd{};
+    cmd.vao        = VAO;
+    cmd.draw_type   = DrawType::Elements;
+    cmd.count      = index_count;
+	cmd.model      = mvp; // swap this tbh, doesn't even make any semantic sense, the mvp is different from modelmtrx
+    cmd.shader     = shader;
+	cmd.state.depth_test  = false;
+    cmd.state.depth_write = false;
+
+    Renderer::Submit(RenderPass::Skypass, cmd);
+
 }

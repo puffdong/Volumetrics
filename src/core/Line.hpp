@@ -23,6 +23,7 @@ public:
     ~Line();
     void render(glm::mat4 proj, glm::mat4 view);
     void enqueue(RenderPass pass = RenderPass::Forward) const;
+    void update_static_uniforms(glm::mat4 proj, float near, float far);
 
 private:
     void init_render_stuff();

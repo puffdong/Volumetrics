@@ -6,7 +6,7 @@
 Raymarcher::Raymarcher(RayScene* scene)
     : quadVAO(0), quadVBO(0), ray_scene(scene)
 {
-    shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/raymarching/raymarcher.shader");
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/raymarching/raymarcher.shader");
 
     float quadVertices[] = { // draw something on the entirety of the screen :)
     -1.0f, -1.0f, 0.0f,
@@ -35,9 +35,12 @@ Raymarcher::Raymarcher(RayScene* scene)
     std::cout << "Raymarcher engaged! VAO: " << quadVAO << " VBO: " << quadVBO << std::endl;
 }
 
-
-void Raymarcher::render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 projMatrix, float delta, float near, float far) {
+void Raymarcher::tick(float delta) {
     time += delta;
+}
+
+
+void Raymarcher::render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 projMatrix, float near, float far) {
 
     glm::mat4 invprojview = glm::inverse(projMatrix * view_matrix);
 
@@ -64,4 +67,32 @@ void Raymarcher::render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 p
     glCullFace(GL_BACK);
     glDepthMask(GL_TRUE);
     // GLCall(glEnable(GL_DEPTH_TEST));
+
+    
+}
+
+void Raymarcher::update_static_uniforms(glm::mat4 proj, float near, float far) {
+    // update only the static uniforms once.
+    shader->Bind();
+    if ((near_plane != near) && (far_plane != far_plane)) {
+        near_plane = near;
+        far_plane = far;
+
+        shader->SetUniform1f("near_plane", near_plane);
+        shader->SetUniform1f("far_plane", far_plane);
+    }
+}
+
+void Raymarcher::enqueue(RenderPass pass) const {
+    
+    RenderCommand cmd{};
+    cmd.vao            = quadVAO;
+    cmd.draw_type       = DrawType::Arrays;
+    cmd.primitive      = GL_LINES;
+    cmd.count          = 4;
+    cmd.instance_count  = 1;
+    cmd.shader         = shader;          // raw ptr, we’re fine
+    cmd.model          = glm::mat4(1.0f); // lines are already in world space
+
+    Renderer::Submit(pass, cmd);
 }

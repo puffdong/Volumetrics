@@ -184,7 +184,7 @@ GLuint generatePerlin2D() {
 // }
 
 void save_perlin() {
-    PerlinNoiseTexture perlinTexture2D(512, 512, "C:/Dev/OpenGL/Volumetrics/testing/test.ppm");
+    PerlinNoiseTexture perlinTexture2D(512, 512, "/Users/puff/Developer/graphics/Volumetrics/testing/test.ppm");
 }
 
 int main(void)
@@ -286,12 +286,11 @@ int main(void)
         lastTime = currentTime;
 
         space->tick(deltaTime, bm);
-        space->renderWorld(deltaTime);
         space->enqueue_renderables();
-        Renderer::Flush(RenderPass::Forward);
-        // Renderer::EndFrame(); 
-
-
+        // Renderer::Flush(RenderPass::Forward);
+        Renderer::ExecutePipeline(); 
+        
+        space->renderWorld(deltaTime);
 
         // ImGui::Render();
         // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

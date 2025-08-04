@@ -5,8 +5,8 @@
 
 VoxelStructure::VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue, float cellSize)
     : height(h), width(w), depth(d), position(pos), cellSize(cellSize), instanceVBO(0) {
-    shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/VoxelShaders/VoxelDebug.shader");
-    voxelCube = new ModelObject("C:/Dev/OpenGL/Volumetrics/res/models/VoxelModels/defaultCube.obj");
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/VoxelShaders/VoxelDebug.shader");
+    voxelCube = new ModelObject("/Users/puff/Developer/graphics/Volumetrics/res/models/VoxelModels/defaultCube.obj");
 
     numVoxels = height * width * depth;
     voxels.resize(numVoxels);
@@ -123,24 +123,34 @@ void VoxelStructure::drawVoxels(glm::mat4 projMatrix, glm::mat4 viewMatrix) {
     shader->SetUniformMat4("view", viewMatrix);
     // The 'model' uniform is no longer needed here as it's an instanced attribute
 
-    shader->SetUniform1i("u_Texture", 0); // Assuming your voxelCube has textures and u_Texture is its unit
-    shader->SetUniform3f("sunDir", glm::vec3(1.f, 0.5f, 0.f));
-    shader->SetUniform3f("sunColor", glm::vec3(1.f, 1.f, 1.f));
+    // shader->SetUniform1i("u_Texture", 0); // Assuming your voxelCube has textures and u_Texture is its unit
+    // shader->SetUniform3f("sunDir", glm::vec3(1.f, 0.5f, 0.f));
+    // shader->SetUniform3f("sunColor", glm::vec3(1.f, 1.f, 1.f));
     
     // Bind the VAO of the cube mesh
     // Replace voxelCube->getVAO() and voxelCube->getIndexCount() with actual methods/values
     GLuint vao = voxelCube->getVAO();             // Placeholder
     unsigned int indexCount = voxelCube->getIndexCount(); // Placeholder
 
-    glBindVertexArray(vao);
+    // glBindVertexArray(vao);
 
     // Draw 'numVoxels' instances of the cube
     // This assumes voxelCube uses an EBO and GL_TRIANGLES.
     // If it uses glDrawArrays, use glDrawArraysInstanced.
-    glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0, numVoxels);
+    // glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0, numVoxels);
 
-    glBindVertexArray(0); // Unbind VAO
-    shader->Unbind();
+    // glBindVertexArray(0); // Unbind VAO
+    // shader->Unbind();
+
+    RenderCommand cmd{};
+    cmd.vao        = vao;
+    cmd.draw_type   = DrawType::ElementsInstanced;
+    cmd.primitive = GL_TRIANGLES;
+    cmd.count      = indexCount;
+    cmd.instance_count = numVoxels;
+    cmd.shader     = shader;
+
+    Renderer::Submit(RenderPass::Forward, cmd);
 }
 
 glm::mat4 VoxelStructure::getModelMatrix(int x, int y, int z) {

@@ -23,14 +23,14 @@ Space::Space()
 	sphere2 = ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.4, 0.1, 0.8));
 
 		skybox = new Skybox(
-		std::string("C:/Dev/OpenGL/Volumetrics/res/models/skybox-full-tweaked.obj"),
-		std::string("C:/Dev/OpenGL/Volumetrics/res/shaders/Skybox.shader"),
-		std::string("C:/Dev/OpenGL/Volumetrics/res/textures/skybox/cloud-landscape.tga")
+		std::string("/Users/puff/Developer/graphics/Volumetrics/res/models/skybox-full-tweaked.obj"),
+		std::string("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Skybox.shader"),
+		std::string("/Users/puff/Developer/graphics/Volumetrics/res/textures/skybox/cloud-landscape.tga")
 	);
 
 
 	// Setup shader with lighting
-	Shader* worldShader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/WorldObject.shader");
+	Shader* worldShader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/WorldObject.shader");
 	LightSource newLightSources[] = {
 				LightSource(glm::vec3(1.f, 1.f, 1.f), glm::vec3(1.f, 1.f, 0.f), true)
 	};
@@ -58,13 +58,22 @@ Space::Space()
 	// worldShader->SetUniform1iv("isDirectional", isDirectional);
 
 	// load all the world objects and set up the world
-	WorldObject* teapotObject = new WorldObject(worldShader, "C:/Dev/OpenGL/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 0.f), glm::vec3(0.f));
+	WorldObject* teapotObject = new WorldObject(worldShader, "/Users/puff/Developer/graphics/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 0.f), glm::vec3(0.f));
 	wObjects.push_back(teapotObject);
 }
 
 void Space::tick(float delta, ButtonMap bm)
 {
+	if (changes_made) { // whenever aspect ratio and fov changes, this has to propogate somehow, right :)
+		update_projection_uniforms();
+		changes_made = false;
+	}
 	time += delta;
+
+	for (WorldObject* o : wObjects)
+	{
+		o->tick(delta);
+	}
 
 	camera->tick(delta, bm);
 	sun->tick(delta);
@@ -75,6 +84,8 @@ void Space::tick(float delta, ButtonMap bm)
 	sphere2->pos.x = 7 * sin(-time * 0.15f);
 	sphere2->pos.z = 7 * cos(-time * 0.15f);
 
+	raymarcher->tick(delta);
+
 
 }
 
@@ -83,38 +94,52 @@ void Space::renderWorld(float delta)
 	glm::mat4 view_matrix = camera->get_view_matrix();
 	glm::vec3 cam_pos = camera->get_position();
 
-	skybox->draw(proj, camera);
-	sun->render(proj, camera);
 
-	sun->render(proj, camera);
+	// sun->render(proj, camera);
 
-	water_surface->render(proj, view_matrix, cam_pos);
+	// water_surface->render(proj, view_matrix, cam_pos);
 
-	for (WorldObject* o : wObjects)
-	{
-		o->tick(delta);
-		o->draw(proj, view_matrix, o->getModelMatrix());
-	}
+	// for (WorldObject* o : wObjects)
+	// {
+	// 	o->tick(delta);
+	// 	o->draw(proj, view_matrix, o->getModelMatrix());
+	// }
 
 	// raymarcher
 
 	// std::cout << "x y z : " << cam_pos.x << " " << cam_pos.y << " " << cam_pos.z << std::endl;
 
 	// voxel stuff
-	vox->drawVoxels(proj, view_matrix);
+	// vox->drawVoxels(proj, view_matrix);
 
 	// line->render(proj, view_matrix);
-	// raymarcher->render(cam_pos, view_matrix, proj, delta, near, far);
+	raymarcher->render(cam_pos, view_matrix, proj, near, far);
 
 }
 
 void Space::enqueue_renderables() {
-	line->render(proj, camera->get_view_matrix());
+	glm::mat4 view_matrix = camera->get_view_matrix();
+	glm::vec3 cam_pos = camera->get_position();
+
+	// water_surface->render(proj, view_matrix, cam_pos); // tbh this one is transparent, and also not really working...
+	
+	for (WorldObject* o : wObjects)
+	{
+		o->draw(proj, view_matrix, o->getModelMatrix());
+	}
+	
+	skybox->draw(proj, camera); // draw prio u know
+	vox->drawVoxels(proj, view_matrix);
+	
+	sun->render(proj, camera);
+	line->render(proj, camera->get_view_matrix()); // when to do this tho, prolly late...?
+
 }
 
-void Space::change_fov(double xoffset, double yoffset) {
+void Space::change_fov(double xoffset, double yoffset) { 
 	fov -= (float)yoffset;
 	proj = glm::perspective(glm::radians(fov), aspect_ratio, near, far);
+	changes_made = true;
 }
 
 void Space::update_projection_matrix_aspect_ratio(float aspectRatio) {
@@ -123,12 +148,19 @@ void Space::update_projection_matrix_aspect_ratio(float aspectRatio) {
 	} else {
 		aspect_ratio = aspectRatio;
 	}
-    change_fov(0.0, 0.0);
+    change_fov(0.0, 0.0); // a bit dumb that we rely on "fov func" to update the proj matrix
+	changes_made = true;
 }
 
 Camera* Space::get_camera() { 
 	return camera; 
 };
+
+void Space::update_projection_uniforms() {
+	raymarcher->update_static_uniforms(proj, near, far);
+	line->update_static_uniforms(proj, near, far);
+}
+
 
 
 

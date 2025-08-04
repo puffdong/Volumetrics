@@ -24,7 +24,7 @@ Line::~Line() {
 }
 
 void Line::init_render_stuff() {
-    shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/Line.shader");
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Line.shader");
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &instanceVBO);
@@ -60,19 +60,8 @@ void Line::init_render_stuff() {
 }
 
 void Line::render(glm::mat4 proj, glm::mat4 view) {
-    // shader->HotReloadIfChanged();
-    // shader->Bind();
-    // glEnable(GL_LINE_SMOOTH);
-    // shader->SetUniformMat4("projection", proj);
-    // shader->SetUniformMat4("view", view);
-    // glBindVertexArray(VAO);
-    // glDrawArraysInstanced(GL_LINES, 0, 2, num_lines);
-    // glBindVertexArray(0);
-    // glDisable(GL_LINE_SMOOTH);
-
     shader->HotReloadIfChanged();
     shader->Bind();
-    shader->SetUniformMat4("projection", proj);
     shader->SetUniformMat4("view", view);
 
     enqueue();           // <–– all actual drawing deferred
@@ -82,12 +71,19 @@ void Line::enqueue(RenderPass pass) const
 {
     RenderCommand cmd{};
     cmd.vao            = VAO;
-    cmd.drawType       = DrawType::ArraysInstanced;
+    cmd.draw_type       = DrawType::ArraysInstanced;
     cmd.primitive      = GL_LINES;
     cmd.count          = 2;
-    cmd.instanceCount  = num_lines;
+    cmd.instance_count  = num_lines;
     cmd.shader         = shader;          // raw ptr, we’re fine
     cmd.model          = glm::mat4(1.0f); // lines are already in world space
 
     Renderer::Submit(pass, cmd);
 }
+
+void Line::update_static_uniforms(glm::mat4 proj, float near, float far) {
+    shader->Bind();
+    shader->SetUniformMat4("projection", proj);
+    shader->Unbind();
+}
+

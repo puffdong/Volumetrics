@@ -15,7 +15,7 @@ bool GLLogCall(const char* function, const char* file, int line) {
     return true;
 }
 
-std::vector<RenderCommand> Renderer::queues[int(RenderPass::UI)+1];
+std::vector<RenderCommand> Renderer::queues[int(RenderPass::Volumetrics)+1]; // what the fuck, hate hardcoded stuff
 
 void Renderer::BeginFrame(const glm::vec4& clear)
 {
@@ -33,6 +33,24 @@ void Renderer::Flush(RenderPass pass)
 {
     for (const auto& cmd : queues[int(pass)])
         executeCommand(cmd);
+}
+
+void Renderer::ExecutePipeline() {
+    for (const auto& cmd : queues[int(RenderPass::Skypass)]) {
+        executeCommand(cmd);
+    }
+
+    for (const auto& cmd : queues[int(RenderPass::Forward)]) {
+        executeCommand(cmd);
+    }
+    
+    for (const auto& cmd : queues[int(RenderPass::Transparent)]) {
+        executeCommand(cmd);
+    }
+
+    for (const auto& cmd : queues[int(RenderPass::Volumetrics)]) {
+        executeCommand(cmd);
+    }
 }
 
 void Renderer::applyState(RenderState s) { // figure out what to do with this

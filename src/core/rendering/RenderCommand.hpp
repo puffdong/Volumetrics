@@ -4,7 +4,7 @@
 
 enum class DrawType { Arrays, Elements, ArraysInstanced, ElementsInstanced };
 
-enum class RenderPass { Forward, PostProcess, UI };
+enum class RenderPass { Skypass, Forward, Transparent, Volumetrics };
 
 struct RenderState {
     bool depth_test   = true;   // GL_DEPTH_TEST

@@ -13,4 +13,5 @@ struct Skybox {
 
 	void draw(glm::mat4 projMatrix, Camera* camera);
 	void enqueue(RenderPass pass = RenderPass::Forward) const;
+	void update_static_uniforms(glm::mat4 proj, float near, float far);
 };

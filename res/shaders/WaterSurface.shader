@@ -8,14 +8,14 @@ out vec3 v_pos;
 out vec3 v_normal;
 out vec2 v_texCoord;
 
-uniform mat4 u_MVP;
+uniform mat4 model;
 
 void main()
 {
 	v_pos = aPos;
 	v_normal = aNormal;
 	v_texCoord = aTexCoord;
-	gl_Position = u_MVP * vec4(aPos, 1.0f);
+	gl_Position = model * vec4(aPos, 1.0f);
 }
 
 #shader fragment

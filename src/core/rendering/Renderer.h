@@ -18,14 +18,14 @@ static RenderState current {};
 
 // Renderer.hpp
 class Renderer
-{
-public:
+{    
+public: 
     static void BeginFrame(const glm::vec4& clearColor = {0,0,0,1});
     static void Submit(RenderPass pass, const RenderCommand& cmd);
+    static void ExecutePipeline();
     static void Flush(RenderPass pass);   // executes queued commands
-    static void EndFrame();               // will handle swap‑buffers outsid
 private:
-    static std::vector<RenderCommand> queues[int(RenderPass::UI)+1];
+    static std::vector<RenderCommand> queues[int(RenderPass::Volumetrics)+1]; // bruuuuuh
     static void applyState(RenderState s);
     static void executeCommand(const RenderCommand& cmd);
 };
