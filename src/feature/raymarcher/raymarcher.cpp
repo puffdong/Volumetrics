@@ -58,17 +58,17 @@ void Raymarcher::render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 p
 
     ray_scene->upload_primitives_to_gpu(shader);
 
-    // GLCall(glDisable(GL_DEPTH_TEST));
-    glDisable(GL_CULL_FACE);
-    glDepthMask(GL_FALSE);
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glDepthMask(GL_TRUE);
-    // GLCall(glEnable(GL_DEPTH_TEST));
+    // // GLCall(glDisable(GL_DEPTH_TEST));
+    // glDisable(GL_CULL_FACE);
+    // glDepthMask(GL_FALSE);
+    // glBindVertexArray(quadVAO);
+    // glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
+    // glDepthMask(GL_TRUE);
+    // // GLCall(glEnable(GL_DEPTH_TEST));
 
-    
+    enqueue(RenderPass::Volumetrics);
 }
 
 void Raymarcher::update_static_uniforms(glm::mat4 proj, float near, float far) {
@@ -81,18 +81,21 @@ void Raymarcher::update_static_uniforms(glm::mat4 proj, float near, float far) {
         shader->SetUniform1f("near_plane", near_plane);
         shader->SetUniform1f("far_plane", far_plane);
     }
+    shader->Unbind();
 }
 
 void Raymarcher::enqueue(RenderPass pass) const {
     
+    TextureBinding bind{perlin3d, GL_TEXTURE_3D, 0, "noise_texture"};
+
     RenderCommand cmd{};
-    cmd.vao            = quadVAO;
-    cmd.draw_type       = DrawType::Arrays;
-    cmd.primitive      = GL_LINES;
-    cmd.count          = 4;
-    cmd.instance_count  = 1;
-    cmd.shader         = shader;          // raw ptr, we’re fine
-    cmd.model          = glm::mat4(1.0f); // lines are already in world space
+    cmd.vao        = quadVAO;
+    cmd.draw_type   = DrawType::Arrays;
+    cmd.primitive = GL_TRIANGLE_FAN;
+    cmd.count      = 4;
+    cmd.shader     = shader;
+    cmd.state.depth_write = false;
+    cmd.textures.push_back(bind);
 
     Renderer::Submit(pass, cmd);
 }

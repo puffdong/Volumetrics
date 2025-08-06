@@ -1,5 +1,6 @@
 #pragma once
 #include "RenderCommand.hpp"
+#include "Shader.h"
 #include <vector>
 
 // Error handling
@@ -20,12 +21,31 @@ static RenderState current {};
 class Renderer
 {    
 public: 
+    static void InitRenderer(int width, int height);
     static void BeginFrame(const glm::vec4& clearColor = {0,0,0,1});
     static void Submit(RenderPass pass, const RenderCommand& cmd);
     static void ExecutePipeline();
     static void Flush(RenderPass pass);   // executes queued commands
+    static void PresentToScreen();
+    
 private:
+    static GLuint sceneFBO;
+    static GLuint sceneColorTex;
+    static GLuint sceneDepthRBO;
+
     static std::vector<RenderCommand> queues[int(RenderPass::Volumetrics)+1]; // bruuuuuh
     static void applyState(RenderState s);
     static void executeCommand(const RenderCommand& cmd);
+
+
+    static void recreateSceneFBO(int width, int height);
+
+    static void InitQuad();
+    static GLuint quadVAO;
+    static GLuint quadVBO;
+
+    static void InitFramebuffer(int width, int height);
+
+    static Shader* test_shader;
 };
+

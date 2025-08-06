@@ -113,7 +113,6 @@ void Space::renderWorld(float delta)
 	// vox->drawVoxels(proj, view_matrix);
 
 	// line->render(proj, view_matrix);
-	raymarcher->render(cam_pos, view_matrix, proj, near, far);
 
 }
 
@@ -133,6 +132,9 @@ void Space::enqueue_renderables() {
 	
 	sun->render(proj, camera);
 	line->render(proj, camera->get_view_matrix()); // when to do this tho, prolly late...?
+
+	raymarcher->render(cam_pos, view_matrix, proj, near, far);
+
 
 }
 

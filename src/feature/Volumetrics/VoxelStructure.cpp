@@ -126,17 +126,12 @@ void VoxelStructure::drawVoxels(glm::mat4 projMatrix, glm::mat4 viewMatrix) {
     // shader->SetUniform1i("u_Texture", 0); // Assuming your voxelCube has textures and u_Texture is its unit
     // shader->SetUniform3f("sunDir", glm::vec3(1.f, 0.5f, 0.f));
     // shader->SetUniform3f("sunColor", glm::vec3(1.f, 1.f, 1.f));
-    
-    // Bind the VAO of the cube mesh
-    // Replace voxelCube->getVAO() and voxelCube->getIndexCount() with actual methods/values
-    GLuint vao = voxelCube->getVAO();             // Placeholder
-    unsigned int indexCount = voxelCube->getIndexCount(); // Placeholder
+
+    GLuint vao = voxelCube->getVAO();             
+    unsigned int indexCount = voxelCube->getIndexCount(); 
 
     // glBindVertexArray(vao);
 
-    // Draw 'numVoxels' instances of the cube
-    // This assumes voxelCube uses an EBO and GL_TRIANGLES.
-    // If it uses glDrawArrays, use glDrawArraysInstanced.
     // glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0, numVoxels);
 
     // glBindVertexArray(0); // Unbind VAO
@@ -154,7 +149,6 @@ void VoxelStructure::drawVoxels(glm::mat4 projMatrix, glm::mat4 viewMatrix) {
 }
 
 glm::mat4 VoxelStructure::getModelMatrix(int x, int y, int z) {
-    // Calculate the world position for the voxel at grid coordinates (x,y,z)
     glm::vec3 worldPos = getVoxelToWorldSpace(x, y, z);
     
     // Create the model matrix: translate to worldPos and scale

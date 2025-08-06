@@ -34,8 +34,8 @@ static bool  firstMouse = true;
 static float lastX = 800.0f;
 static float lastY = 450.0f;
 
-static int currentFbWidth_main = 1920; // Default
-static int currentFbHeight_main = 1080; // Default
+static int currentFbWidth_main = 1300; // Default
+static int currentFbHeight_main = 800; // Default
 
 void mouse_callback(GLFWwindow*, double xpos, double ypos)
 {
@@ -156,11 +156,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
-// At the top of main.cpp with other globals, or pass Space* via glfwSetWindowUserPointer
-// For simplicity, assuming 'space' is accessible globally here as it is in your current code.
-// int currentFramebufferWidth = 1600; // Initial, will be updated
-// int currentFramebufferHeight = 900;
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // Update glViewport to cover the new framebuffer size
     glViewport(0, 0, width, height);
@@ -200,7 +195,7 @@ int main(void)
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1920, 1080, "volumetrics", NULL, NULL);
+    window = glfwCreateWindow(1300, 800, "volumetrics", NULL, NULL);
     if (!window)
     {
         std::cout << "umm glfw didnt work" << std::endl;
@@ -214,11 +209,11 @@ int main(void)
     // std::cout << glGetString(GL_VERSION) << std::endl; // 4.1 INTEL-23.0.26
 
     // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    // IMGUI_CHECKVERSION();
+    // ImGui::CreateContext();
+    // ImGuiIO& io = ImGui::GetIO();
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
 
 
@@ -233,13 +228,13 @@ int main(void)
     glewExperimental = GL_TRUE;
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-    ImGui_ImplOpenGL3_Init();
+    // ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    // ImGui_ImplOpenGL3_Init();
 
     if (glewInit() != GLEW_OK) {
         std::cout << "glew init Error!" << std::endl;
     }
-    
+
     int initialFbWidth, initialFbHeight;
     glfwGetFramebufferSize(window, &initialFbWidth, &initialFbHeight);
 
@@ -261,6 +256,8 @@ int main(void)
 
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
+    Renderer::InitRenderer(1300, 800);
+
     space = new Space();
 
     if (space) {
@@ -278,7 +275,7 @@ int main(void)
         // ImGui::NewFrame();
         // ImGui::ShowDemoWindow(); // Show demo window! :)
         Renderer::BeginFrame({0.1f, 0.1f, 0.2f, 1.0f});
-        
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear yuh
 
         float currentTime = glfwGetTime();
@@ -288,8 +285,9 @@ int main(void)
         space->tick(deltaTime, bm);
         space->enqueue_renderables();
         // Renderer::Flush(RenderPass::Forward);
-        Renderer::ExecutePipeline(); 
-        
+        Renderer::ExecutePipeline();
+        Renderer::PresentToScreen();
+
         space->renderWorld(deltaTime);
 
         // ImGui::Render();
@@ -300,9 +298,9 @@ int main(void)
         glfwPollEvents();
     }
 
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    // ImGui_ImplOpenGL3_Shutdown();
+    // ImGui_ImplGlfw_Shutdown();
+    // ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
