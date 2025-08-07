@@ -13,7 +13,6 @@
 #include <sstream>
 #include <filesystem>
 
-
 #include "./core/rendering/Renderer.h"
 #include "./core/rendering/Shader.h"
 #include "./core/rendering/Texture.h"
@@ -24,7 +23,6 @@
 
 // utils
 #include "utils/ButtonMap.h"
-#include "utils/perlin_noise_generator.hpp"
 
 ButtonMap bm;
 Space* space;
@@ -34,8 +32,10 @@ static bool  firstMouse = true;
 static float lastX = 800.0f;
 static float lastY = 450.0f;
 
-static int currentFbWidth_main = 1300; // Default
-static int currentFbHeight_main = 800; // Default
+static int pendingW  = 0, pendingH = 0;
+static bool resizeDirty = true;
+static double lastResizeEvent = 0.0;
+const  double RESIZE_SETTLE = 0.10;   // seconds
 
 void mouse_callback(GLFWwindow*, double xpos, double ypos)
 {
@@ -69,14 +69,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     space->change_fov(xoffset, yoffset);
 }
 
-// static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
-// {
-//     space->process_cursor_position(xpos, ypos);
-// }
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    // Close the window when the user presses the ESC key
-    // ESC = release mouse; second ESC = close window
+
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -157,30 +151,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    // Update glViewport to cover the new framebuffer size
-    glViewport(0, 0, width, height);
-    currentFbWidth_main = width;   // Update global static width
-    currentFbHeight_main = height; // Update global static height
-    if (space) { // Ensure the space object exists
-        space->update_projection_matrix_aspect_ratio((float)width / (float)height);
-    }
+    glViewport(0, 0, width, height);         // cheap, do this immediately
+    pendingW = width;
+    pendingH = height;
+    resizeDirty = true;
+    lastResizeEvent = glfwGetTime(); // record when the last event arrived
 }
 
-GLuint generatePerlin2D() {
-    PerlinNoiseTexture perlinTexture2D(512, 512);
-    GLuint textureID2D = perlinTexture2D.getTextureID();
-    return textureID2D;
-}
-
-// GLuint generatePerlin3D() {
-//     PerlinNoiseTexture perlinTexture3D(128, 128, 128);
-//     GLuint textureID3D = perlinTexture3D.getTextureID();
-//     return textureID3D;
-// }
-
-void save_perlin() {
-    PerlinNoiseTexture perlinTexture2D(512, 512, "/Users/puff/Developer/graphics/Volumetrics/testing/test.ppm");
-}
 
 int main(void)
 {
@@ -194,7 +171,6 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
-    /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(1300, 800, "volumetrics", NULL, NULL);
     if (!window)
     {
@@ -206,9 +182,6 @@ int main(void)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // sync with refresh rate
 
-    // std::cout << glGetString(GL_VERSION) << std::endl; // 4.1 INTEL-23.0.26
-
-    // Setup Dear ImGui context
     // IMGUI_CHECKVERSION();
     // ImGui::CreateContext();
     // ImGuiIO& io = ImGui::GetIO();
@@ -216,34 +189,28 @@ int main(void)
     // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
 
-
     glfwSetKeyCallback(window, key_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide cursor and take control of it
     glfwSetCursorPosCallback(window, mouse_callback);              // set the cursor callback
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // glfwSetCursorPosCallback(window, cursor_position_callback);
 
     glewExperimental = GL_TRUE;
 
-    // Setup Platform/Renderer backends
-    // ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    // ImGui_ImplGlfw_InitForOpenGL(window, true);
     // ImGui_ImplOpenGL3_Init();
 
     if (glewInit() != GLEW_OK) {
         std::cout << "glew init Error!" << std::endl;
     }
 
-    int initialFbWidth, initialFbHeight;
-    glfwGetFramebufferSize(window, &initialFbWidth, &initialFbHeight);
+    int initial_width, initial_height;
+    glfwGetFramebufferSize(window, &initial_width, &initial_height);
 
-    glViewport(0, 0, initialFbWidth, initialFbHeight);
-    // GLCall(glClearDepth(1.0f));
-    glDepthFunc(GL_LESS);
-    glClearColor(1.0f, 0.0f, 0.3f, 1.0f); // Set background to a dark gray
-
-
+    glViewport(0, 0, initial_width, initial_width);
+    
+    GLCall(glDepthFunc(GL_LESS));
     GLCall(glEnable(GL_BLEND));
     GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     GLCall(glEnable(GL_DEPTH_TEST));
@@ -256,19 +223,31 @@ int main(void)
 
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
-    Renderer::InitRenderer(1300, 800);
+    Renderer::InitRenderer(initial_height, initial_width);
+    glViewport(0,0, initial_width, initial_height);
 
     space = new Space();
 
     if (space) {
-        space->update_projection_matrix_aspect_ratio((float)initialFbWidth / (float)initialFbHeight);
+        space->update_projection_matrix_aspect_ratio(static_cast<float>(initial_width) / initial_height);
     }
 
     float lastTime = glfwGetTime();
 
+    pendingH = initial_height;
+    pendingW = initial_width;
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
+
+        if (resizeDirty && glfwGetTime() - lastResizeEvent > RESIZE_SETTLE) {
+            Renderer::Resize(pendingW, pendingH);
+            if (space) space->update_projection_matrix_aspect_ratio(static_cast<float>(pendingW) / pendingH);
+            resizeDirty = false;
+
+            std::cout << "viewport resized to (" << pendingW << ", " << pendingH << ")" << std::endl;
+        }
 
         // ImGui_ImplOpenGL3_NewFrame();
         // ImGui_ImplGlfw_NewFrame();
@@ -276,17 +255,14 @@ int main(void)
         // ImGui::ShowDemoWindow(); // Show demo window! :)
         Renderer::BeginFrame({0.1f, 0.1f, 0.2f, 1.0f});
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear yuh
-
         float currentTime = glfwGetTime();
         float deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
         space->tick(deltaTime, bm);
         space->enqueue_renderables();
-        // Renderer::Flush(RenderPass::Forward);
         Renderer::ExecutePipeline();
-        Renderer::PresentToScreen();
+        Renderer::PresentToScreen(); // testing stuff
 
         space->renderWorld(deltaTime);
 

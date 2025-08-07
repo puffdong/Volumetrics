@@ -58,16 +58,6 @@ void Raymarcher::render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 p
 
     ray_scene->upload_primitives_to_gpu(shader);
 
-    // // GLCall(glDisable(GL_DEPTH_TEST));
-    // glDisable(GL_CULL_FACE);
-    // glDepthMask(GL_FALSE);
-    // glBindVertexArray(quadVAO);
-    // glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
-    // glDepthMask(GL_TRUE);
-    // // GLCall(glEnable(GL_DEPTH_TEST));
-
     enqueue(RenderPass::Volumetrics);
 }
 
@@ -98,4 +88,8 @@ void Raymarcher::enqueue(RenderPass pass) const {
     cmd.textures.push_back(bind);
 
     Renderer::Submit(pass, cmd);
+}
+
+void save_perlin() {
+    PerlinNoiseTexture perlinTexture2D(512, 512, "/Users/puff/Developer/graphics/Volumetrics/testing/test.ppm");
 }

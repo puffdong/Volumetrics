@@ -14,6 +14,8 @@ bool GLLogCall(const char* function, const char* file, int line) {
     return true;
 }
 
+// static storage cuh
+
 GLuint Renderer::sceneFBO      = 0;
 GLuint Renderer::sceneColorTex = 0;
 GLuint Renderer::sceneDepthRBO = 0;
@@ -78,7 +80,7 @@ void Renderer::InitFramebuffer(int width, int height)
         std::cout << "complete" << std::endl;
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::InitQuad() {
@@ -107,7 +109,7 @@ void Renderer::PresentToScreen()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // 2. assume window size viewport already set by the platform layer
     glClear(GL_COLOR_BUFFER_BIT);
-
+    test_shader->HotReloadIfChanged();
     test_shader->Bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, sceneColorTex);
@@ -117,13 +119,17 @@ void Renderer::PresentToScreen()
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void Renderer::Resize(int width, int height) {
+    InitFramebuffer(width, height); // the function re-initializes the framebuffer
+}
 
 void Renderer::BeginFrame(const glm::vec4& clear)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
 
     glClearColor(clear.r, clear.g, clear.b, clear.a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear yuh
+
     for (auto& q : queues) q.clear();
 }
 
@@ -151,7 +157,6 @@ void Renderer::ExecutePipeline() {
         executeCommand(cmd);
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     for (const auto& cmd : queues[int(RenderPass::Volumetrics)]) {
         executeCommand(cmd);
     }

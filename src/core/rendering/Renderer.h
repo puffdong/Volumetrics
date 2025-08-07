@@ -22,12 +22,13 @@ class Renderer
 {    
 public: 
     static void InitRenderer(int width, int height);
+    static void Resize(int width, int height);
     static void BeginFrame(const glm::vec4& clearColor = {0,0,0,1});
     static void Submit(RenderPass pass, const RenderCommand& cmd);
     static void ExecutePipeline();
     static void Flush(RenderPass pass);   // executes queued commands
     static void PresentToScreen();
-    
+
 private:
     static GLuint sceneFBO;
     static GLuint sceneColorTex;
