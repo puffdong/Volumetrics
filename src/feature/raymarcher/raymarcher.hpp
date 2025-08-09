@@ -7,11 +7,11 @@
 #include "../../OBJLoader.h"
 #include "../../core/rendering/Shader.h" 
 #include "rayscene.hpp"
+#include "../../core/Camera.h"
 
 class Raymarcher {
 private:
     Shader* shader;
-    unsigned int quadVAO, quadVBO; // the vbo for the screenwide polygon
     RayScene* ray_scene;
     GLuint perlin3d;
     float time = 0.0;
@@ -24,11 +24,9 @@ public:
 
     void tick(float delta);
 
-    void render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 projMatrix, float near, float far);
-
     // new
     void update_static_uniforms(glm::mat4 proj, float near, float far);
-    void enqueue(RenderPass pass = RenderPass::Forward) const;
+    void enqueue(RenderPass pass, Camera* camera) const;
 };
 
 

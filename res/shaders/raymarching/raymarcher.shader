@@ -1,6 +1,7 @@
 #shader vertex
 #version 330 core
-layout (location = 0) in vec3 aPos;
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aUV;
 
 uniform mat4 invprojview;
 uniform float near_plane;
@@ -10,16 +11,12 @@ out vec3 origin;
 out vec3 ray;
 
 void main() {
-    gl_Position = vec4(aPos, 1.0);
 
-    vec2 pos = vec2(aPos); // clear the aPos third argument, it ain't needed
-    gl_Position = vec4(pos, 0.0, 1.0);
-    origin = (invprojview * vec4(pos, -1.0, 1.0) * near_plane).xyz;
-    ray = (invprojview * vec4(pos * (far_plane - near_plane), far_plane + near_plane, far_plane - near_plane)).xyz;
-
-    // equivalent calculation:
-    // ray = (invprojview * (vec4(pos, 1.0, 1.0) * far_plane - vec4(pos, -1.0, 1.0) * near_plane)).xyz;
+    gl_Position = vec4(aPos, 0.0, 1.0);
+    origin = (invprojview * vec4(aPos, -1.0, 1.0) * near_plane).xyz;
+    ray = (invprojview * vec4(aPos * (far_plane - near_plane), far_plane + near_plane, far_plane - near_plane)).xyz;
 }
+
 #shader fragment
 #version 330 core
 
@@ -37,7 +34,7 @@ uniform float time;
 
 const float MAX_DIST = 100.0;
 const float MIN_DIST = 0.000001;
-const int MAX_STEPS = 128;
+const int MAX_STEPS = 16;
 
 uniform vec3 sphere_positions[5];
 uniform vec3 sphere_colors[5];
@@ -103,7 +100,7 @@ vec4 volumetric_march(vec3 origin, vec3 dir) {
                 hit_point = pos;
             }
 
-            collected_noise += texture(noise_texture, pos * 0.1).x * 0.019;
+            collected_noise += texture(noise_texture, pos * 0.1).x * 0.089;
         }
 
         if (first_hit) {

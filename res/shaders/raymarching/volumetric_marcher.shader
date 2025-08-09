@@ -1,124 +1,198 @@
 #shader vertex
 #version 330 core
-layout (location = 0) in vec3 aPos;
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aUV;
+
+uniform mat4 invprojview;
+uniform float near_plane;
+uniform float far_plane;
+
+out vec3 vOrigin;
+out vec3 vRay;
+
 void main() {
-    gl_Position = vec4(aPos, 1.0);
-};
+    gl_Position = vec4(aPos, 0.0, 1.0);
+
+    // Keep your existing reconstruction style
+    vOrigin = (invprojview * vec4(aPos, -1.0, 1.0) * near_plane).xyz;
+    vRay    = (invprojview * vec4(aPos * (far_plane - near_plane), far_plane + near_plane, far_plane - near_plane)).xyz;
+}
 
 #shader fragment
 #version 330 core
-
 layout(location = 0) out vec4 color;
 
-uniform mat4 view_matrix;
-uniform vec2 iResolution;
-uniform vec3 camera_pos;
-// uniform vec3 camera_dir;
+in vec3 vOrigin;
+in vec3 vRay;
+
+uniform sampler3D noise_texture;
 uniform float time;
 
-const float MAX_DIST = 100.0;
-const float MIN_DIST = 0.001;
-const int MAX_STEPS = 128;
+// =================== FAST KNOBS ===================
+#define STEP_MAX            24          // hard cap of fine steps
+#define STEP_SKIP_SCALE     2.75        // how aggressively we skip in empty space (larger = faster)
+#define SHADOW_STRIDE       4           // recompute shadow every N fine steps
+#define LIGHT_PROBE_DIST    3.0         // single-tap shadow probe distance
+#define DENSITY_MULT        1.15        // extinction scale
+#define COVERAGE            0.43        // threshold before detail
+#define PHASE_G             0.65
+#define AMBIENT             0.07
+// =================================================
 
-uniform vec3 sphere_positions[5];
-uniform vec3 sphere_colors[5];
-uniform float sphere_radiuses[5];
-uniform int num_spheres;
+const float CLOUD_RADIUS     = 25.0;
+const vec3  CLOUD_CENTER     = vec3(0.0);
+const float BASE_HEIGHT      = -10.0;
+const float TOP_HEIGHT       = +12.0;
 
-float smin( float a, float b, float k )
-{
-    k *= 1.0;
-    float r = exp2(-a/k) + exp2(-b/k);
-    return -k*log2(r);
-};
+const vec3  SUN_DIR          = normalize(vec3(0.7, 0.5, 0.2));
+const vec3  SUN_COLOR        = vec3(1.0, 0.98, 0.92);
 
-// Signed Distance Function for a sphere
-float sdfSphere(vec3 position, vec3 center, float radius) {
-    // center.x = center.x + 5 * sin(time);
+// Small helpers
+float remap(float x, float a, float b, float c, float d) {
+    return clamp((x - a) / max(b - a, 1e-6), 0.0, 1.0) * (d - c) + c;
+}
 
-    return length(position - center) - radius;
-};
+float hash12(vec2 p) {
+    vec3 p3  = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
 
-float sdfTorus(vec3 p, vec2 t)
-{   
-    return length(vec2(length(p.xz)-t.x, p.y) ) - t.y;
-};
+float phaseHG(float cosTheta, float g) {
+    float g2 = g*g;
+    return (1.0 - g2) / (4.0 * 3.14159265 * pow(1.0 + g2 - 2.0*g*cosTheta, 1.5));
+}
 
-// Scene function - add more SDFs here to create complex scenes
-float sceneSDF(vec3 position) {
-    float tmp = 1000;
-    for (int i = 0; i < 5; i++) {
-        if (i < num_spheres) {
-            tmp = smin(sdfSphere(position, sphere_positions[i], sphere_radiuses[i]), tmp, 2.0);
-        }
-    }
+// Height shaping for flat bottoms/soft tops (cheap)
+float heightShape(float y) {
+    float h = remap(y, BASE_HEIGHT, TOP_HEIGHT, 0.0, 1.0);
+    float base = smoothstep(0.02, 0.32, h);
+    float top  = 1.0 - smoothstep(0.75, 1.0, h);
+    return clamp(base * (0.55 + 0.45*top), 0.0, 1.0);
+}
 
-    return tmp;
+// ---------- NOISE: macro vs detail ----------
+// macro: 2 octaves, low LOD, wide frequency — cheap & cache-friendly
+float macroNoise(vec3 p) {
+    // Force lower LOD to avoid thrashing cache; tune lods to your texture size
+    float n = 0.0, w = 0.7;
+    n += textureLod(noise_texture, p * 0.035, 2.5).r * w; w *= 0.55;
+    n += textureLod(noise_texture, p * 0.070, 3.5).r * w;
+    return clamp(n * 1.8, 0.0, 1.0);
+}
 
-    // float hmm = min(sdfSphere(position, vec3(10.0, 10.0, 3.0), 1.0), sdfSphere(position, vec3(-10.0, -10.0, 3.0), 1.0));
-    // return hmm; //sdfSphere(position, vec3(10.0, 10.0, 3.0), 1.0);
-};
+// detail: 3 octaves, default LOD (let GPU pick)
+float detailNoise(vec3 p) {
+    float n = 0.0, w = 0.6;
+    n += texture(noise_texture, p * 0.14).r * w;  w *= 0.52;
+    n += texture(noise_texture, p * 0.28).r * w;  w *= 0.50;
+    n += texture(noise_texture, p * 0.56).r * w;
+    return clamp(n * 1.9, 0.0, 1.0);
+}
 
-// Raymarching function to calculate the distance to the nearest surface
-float rayMarch(vec3 rayOrigin, vec3 rayDirection) {
-    float distance = 0.0;
-    for (int i = 0; i < MAX_STEPS; i++) {
-        vec3 currentPosition = rayOrigin + rayDirection * distance;
-        float distToScene = sceneSDF(currentPosition);
-        if (distToScene < MIN_DIST) {
-            return distance;
-        }
-        distance += distToScene;
-        if (distance > MAX_DIST) {
-            break;
-        }
-    }
-    return MAX_DIST;
-};
+// Sphere hit: returns t0,t1 (if miss, t0>t1)
+vec2 raySphere(vec3 ro, vec3 rd, vec3 c, float r) {
+    vec3 oc = ro - c;
+    float b = dot(oc, rd);
+    float c2 = dot(oc, oc) - r*r;
+    float h = b*b - c2;
+    if (h < 0.0) return vec2(1.0, -1.0);
+    h = sqrt(h);
+    return vec2(-b - h, -b + h);
+}
 
-// Shading function to calculate color based on the distance to the scene
-vec3 getNormal(vec3 position) {
-    vec2 epsilon = vec2(0.001, 0.0);
-    float dx = sceneSDF(position + vec3(epsilon.x, epsilon.y, epsilon.y)) - sceneSDF(position - vec3(epsilon.x, epsilon.y, epsilon.y));
-    float dy = sceneSDF(position + vec3(epsilon.y, epsilon.x, epsilon.y)) - sceneSDF(position - vec3(epsilon.y, epsilon.x, epsilon.y));
-    float dz = sceneSDF(position + vec3(epsilon.y, epsilon.y, epsilon.x)) - sceneSDF(position - vec3(epsilon.y, epsilon.y, epsilon.x));
-    return normalize(vec3(dx, dy, dz));
-};
-
-vec4 render(vec3 rayOrigin, vec3 rayDirection) {
-    float distance = rayMarch(rayOrigin, rayDirection);
-    if (distance < MAX_DIST) {
-        vec3 hitPoint = rayOrigin + rayDirection * distance;
-        vec3 normal = getNormal(hitPoint);
-        float lightIntensity = dot(normal, normalize(vec3(1.0, 1.0, 1.0))) * 0.5 + 0.5;
-        vec4 result = vec4(1.0 * lightIntensity, 0.5 * lightIntensity, 0.2 * lightIntensity, 1.0);
-        return result; // Orange-ish color with diffuse lighting
-    }
-    return vec4(0.0); // Background color (black)
-};
-
-
+// Very cheap single-tap "shadow": sample macro density ahead toward sun
+float lightTransmittanceProbe(vec3 p) {
+    vec3 q = p + SUN_DIR * LIGHT_PROBE_DIST;
+    float hShape = heightShape(q.y);
+    if (hShape <= 0.0) return 1.0;
+    float shell   = clamp(1.0 - smoothstep(0.0, 2.5, max(0.0, length(q - CLOUD_CENTER) - CLOUD_RADIUS)), 0.0, 1.0);
+    if (shell <= 0.0) return 1.0;
+    float macro = macroNoise(q);
+    float dMacro = clamp((macro * hShape * shell) - COVERAGE, 0.0, 1.0);
+    float sigma_t = dMacro * DENSITY_MULT * 1.35;
+    return exp(-sigma_t * LIGHT_PROBE_DIST);
+}
 
 void main() {
-    // Normalized pixel coordinates (from -1 to 1)
-    vec2 uv = (gl_FragCoord.xy / iResolution.xy) * 2.0 - 1.0; // - 1.0;
-    uv.x *= iResolution.x / iResolution.y;
+    vec3 ro = vOrigin;
+    vec3 rd = normalize(vRay);
 
-    // Extract rotation matrix from view matrix and invert it
-    mat3 viewRotation = mat3(view_matrix);
-    mat3 inverseRotation = transpose(viewRotation);
+    // Ray-sphere bound
+    vec2 hit = raySphere(ro, rd, CLOUD_CENTER, CLOUD_RADIUS);
+    if (hit.x > hit.y) { color = vec4(0.0); return; }
 
-    // Define the ray direction in camera space (looking down negative Z-axis)
-    vec3 rayDirectionCameraSpace = normalize(vec3(uv.x, uv.y, -1.0));
+    float t0 = max(hit.x, 0.0);
+    float t1 = hit.y;
+    float segLen = max(t1 - t0, 0.0);
+    if (segLen <= 0.0) { color = vec4(0.0); return; }
 
-    // Transform the ray direction to world space
-    vec3 rayDirection = inverseRotation * rayDirectionCameraSpace;
+    // Base step from segment length (bigger by default; we’ll refine adaptively)
+    float dtBase = clamp(segLen / 36.0, 0.35, 0.85);
 
-    // Normalize the ray direction after transformation
-    rayDirection = normalize(rayDirection);
+    // Dither start to reduce banding
+    float jitter = hash12(gl_FragCoord.xy + time);
+    float t = t0 + dtBase * jitter;
 
-    vec3 rayOrigin = camera_pos;
+    float T = 1.0;                 // transmittance
+    vec3  L = vec3(0.0);           // accumulated radiance
+    float cachedShadow = 1.0;      // amortized shadow
+    int   stepSinceShadow = SHADOW_STRIDE; // force compute on first hit
 
-    vec4 result = render(rayOrigin, rayDirection);
-    color = result;
-};
+    // March with empty-space skipping
+    for (int i = 0; i < STEP_MAX; ++i) {
+        if (t > t1 || T < 0.01) break;
+
+        vec3 p = ro + rd * t;
+
+        // Macro density (cheap) for skip/enter decisions
+        float hShape = heightShape(p.y);
+        if (hShape <= 0.0) { t += dtBase * STEP_SKIP_SCALE; continue; }
+
+        float toCenter = length(p - CLOUD_CENTER);
+        float shell = clamp(1.0 - smoothstep(0.0, 2.5, max(0.0, toCenter - CLOUD_RADIUS)), 0.0, 1.0);
+        if (shell <= 0.0) { t += dtBase * STEP_SKIP_SCALE; continue; }
+
+        float macro = macroNoise(p);
+        float dMacro = clamp((macro * hShape * shell) - COVERAGE, 0.0, 1.0);
+
+        // If macro says "almost empty", take a big skip
+        if (dMacro < 0.02) { t += dtBase * STEP_SKIP_SCALE; continue; }
+
+        // Adaptive step: denser => smaller step, sparser => bigger
+        float dt = mix(dtBase * STEP_SKIP_SCALE, dtBase * 0.5, clamp(dMacro * 1.7, 0.0, 1.0));
+
+        // Only now do detail sampling (more expensive)
+        float dDetail = detailNoise(p);
+        float d = clamp(mix(dMacro, dDetail, 0.65), 0.0, 1.0);
+        if (d < 0.001) { t += dt; continue; }
+
+        // Beer-Lambert over this segment
+        float sigma_t = d * DENSITY_MULT;
+        float atten   = exp(-sigma_t * dt);
+        float absorb  = 1.0 - atten;
+
+        // Amortized lighting: refresh shadow every SHADOW_STRIDE fine steps
+        if (stepSinceShadow >= SHADOW_STRIDE) {
+            cachedShadow = lightTransmittanceProbe(p);
+            stepSinceShadow = 0;
+        }
+        stepSinceShadow++;
+
+        float mu = dot(rd, SUN_DIR);
+        float phase = phaseHG(mu, PHASE_G);
+
+        vec3 Li = SUN_COLOR * (AMBIENT + cachedShadow);
+        vec3 scatter = Li * phase;
+
+        L += T * scatter * absorb;  // accumulate single scattering
+        T *= atten;                 // update transmittance
+
+        t += dt;
+    }
+
+    float alpha = clamp(1.0 - T, 0.0, 1.0);
+    vec3  outRGB = L / (1.0 + L);  // simple Reinhard
+
+    color = vec4(outRGB, alpha);
+}

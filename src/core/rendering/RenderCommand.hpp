@@ -2,7 +2,7 @@
 #include "Shader.h"
 #include "glm/glm.hpp"
 
-enum class DrawType { Arrays, Elements, ArraysInstanced, ElementsInstanced };
+enum class DrawType { Arrays, Elements, ArraysInstanced, ElementsInstanced, Framebuffer };
 
 enum class RenderPass { Skypass, Forward, Transparent, Volumetrics };
 
@@ -10,6 +10,7 @@ struct RenderState {
     bool depth_test   = true;   // GL_DEPTH_TEST
     bool depth_write  = true;   // glDepthMask
     bool cull_face    = true;   // GL_CULL_FACE
+    bool cull_front_back = GL_BACK; // glCullFace
     bool line_smooth  = true;   // GL_LINE_SMOOTH
 };
 

@@ -28,10 +28,36 @@ Shader* Renderer::test_shader = nullptr;
 std::vector<RenderCommand> Renderer::queues[int(RenderPass::Volumetrics)+1]; // what the fuck, hate hardcoded stuff
 
 void Renderer::InitRenderer(int width, int height)
-{
+{  
+    GLCall(glDepthFunc(GL_LESS));
+    GLCall(glEnable(GL_BLEND));
+    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    GLCall(glEnable(GL_DEPTH_TEST));
+    GLCall(glEnable(GL_CULL_FACE));
+    GLCall(glCullFace(GL_BACK));
+    GLCall(glFrontFace(GL_CCW));
+
+    GLuint globalVao = 0;
+    GLCall(glGenVertexArrays(1, &globalVao));
+    GLCall(glBindVertexArray(globalVao));
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_LINE_SMOOTH);
+    glDepthMask(GL_TRUE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW); // pick one and stick to it
+
+    current.depth_test      = false;
+    current.depth_write     = true;
+    current.cull_face       = false;
+    current.cull_front_back = GL_BACK;
+    current.line_smooth     = false;
     InitQuad();
     InitFramebuffer(width, height);
     test_shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/test_shader.shader");
+    
+    glViewport(0,0, width, height);
 }
 
 void Renderer::InitFramebuffer(int width, int height)
@@ -125,10 +151,13 @@ void Renderer::Resize(int width, int height) {
 
 void Renderer::BeginFrame(const glm::vec4& clear)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
-
+    // glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+    // Establish a known baseline before clearing
+    glDisable(GL_SCISSOR_TEST);          // scissor clips clears; kill it unless you mean it
+    glDepthMask(GL_TRUE);                // allow depth clear to actually write
+    glClearDepth(1.0);                   // depth clear value
     glClearColor(clear.r, clear.g, clear.b, clear.a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear yuh
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (auto& q : queues) q.clear();
 }
@@ -173,41 +202,52 @@ void Renderer::applyState(RenderState s) { // figure out what to do with this
     apply(s.cull_face, current.cull_face, GL_CULL_FACE); // what if i wanna do GL_FRONT culling, look into how this works
     apply(s.line_smooth, current.line_smooth, GL_LINE_SMOOTH);
 
+    glCullFace(s.cull_front_back);
+
     if (s.depth_write != current.depth_write)
         glDepthMask(s.depth_write ? GL_TRUE : GL_FALSE);
+    
+    current = s;
 }
 
 void Renderer::executeCommand(const RenderCommand& c)
 {
-    applyState(c.state); 
+    applyState(c.state);
 
     c.shader->Bind();
-    c.shader->SetUniformMat4("model", c.model);  
-
-    glBindVertexArray(c.vao);
+    c.shader->SetUniformMat4("model", c.model);
 
     for (const auto& t : c.textures) {
         glActiveTexture(GL_TEXTURE0 + t.unit);
         glBindTexture(t.target, t.id);
-
-        if (t.uniform_name) {
-            c.shader->SetUniform1i(t.uniform_name, t.unit);
-        }
+        if (t.uniform_name) c.shader->SetUniform1i(t.uniform_name, t.unit);
     }
 
     switch (c.draw_type)
     {
     case DrawType::Arrays:
+        glBindVertexArray(c.vao);
         glDrawArrays(c.primitive, 0, c.count);
         break;
+
     case DrawType::Elements:
+        glBindVertexArray(c.vao);
         glDrawElements(c.primitive, c.count, GL_UNSIGNED_INT, 0);
         break;
+
     case DrawType::ArraysInstanced:
+        glBindVertexArray(c.vao);
         glDrawArraysInstanced(c.primitive, 0, c.count, c.instance_count);
         break;
+
     case DrawType::ElementsInstanced:
+        glBindVertexArray(c.vao);
         glDrawElementsInstanced(c.primitive, c.count, GL_UNSIGNED_INT, 0, c.instance_count);
+        break;
+
+    case DrawType::Framebuffer:
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
         break;
     }
 }

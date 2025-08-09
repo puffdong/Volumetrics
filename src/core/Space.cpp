@@ -89,38 +89,11 @@ void Space::tick(float delta, ButtonMap bm)
 
 }
 
-void Space::renderWorld(float delta)
-{
-	glm::mat4 view_matrix = camera->get_view_matrix();
-	glm::vec3 cam_pos = camera->get_position();
-
-
-	// sun->render(proj, camera);
-
-	// water_surface->render(proj, view_matrix, cam_pos);
-
-	// for (WorldObject* o : wObjects)
-	// {
-	// 	o->tick(delta);
-	// 	o->draw(proj, view_matrix, o->getModelMatrix());
-	// }
-
-	// raymarcher
-
-	// std::cout << "x y z : " << cam_pos.x << " " << cam_pos.y << " " << cam_pos.z << std::endl;
-
-	// voxel stuff
-	// vox->drawVoxels(proj, view_matrix);
-
-	// line->render(proj, view_matrix);
-
-}
-
 void Space::enqueue_renderables() {
 	glm::mat4 view_matrix = camera->get_view_matrix();
 	glm::vec3 cam_pos = camera->get_position();
 
-	// water_surface->render(proj, view_matrix, cam_pos); // tbh this one is transparent, and also not really working...
+	water_surface->render(proj, view_matrix, cam_pos); // tbh this one is transparent, and also not really working...
 	
 	for (WorldObject* o : wObjects)
 	{
@@ -133,7 +106,7 @@ void Space::enqueue_renderables() {
 	sun->render(proj, camera);
 	line->render(proj, camera->get_view_matrix()); // when to do this tho, prolly late...?
 
-	// raymarcher->render(cam_pos, view_matrix, proj, near, far);
+	raymarcher->enqueue(RenderPass::Volumetrics, camera);
 
 
 }
@@ -161,6 +134,7 @@ Camera* Space::get_camera() {
 void Space::update_projection_uniforms() {
 	raymarcher->update_static_uniforms(proj, near, far);
 	line->update_static_uniforms(proj, near, far);
+	std::cout << "<Updated static uniforms>" << std::endl;
 }
 
 

@@ -151,11 +151,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);         // cheap, do this immediately
+    glViewport(0, 0, width, height);
     pendingW = width;
     pendingH = height;
     resizeDirty = true;
-    lastResizeEvent = glfwGetTime(); // record when the last event arrived
+    lastResizeEvent = glfwGetTime();
 }
 
 
@@ -210,21 +210,9 @@ int main(void)
 
     glViewport(0, 0, initial_width, initial_width);
     
-    GLCall(glDepthFunc(GL_LESS));
-    GLCall(glEnable(GL_BLEND));
-    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    GLCall(glEnable(GL_DEPTH_TEST));
-    GLCall(glEnable(GL_CULL_FACE));
-    GLCall(glCullFace(GL_BACK));
-
-    GLuint globalVao = 0;
-    GLCall(glGenVertexArrays(1, &globalVao));
-    GLCall(glBindVertexArray(globalVao));
-
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
-    Renderer::InitRenderer(initial_height, initial_width);
-    glViewport(0,0, initial_width, initial_height);
+    Renderer::InitRenderer(initial_width, initial_height);
 
     space = new Space();
 
@@ -262,9 +250,7 @@ int main(void)
         space->tick(deltaTime, bm);
         space->enqueue_renderables();
         Renderer::ExecutePipeline();
-        Renderer::PresentToScreen(); // testing stuff
-
-        space->renderWorld(deltaTime);
+        // Renderer::PresentToScreen(); // testing stuff
 
         // ImGui::Render();
         // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -8,19 +8,18 @@
 
 class VoxelStructure {
 private:
-	// Defines the height, width and depth. 
 	int height;
 	int width;
 	int depth;
 
-	glm::vec3 position; // Where it is placed in WorldSpace
+	glm::vec3 position; 
 
 	std::vector<int> voxels;
-	int numVoxels; // 3D squashed to 1D array
-	float cellSize; // The size it takes of it in the world
+	int numVoxels;
+	float cellSize;
 
-	Shader* shader; // the debugging voxel viewqa
-	ModelObject* voxelCube; // used for representing a voxel
+	Shader* shader;
+	ModelObject* voxelCube;
 	GLuint instanceVBO;
 
 public:
@@ -31,8 +30,6 @@ public:
 	int getVoxelValue(int x, int y, int z);
 
 	glm::vec3 getVoxelToWorldSpace(int x, int y, int z);
-	//glm::ivec3 getWorldSpaceToVoxel(glm::vec3 worldVec);
-
 	void drawVoxels(glm::mat4 projMatrix, glm::mat4 viewMatrix);
 	glm::mat4 getModelMatrix(int x, int y, int z);
 };

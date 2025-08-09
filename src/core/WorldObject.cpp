@@ -25,8 +25,6 @@ void WorldObject::draw(glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 mo
 	shader->SetUniformMat4("u_MVP", projMatrix * worldMatrix * modelMatrix);
 	shader->SetUniformMat4("modelMatrix", modelMatrix);
 	shader->SetUniformMat4("worldMatrix", worldMatrix);
-	// shader->SetUniform1i("u_Texture", 8);
-	// shader->SetUniform1f("textureScale", 1.f);
 
 	RenderCommand cmd{};
     cmd.vao        = model->getVAO();
@@ -34,8 +32,6 @@ void WorldObject::draw(glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 mo
     cmd.count      = model->getIndexCount();
 	cmd.model      = modelMatrix; // swap this tbh, doesn't even make any semantic sense, the mvp is different from modelmtrx
     cmd.shader     = shader;
-	cmd.state.depth_test  = false;
-    cmd.state.depth_write = false;
 
     Renderer::Submit(RenderPass::Forward, cmd);
 }
