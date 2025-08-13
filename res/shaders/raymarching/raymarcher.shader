@@ -100,7 +100,7 @@ vec4 volumetric_march(vec3 origin, vec3 dir) {
                 hit_point = pos;
             }
 
-            collected_noise += texture(noise_texture, pos * 0.1).x * 0.089;
+            collected_noise += texture(noise_texture, pos * 0.1).x * 0.25;
         }
 
         if (first_hit) {

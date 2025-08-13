@@ -16,9 +16,14 @@ bool GLLogCall(const char* function, const char* file, int line) {
 
 // static storage cuh
 
+// FBO
 GLuint Renderer::sceneFBO      = 0;
 GLuint Renderer::sceneColorTex = 0;
 GLuint Renderer::sceneDepthRBO = 0;
+
+GLuint Renderer::volumetrics_fbo;
+GLuint Renderer::volumetrics_fbo_color;
+GLuint Renderer::volumetrics_fbo_depth;
 
 GLuint Renderer::quadVAO = 0;
 GLuint Renderer::quadVBO = 0;
@@ -69,6 +74,13 @@ void Renderer::InitFramebuffer(int width, int height)
         glDeleteTextures   (1, &sceneColorTex);
         glDeleteRenderbuffers(1, &sceneDepthRBO);
     }
+        // clean up old resources if they exist
+    if (volumetrics_fbo)
+    {
+        glDeleteFramebuffers(1, &volumetrics_fbo);
+        glDeleteTextures   (1, &volumetrics_fbo_color);
+        glDeleteRenderbuffers(1, &volumetrics_fbo_depth);
+    }
 
     // 1. framebuffer
     glGenFramebuffers(1, &sceneFBO);
@@ -105,6 +117,49 @@ void Renderer::InitFramebuffer(int width, int height)
     else {
         std::cout << "complete" << std::endl;
     }
+    
+    if (volumetrics_fbo)
+    {
+        glDeleteFramebuffers(1, &volumetrics_fbo);
+        glDeleteTextures   (1, &volumetrics_fbo_color);
+        glDeleteRenderbuffers(1, &volumetrics_fbo_depth);
+    }
+
+    // 1. framebuffer
+    glGenFramebuffers(1, &volumetrics_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, volumetrics_fbo);
+
+    // 2. color attachment (texture)
+    glGenTextures(1, &volumetrics_fbo_color);
+    glBindTexture(GL_TEXTURE_2D, volumetrics_fbo_color);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width / 2, height / 2, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER,
+                           GL_COLOR_ATTACHMENT0,
+                           GL_TEXTURE_2D,
+                           volumetrics_fbo_color,
+                           0);
+
+    // 3. depth attachment (renderbuffer)
+    glGenRenderbuffers(1, &volumetrics_fbo_depth);
+    glBindRenderbuffer(GL_RENDERBUFFER, volumetrics_fbo_depth);
+    glRenderbufferStorage(GL_RENDERBUFFER,
+                          GL_DEPTH24_STENCIL8,
+                          width / 2, height / 2);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                              GL_DEPTH_STENCIL_ATTACHMENT,
+                              GL_RENDERBUFFER,
+                              volumetrics_fbo_depth);
+
+    // 4. sanity check
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Renderer::volumetrics_fbo -> Framebuffer incomplete!" << std::endl;
+    }
+    else {
+        std::cout << "complete" << std::endl;
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -132,7 +187,7 @@ void Renderer::InitQuad() {
 void Renderer::PresentToScreen()
 {
     // 1. back to default framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // 2. assume window size viewport already set by the platform layer
     glClear(GL_COLOR_BUFFER_BIT);
     test_shader->HotReloadIfChanged();
@@ -140,6 +195,9 @@ void Renderer::PresentToScreen()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, sceneColorTex);
     test_shader->SetUniform1i("u_Scene", 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, volumetrics_fbo_color);
+    test_shader->SetUniform1i("volumetrics_tex", volumetrics_fbo_color);
 
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);

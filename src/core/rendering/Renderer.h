@@ -34,6 +34,10 @@ private:
     static GLuint sceneColorTex;
     static GLuint sceneDepthRBO;
 
+    static GLuint volumetrics_fbo;
+    static GLuint volumetrics_fbo_color;
+    static GLuint volumetrics_fbo_depth;
+
     static std::vector<RenderCommand> queues[int(RenderPass::Volumetrics)+1]; // bruuuuuh
     static void applyState(RenderState s);
     static void executeCommand(const RenderCommand& cmd);

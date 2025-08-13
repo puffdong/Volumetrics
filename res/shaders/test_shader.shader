@@ -14,6 +14,10 @@ void main() {
 in vec2 vUV;
 out vec4 FragColor;
 uniform sampler2D u_Scene;
+uniform sampler2D volumetrics_tex;
 void main() {
-    FragColor = texture(u_Scene, vUV);
+    // FragColor = texture(u_Scene, vUV) + texture(volumetrics_tex, vUV);
+    vec4 vol_col = texture(volumetrics_tex, vUV * 2);
+    vec4 scene_col = texture(u_Scene, vUV);
+    FragColor = vol_col;
 }

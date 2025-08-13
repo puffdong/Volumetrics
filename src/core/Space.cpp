@@ -19,8 +19,8 @@ Space::Space()
 	// raymarcher
 	ray_scene = new RayScene(glm::vec3(0.0, 0.0, 0.0));
 	raymarcher = new Raymarcher(ray_scene);
-	sphere1 = ray_scene->add_sphere(glm::vec3(10.0f, 0.0f, 0.0f), 5.0f, glm::vec4(1.0, 0.4, 0.1, 0.8));
-	sphere2 = ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.4, 0.1, 0.8));
+	sphere1 = ray_scene->add_sphere(glm::vec3(-5.0f, -3.0f, -10.0f), 7.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
+	// sphere2 = ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
 
 		skybox = new Skybox(
 		std::string("/Users/puff/Developer/graphics/Volumetrics/res/models/skybox-full-tweaked.obj"),
@@ -58,7 +58,7 @@ Space::Space()
 	// worldShader->SetUniform1iv("isDirectional", isDirectional);
 
 	// load all the world objects and set up the world
-	WorldObject* teapotObject = new WorldObject(worldShader, "/Users/puff/Developer/graphics/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 0.f), glm::vec3(0.f));
+	WorldObject* teapotObject = new WorldObject(worldShader, "/Users/puff/Developer/graphics/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f));
 	wObjects.push_back(teapotObject);
 }
 
@@ -81,8 +81,8 @@ void Space::tick(float delta, ButtonMap bm)
 	// sphere1->pos.x = 13 * sin(time * 0.1f);
 	// sphere1->pos.z = 13 * cos(time * 0.1f);
 
-	sphere2->pos.x = 7 * sin(-time * 0.15f);
-	sphere2->pos.z = 7 * cos(-time * 0.15f);
+	// sphere2->pos.x = 7 * sin(-time * 0.15f);
+	// sphere2->pos.z = 7 * cos(-time * 0.15f);
 
 	raymarcher->tick(delta);
 
@@ -93,7 +93,7 @@ void Space::enqueue_renderables() {
 	glm::mat4 view_matrix = camera->get_view_matrix();
 	glm::vec3 cam_pos = camera->get_position();
 
-	water_surface->render(proj, view_matrix, cam_pos); // tbh this one is transparent, and also not really working...
+	// water_surface->render(proj, view_matrix, cam_pos); // tbh this one is transparent, and also not really working...
 	
 	for (WorldObject* o : wObjects)
 	{
