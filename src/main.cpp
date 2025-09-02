@@ -171,7 +171,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
-    window = glfwCreateWindow(900, 600, "volumetrics", NULL, NULL);
+    window = glfwCreateWindow(1920, 1080, "volumetrics", NULL, NULL);
     if (!window)
     {
         std::cout << "umm glfw didnt work" << std::endl;

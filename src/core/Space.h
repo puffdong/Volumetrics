@@ -18,14 +18,10 @@
 #include "../feature/water/WaterSurface.hpp"
 
 #include "../utils/ButtonMap.h"
-#include "../utils/LightSource.h"
 
 class Space {
 private:
 	std::vector<WorldObject*> wObjects;
-
-	Sun* sun;
-	Skybox* skybox;
 
 	float fov = 70.f;
 	float near = 1.0f; // hmm... what is too close/too far? 
@@ -38,16 +34,15 @@ private:
 
 	float time = 0.0;
 
+	Sun* sun;
+	Skybox* skybox;
 	WaterSurface* water_surface;
-	// Sun* sun;
 
 	VoxelStructure* vox;
 	Raymarcher* raymarcher;
 	RayScene* ray_scene;
-
 	RaySphere* sphere1;
 	RaySphere* sphere2;
-
 	Line* line;
 
 public:

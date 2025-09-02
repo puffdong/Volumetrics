@@ -1,13 +1,13 @@
 #include "Sun.hpp"
 #include "../core/rendering/Renderer.h"
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp> // For glm::lookAt (though not used directly in final method)
-#include <glm/geometric.hpp>          // For glm::normalize, glm::cross, glm::length, glm::dot
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/geometric.hpp>
 
 
 Sun::Sun(glm::vec3 direction, glm::vec4 color) 
     : dir(direction), color(color), time(0.0f) {
-        shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/sun.shader");
+        shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/sun.shader");
         init_billboard_model();
     }
 
@@ -28,8 +28,7 @@ void Sun::init_billboard_model() {
     -width / 2.0f, 0.0f,  depth / 2.0f,     0.0f, 1.0f, 0.0f,     0.0f, 1.0f
     };
 
-    // Indices 
-    std::vector<unsigned int> indices = { // this "pointed down" before so I swapped the order hah
+    std::vector<unsigned int> indices = {
         2, 1, 0,
         0, 3, 2
     };
@@ -58,10 +57,6 @@ void Sun::init_billboard_model() {
 }
 
 void Sun::render(glm::mat4 proj, Camera* camera) {
-    // glDisable(GL_DEPTH_TEST);
-	// glDepthMask(GL_FALSE);
-
-    // shitty shitty start ///////
     glm::vec3 cam_pos = camera->get_position();
 
     glm::vec3 norm_sun_dir = glm::normalize(this->dir); 
@@ -82,26 +77,17 @@ void Sun::render(glm::mat4 proj, Camera* camera) {
 
     glm::mat4 trans = glm::translate(glm::mat4(1.0f), sun_pos);
     glm::mat4 model_matrix = trans * rot;
-    // shitty shitty end ///////
 
     glm::mat4 mvp = proj * camera->get_view_matrix() * model_matrix;
 
     shader->Bind();
     shader->SetUniform3f("sun_dir", this->dir); 
-    // // shader->SetUniformMat4("mvp", mvp);
-
-    // glBindVertexArray(VAO);
-    // glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
-    // glBindVertexArray(0);
-
-    // glEnable(GL_DEPTH_TEST);
-	// glDepthMask(GL_TRUE);
 
     RenderCommand cmd{};
     cmd.vao        = VAO;
     cmd.draw_type   = DrawType::Elements;
     cmd.count      = index_count;
-	cmd.model      = mvp; // swap this tbh, doesn't even make any semantic sense, the mvp is different from modelmtrx
+	cmd.model      = mvp; 
     cmd.shader     = shader;
 	cmd.state.depth_test  = false;
     cmd.state.depth_write = false;

@@ -5,8 +5,8 @@
 WaterSurface::WaterSurface(glm::vec3 position, float height, float width) 
 : pos(position), height(height), width(width), time(0.f)
 {
-    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/WaterSurface.shader");
-    model = new ModelObject(height, width, 20, 20); // float width, float depth, int numRows, int numCols
+    shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/WaterSurface.shader");
+    model = new ModelObject(height, width, 20, 20);
 }
 
 void WaterSurface::tick(ButtonMap bm, float delta) {
@@ -28,10 +28,10 @@ void WaterSurface::render(glm::mat4 proj, glm::mat4 view, glm::vec3 camera_pos) 
     cmd.count      = model->getIndexCount();
 	cmd.model      = mvp; // swap this tbh, doesn't even make any semantic sense, the mvp is different from modelmtrx
     cmd.shader     = shader;
-    cmd.state.depth_test   = true;   // GL_DEPTH_TEST
-    cmd.state.depth_write  = true;   // glDepthMask
-    cmd.state.cull_face    = true;   // GL_CULL_FACE
-    cmd.state.line_smooth  = true;   // GL_LINE_SMOOTH
+    cmd.state.depth_test   = true;
+    cmd.state.depth_write  = true;
+    cmd.state.cull_face    = true;
+    cmd.state.line_smooth  = true;
 
     Renderer::Submit(RenderPass::Forward, cmd);
 

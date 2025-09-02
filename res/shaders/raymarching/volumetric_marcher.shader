@@ -27,13 +27,14 @@ in vec3 ray;
 
 uniform sampler3D noise_texture;
 uniform float time;
+uniform vec3 sun_dir;
 
 uniform vec3  sphere_positions[5];
 uniform vec3  sphere_colors[5];
 uniform float sphere_radiuses[5];
 uniform int   num_spheres;
 
-const int   MAX_STEPS         = 56;     // perf lever
+const int   MAX_STEPS         = 96;  // perf lever
 const float STEP_SIZE         = 0.45;   // meters per step
 const float SIGMA_T           = 1.1;    // extinction multiplier
 
@@ -42,7 +43,7 @@ const float NOISE_THRESH      = 0.47;   // threshold for “puffs” (lower = fu
 const float NOISE_BAND        = 0.20;   // softness around threshold
 const float EDGE_SOFTNESS2    = 0.10;   // fade width near edge (in r^2 space)
 
-const vec3  SUN_DIR           = normalize(vec3(0.7, 0.5, 0.2));
+
 const vec3  SUN_COLOR         = vec3(1.0, 0.98, 0.92);
 const float AMBIENT           = 0.08;   // floor light
 
@@ -108,7 +109,7 @@ void samplePuffs(vec3 p, out float dens, out vec3 tint, out vec3 sCenter, out fl
         // float n1  = texture(noise_texture, p * 0.5).r;
         // float n2  = texture(noise_texture, p * 2).r;
         float occ = smoothstep(NOISE_THRESH - NOISE_BAND, NOISE_THRESH + NOISE_BAND, n0);
-        // occ += smoothstep(NOISE_THRESH - NOISE_BAND, NOISE_THRESH + NOISE_BAND, n1) * 0.3;
+        //  occ += smoothstep(NOISE_THRESH - NOISE_BAND, NOISE_THRESH + NOISE_BAND, n1) * 0.3;
         // occ += smoothstep(NOISE_THRESH - NOISE_BAND, NOISE_THRESH + NOISE_BAND, n2) * 0.1;
 
         float thisD = shell * occ;
@@ -130,7 +131,7 @@ void samplePuffs(vec3 p, out float dens, out vec3 tint, out vec3 sCenter, out fl
 
 float twoStepShadow(vec3 p) {
     float T = 1.0;
-    vec3 dir = SUN_DIR;
+    vec3 dir = sun_dir;
     for (int k = 0; k < 2; ++k) {
         p += dir * SHADOW_STEP;
         float d; vec3 dummyC; vec3 c; float r; float x2;
@@ -178,13 +179,13 @@ void main() {
             // - two-tap shadow
             // - silver-lining accent near edge
             vec3  nSphere = normalize(p - c);
-            float ndotl   = dot(nSphere, SUN_DIR);
+            float ndotl   = dot(nSphere, sun_dir);
             float wrap    = clamp((ndotl + WRAP_LIGHT) / (1.0 + WRAP_LIGHT), 0.0, 1.0);
 
             float shadowT = twoStepShadow(p);
 
             float edge    = smoothstep(LINING_EDGE_START, LINING_EDGE_END, x2);
-            float lining  = edge * clamp(dot(rd, SUN_DIR), 0.0, 1.0); // stronger on sun-facing rim
+            float lining  = edge * clamp(dot(rd, sun_dir), 0.0, 1.0); // stronger on sun-facing rim
 
             float light   = AMBIENT + shadowT * (wrap + LINING_GAIN * lining);
             vec3  Li      = SUN_COLOR * light;

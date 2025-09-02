@@ -19,7 +19,7 @@ private:
 
 public:
     Line(glm::vec3 start, glm::vec3 end);
-    Line(std::vector<LinePrimitive> lines); // needs to be divisible by 2
+    Line(std::vector<LinePrimitive> lines);
     ~Line();
     void render(glm::mat4 proj, glm::mat4 view);
     void enqueue(RenderPass pass = RenderPass::Forward) const;

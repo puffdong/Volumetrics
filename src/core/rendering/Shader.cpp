@@ -32,15 +32,15 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath) {
     ShaderType type = ShaderType::NONE;
     while (getline(stream, line))
     {
-        if (line.find("#shader") != std::string::npos) // If we find on a line we need to specify a type
+        if (line.find("#shader") != std::string::npos)
         {
             if (line.find("vertex") != std::string::npos)
             {
-                type = ShaderType::VERTEX; // Set mode to vertex
+                type = ShaderType::VERTEX;
             }
             else if (line.find("fragment") != std::string::npos)
             {
-                type = ShaderType::FRAGMENT;// Set mode to fragment
+                type = ShaderType::FRAGMENT;
             }
         }
         else
@@ -52,7 +52,7 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath) {
         }
     }
 
-    return { ss[0].str(), ss[1].str() }; // Build and return the ShaderProgramSource struct
+    return { ss[0].str(), ss[1].str() }; // return ShaderProgramSource struct
 }
 
 
@@ -60,16 +60,16 @@ unsigned int Shader::CompileShader(const std::string& source, unsigned int type)
     unsigned int id = glCreateShader(type);
     const char* src = source.c_str(); // Pointer to beginning of data
     glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id); // Compile the shader
+    glCompileShader(id);
 
     int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result); // Get info on the compilation
+    glGetShaderiv(id, GL_COMPILE_STATUS, &result); // Get compilation info
 
     if (result == GL_FALSE) {
         int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length); // Get the length of the message
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
         char* message = (char*)alloca(length * sizeof(char));
-        glGetShaderInfoLog(id, length, &length, message); // Get the message
+        glGetShaderInfoLog(id, length, &length, message);
         std::cout << "Failed " << (type == GL_VERTEX_SHADER ? "Vertex" : "Fragment") << " shader compilation!" << std::endl;
         std::cout << message << std::endl;
         glDeleteShader(id);
@@ -79,33 +79,9 @@ unsigned int Shader::CompileShader(const std::string& source, unsigned int type)
 }
 
 unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
-    // // Compile shader from code
-    // unsigned int program = glCreateProgram();
-    // unsigned int vs = CompileShader(vertexShader, GL_VERTEX_SHADER);
-    // unsigned int fs = CompileShader(fragmentShader, GL_FRAGMENT_SHADER);
-
-    // glAttachShader(program, vs); //attaching to program
-    // glAttachShader(program, fs);
-    // glLinkProgram(program); // Linking
-    // glValidateProgram(program); // Validating
-
-    // glDeleteShader(vs); // remove overflow thing, we already compiled the program that is used!
-    // glDeleteShader(fs); // hmm... detachshader is something to look into
-
-    // return program;
-    // Compile shader from code
     unsigned int program = glCreateProgram();
     unsigned int vs = CompileShader(vertexShader, GL_VERTEX_SHADER);
     unsigned int fs = CompileShader(fragmentShader, GL_FRAGMENT_SHADER);
-
-    // if (vs == 0 || fs == 0) {
-    //     // Clean up if one compiled but the other didn't, or if program was created
-    //     if (vs != 0) glDeleteShader(vs);
-    //     if (fs != 0) glDeleteShader(fs);
-    //     if (program != 0) glDeleteProgram(program);
-    //     std::cout << "Failed to create shader program due to vertex or fragment shader compilation failure." << std::endl;
-    //     return 0; 
-    // }
 
     glAttachShader(program, vs);
     glAttachShader(program, fs);
@@ -132,23 +108,15 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
     if (validateSuccess == GL_FALSE) {
         int length;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-        // Ensure message buffer is safely allocated, especially if length can be large
         std::vector<char> messageBuffer(length); 
         glGetProgramInfoLog(program, length, &length, messageBuffer.data());
         
-        // Change this to a warning and DON'T delete the program or return 0
-        // if linking was successful.
         std::cout << "Warning: Shader program (ID: " << program 
-                  << ", Path: " << m_FilePath // Assuming m_FilePath is accessible or pass it
+                  << ", Path: " << m_FilePath
                   << ") validation failed!" << std::endl;
         std::cout << "Validation InfoLog: " << messageBuffer.data() << std::endl;
-        
-        // DO NOT delete the program here if linking was okay:
-        // glDeleteProgram(program); 
-        // return 0; 
     }
 
-    // Cleanup
     glDeleteShader(vs);
     glDeleteShader(fs);
 

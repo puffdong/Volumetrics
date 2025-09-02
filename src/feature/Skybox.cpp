@@ -16,26 +16,6 @@ Skybox::Skybox(const std::string& modelPath, const std::string& shaderPath, cons
 
 void Skybox::draw(glm::mat4 projMatrix, Camera* camera)
 {
-	// shader->Bind();
-	// texture->Bind(0);
-	// shader->SetUniform1i("u_Texture", 0);
-	// glm::mat4 modelTrans = glm::scale(glm::translate(glm::mat4(1.f), camera->get_position()), glm::vec3(5.f, 5.f, 5.f));
-	// glm::mat4 mvp = projMatrix * camera->get_view_matrix() * modelTrans;
-	// shader->SetUniformMat4("u_MVP", mvp);
-
-	// // To draw the skybox it need special treatment to avoid drawing it wrong
-	// GLCall(glDisable(GL_DEPTH_TEST));
-	// glDepthMask(GL_FALSE);
-	// GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	// GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-	// model->render();
-	// GLCall(glEnable(GL_DEPTH_TEST));
-	// glDepthMask(GL_TRUE);
-	// GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	// GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-
-	// START HERE
-
 	shader->Bind();
 	glm::mat4 modelTrans = glm::scale(glm::translate(glm::mat4(1.f), camera->get_position()), glm::vec3(5.f, 5.f, 5.f));
 	glm::mat4 mvp = projMatrix * camera->get_view_matrix() * modelTrans;
@@ -51,7 +31,7 @@ void Skybox::draw(glm::mat4 projMatrix, Camera* camera)
     cmd.vao        = model->getVAO();
     cmd.draw_type   = DrawType::Elements;
     cmd.count      = model->getIndexCount();
-	cmd.model      = mvp; // swap this tbh, doesn't even make any semantic sense, the mvp is different from modelmtrx
+	cmd.model      = mvp;
     cmd.shader     = shader;
 	cmd.state.depth_test  = false;
     cmd.state.depth_write = false;
@@ -59,8 +39,6 @@ void Skybox::draw(glm::mat4 projMatrix, Camera* camera)
     cmd.textures.push_back(tex);
 
     Renderer::Submit(RenderPass::Skypass, cmd);
-
-
 }
 
 void Skybox::enqueue(RenderPass pass) const

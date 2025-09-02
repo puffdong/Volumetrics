@@ -6,7 +6,7 @@
 Raymarcher::Raymarcher(RayScene* scene)
     : ray_scene(scene)
 {
-    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/raymarching/volumetric_marcher.shader");
+    shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/raymarching/volumetric_marcher.shader");
 
     std::cout << "Generating perlin noise" << std::endl;
 
@@ -32,20 +32,24 @@ void Raymarcher::update_static_uniforms(glm::mat4 proj, float near, float far) {
     shader->Unbind();
 }
 
-void Raymarcher::enqueue(RenderPass pass, Camera* camera) const {
+void Raymarcher::enqueue(RenderPass pass, Camera* camera, glm::vec3 sun_dir) const {
     glm::mat4 invprojview = glm::inverse(proj * camera->get_view_matrix());
 
     shader->HotReloadIfChanged();
     shader->Bind();
     shader->SetUniform1f("time", time);
     shader->SetUniformMat4("invprojview", invprojview);
+    shader->SetUniform1f("near_plane", near_plane);
+    shader->SetUniform1f("far_plane", far_plane);
+    shader->SetUniform3f("camera_pos", camera->get_position());
+    shader->SetUniform3f("sun_dir", sun_dir); 
 
     ray_scene->upload_primitives_to_gpu(shader);
 
     TextureBinding bind{ perlin3d, GL_TEXTURE_3D, 0, "noise_texture" };
 
     RenderCommand cmd{};
-    cmd.draw_type = DrawType::Framebuffer;   // <-- use renderer’s screen triangle
+    cmd.draw_type = DrawType::Framebuffer;
     cmd.shader    = shader;
     cmd.state.depth_write = false;
     cmd.textures.push_back(bind);
@@ -55,5 +59,5 @@ void Raymarcher::enqueue(RenderPass pass, Camera* camera) const {
 
 
 void save_perlin() {
-    PerlinNoiseTexture perlinTexture2D(512, 512, "/Users/puff/Developer/graphics/Volumetrics/testing/test.ppm");
+    PerlinNoiseTexture perlinTexture2D(512, 512, "/Dev/OpenGL/Volumetrics/testing/test.ppm");
 }

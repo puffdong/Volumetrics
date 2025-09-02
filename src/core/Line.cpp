@@ -1,6 +1,5 @@
 #include "Line.hpp"
 
-
 Line::Line(glm::vec3 start, glm::vec3 end) {
     line_primitives.reserve(2);
     line_primitives.push_back({start, end});
@@ -24,14 +23,13 @@ Line::~Line() {
 }
 
 void Line::init_render_stuff() {
-    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Line.shader");
+    shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/Line.shader");
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &instanceVBO);
 
     glBindVertexArray(VAO);
 
-    // base line used for interpolating
     float vertices[] = {
         0.0f,
         1.0f
@@ -48,14 +46,12 @@ void Line::init_render_stuff() {
 
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(LinePrimitive), (void*)offsetof(LinePrimitive, start));
-    glVertexAttribDivisor(1, 1); // gotta let opengl know this is an instanced vertex attribute.
+    glVertexAttribDivisor(1, 1); 
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(LinePrimitive), (void*)offsetof(LinePrimitive, end));
     glVertexAttribDivisor(2, 1); 
 
-
-    // Unbind the VAO
     glBindVertexArray(0);
 }
 
@@ -64,7 +60,7 @@ void Line::render(glm::mat4 proj, glm::mat4 view) {
     shader->Bind();
     shader->SetUniformMat4("view", view);
 
-    enqueue();           // <–– all actual drawing deferred
+    enqueue();
 }
 
 void Line::enqueue(RenderPass pass) const
@@ -75,8 +71,8 @@ void Line::enqueue(RenderPass pass) const
     cmd.primitive      = GL_LINES;
     cmd.count          = 2;
     cmd.instance_count  = num_lines;
-    cmd.shader         = shader;          // raw ptr, we’re fine
-    cmd.model          = glm::mat4(1.0f); // lines are already in world space
+    cmd.shader         = shader;
+    cmd.model          = glm::mat4(1.0f);
 
     Renderer::Submit(pass, cmd);
 }
