@@ -17,9 +17,10 @@
 #include "./core/rendering/Shader.h"
 #include "./core/rendering/Texture.h"
 
-
 #include "core/Space.h"
 #include "core/Camera.h"
+
+#include "core/ui/ui_dumptruck.hpp"
 
 // utils
 #include "utils/ButtonMap.h"
@@ -182,24 +183,22 @@ int main(void)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // sync with refresh rate
 
-    // IMGUI_CHECKVERSION();
-    // ImGui::CreateContext();
-    // ImGuiIO& io = ImGui::GetIO();
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     glfwSetKeyCallback(window, key_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide cursor and take control of it
-    glfwSetCursorPosCallback(window, mouse_callback);              // set the cursor callback
+    glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glewExperimental = GL_TRUE;
 
-    // ImGui_ImplGlfw_InitForOpenGL(window, true);
-    // ImGui_ImplOpenGL3_Init();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     if (glewInit() != GLEW_OK) {
         std::cout << "glew init Error!" << std::endl;
@@ -208,7 +207,7 @@ int main(void)
     int initial_width, initial_height;
     glfwGetFramebufferSize(window, &initial_width, &initial_height);
 
-    glViewport(0, 0, initial_width, initial_width);
+    glViewport(0, 0, initial_width, initial_height);
     
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
@@ -236,33 +235,39 @@ int main(void)
 
             std::cout << "viewport resized to (" << pendingW << ", " << pendingH << ")" << std::endl;
         }
-
-        // ImGui_ImplOpenGL3_NewFrame();
-        // ImGui_ImplGlfw_NewFrame();
-        // ImGui::NewFrame();
+        // Imgui :)
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
         // ImGui::ShowDemoWindow(); // Show demo window! :)
+
+        // main thing of loop
         Renderer::BeginFrame({0.1f, 0.1f, 0.2f, 1.0f});
 
         float currentTime = glfwGetTime();
         float deltaTime = currentTime - lastTime;
         lastTime = currentTime;
-
         space->tick(deltaTime, bm);
         space->enqueue_renderables();
+
         Renderer::ExecutePipeline();
         // Renderer::PresentToScreen(); // testing stuff
 
-        // ImGui::Render();
-        // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        // ui 
+        ui::stats_overlay(space->get_camera());
+
+        // Imgui again
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
 
         glfwPollEvents();
     }
 
-    // ImGui_ImplOpenGL3_Shutdown();
-    // ImGui_ImplGlfw_Shutdown();
-    // ImGui::DestroyContext();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }

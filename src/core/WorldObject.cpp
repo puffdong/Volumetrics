@@ -36,12 +36,23 @@ void WorldObject::draw(glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 mo
     Renderer::Submit(RenderPass::Forward, cmd);
 }
 
-glm::vec3 WorldObject::getPosition() {
-	return position;
-}
+void WorldObject::setPosition(const glm::vec3& p) { position = p; }
+
+void WorldObject::setRotation(const glm::vec3& r) { rotation = r; } 
+
+void WorldObject::setScale   (const glm::vec3& s) { scale = s; }
 
 glm::mat4 WorldObject::getModelMatrix() {
-	return glm::translate(glm::mat4(1.f), position);
+	glm::mat4 m(1.0f);
+    // Translate
+    m = glm::translate(m, position);
+    // Rotate (angles are in RADIANS)
+    m = glm::rotate(m, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)); // roll
+    m = glm::rotate(m, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)); // yaw
+    m = glm::rotate(m, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)); // pitch
+    // Scale
+    m = glm::scale(m, scale);
+    return m;
 }
 
 Shader* WorldObject::getShader() {

@@ -1,5 +1,6 @@
 #include "Space.h"
 #include <iostream>
+#include "ui/ui_dumptruck.hpp"
 
 Space::Space()
 {
@@ -49,6 +50,7 @@ void Space::tick(float delta, ButtonMap bm)
 	for (WorldObject* o : wObjects)
 	{
 		o->tick(delta);
+		ui::transform_window(*o, "teapot");
 	}
 
 	camera->tick(delta, bm);

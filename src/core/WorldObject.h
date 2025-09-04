@@ -17,14 +17,22 @@ protected:
 	glm::vec3 position;
 	glm::vec3 rotation;
 	float specularExponent = 200.f;
+	glm::vec3 scale = glm::vec3(1.0f);
 
 public:
 	WorldObject(Shader* s, const std::string& modelPath, glm::vec3 pos, glm::vec3 rot);
 	WorldObject(Shader* s, ModelObject* m, glm::vec3 pos, glm::vec3 rot);
-	glm::vec3 getPosition();
+    glm::vec3 getPosition() const { return position; };
+    glm::vec3 getRotation() const { return rotation; };
+    glm::vec3 getScale() const { return scale; };
+
+    void setPosition(const glm::vec3& p);
+    void setRotation(const glm::vec3& r);
+    void setScale(const glm::vec3& s);
+
 	virtual void tick(float deltaTime);
 	virtual void draw(glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 modelMatrix);
-	glm::mat4 getModelMatrix();
+	glm::mat4 getModelMatrix();                               
 
 	Shader* getShader();
 };

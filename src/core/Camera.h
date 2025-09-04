@@ -7,11 +7,11 @@
 class Camera
 {
 public:
-    glm::vec3 position;    // Position of the camera
+    glm::vec3 position;
     glm::vec3 front;       // Direction camera is facing
-    glm::vec3 up;          // Up vector
-    glm::vec3 right;       // Right vector
-    glm::vec3 worldUp;     // World's up vector
+    glm::vec3 up;
+    glm::vec3 right;
+    glm::vec3 worldUp;
 
     float yaw;
     float pitch;
@@ -30,7 +30,6 @@ public:
     glm::vec3 get_right();
     void process_mouse(float xOffset, float yOffset, bool constrainPitch = true);
 
-    // Updates camera based on input
     void tick(float deltaTime, const ButtonMap& bm);
 
 private:
