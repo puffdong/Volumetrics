@@ -52,7 +52,7 @@ void Camera::process_keyboard(const ButtonMap& bm, float deltaTime)
         position += right * velocity;
     if (bm.Space)
         position += worldUp * velocity;
-    if (bm.Ctrl)
+    if (bm.LeftCtrl)
         position -= worldUp * velocity;
 }
 

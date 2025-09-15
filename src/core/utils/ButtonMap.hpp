@@ -1,8 +1,9 @@
 #pragma once
 
 struct ButtonMap {
-    bool W, A, S, D;
-    bool Space;
-    bool Up, Down, Left, Right;
-    bool Ctrl;
+    bool W = false, A = false, S = false, D = false;
+    bool Space = false;
+    bool Up = false, Down = false, Left = false, Right = false;
+    bool LeftCtrl = false;
+    bool LeftShift = false;
 };

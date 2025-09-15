@@ -1,6 +1,6 @@
 #include "Space.hpp"
 #include <iostream>
-#include "ui/ui_dumptruck.hpp"
+#include "core/ui/ui_dumptruck.hpp"
 
 Space::Space()
 {

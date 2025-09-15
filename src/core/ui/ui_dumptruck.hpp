@@ -4,7 +4,7 @@
 #pragma /* frickin */ once
 
 #include "imgui.h"
-#include "core/Space.hpp"
+#include "core/space/Space.hpp"
 #include "core/Camera.hpp"
 #include "core/WorldObject.hpp"
 #include "glm/glm.hpp"

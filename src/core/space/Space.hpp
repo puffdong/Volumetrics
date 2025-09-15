@@ -6,9 +6,9 @@
 #include "glm/glm.hpp"
 #include <vector>
 
-#include "Camera.hpp"
-#include "WorldObject.hpp"
-#include "Line.hpp"
+#include "core/Camera.hpp"
+#include "core/WorldObject.hpp"
+#include "core/Line.hpp"
 
 #include "feature/Sun.hpp"
 #include "feature/Skybox.hpp"
