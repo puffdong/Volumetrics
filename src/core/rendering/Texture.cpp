@@ -1,7 +1,7 @@
-#include "Texture.h"
+#include "Texture.hpp"
 #include <iostream>
 
-#include "Renderer.h"
+#include "Renderer.hpp"
 
 Texture::Texture(const std::string& path)
 	: m_RendererID(0), m_FilePath(path), m_Width(0), m_Height(0), m_BPP(0)

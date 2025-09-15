@@ -3,11 +3,11 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
-#include "../../utils/perlin_noise_generator.hpp"
-#include "../../OBJLoader.h"
-#include "../../core/rendering/Shader.h" 
+#include "core/utils/perlin_noise_generator.hpp"
+#include "core/OBJLoader.hpp"
+#include "core/rendering/Shader.hpp" 
 #include "rayscene.hpp"
-#include "../../core/Camera.h"
+#include "core/Camera.hpp"
 
 class Raymarcher {
 private:

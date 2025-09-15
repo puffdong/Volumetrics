@@ -2,11 +2,11 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include "../OBJLoader.h"
-#include "../core/rendering/Texture.h"
+#include "core/OBJLoader.hpp"
+#include "core/rendering/Texture.hpp"
 
 #include <string>
-#include "../core/rendering/Shader.h"
+#include "core/rendering/Shader.hpp"
 
 class WorldObject {
 protected:

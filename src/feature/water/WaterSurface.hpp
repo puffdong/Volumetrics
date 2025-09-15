@@ -1,10 +1,10 @@
 #pragma once
+#include <vector>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include <vector>
-#include "../../core/rendering/Shader.h"
-#include "../../OBJLoader.h"
-#include "../../utils/ButtonMap.h"
+#include "core/rendering/Shader.hpp"
+#include "core/OBJLoader.hpp"
+#include "core/utils/ButtonMap.hpp"
 
 class WaterSurface {
 private:

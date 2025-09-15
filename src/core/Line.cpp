@@ -22,8 +22,8 @@ Line::~Line() {
     glDeleteBuffers(1, &instanceVBO);
 }
 
-void Line::init_render_stuff() {
-    shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/Line.shader");
+void Line::init_render_stuff() { 
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Line.shader");
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &instanceVBO);

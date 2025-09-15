@@ -1,11 +1,11 @@
 #include "WaterSurface.hpp"
-#include "../../core/rendering/Renderer.h"
+#include "core/rendering/Renderer.hpp"
 #include <iostream>
 
 WaterSurface::WaterSurface(glm::vec3 position, float height, float width) 
 : pos(position), height(height), width(width), time(0.f)
 {
-    shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/WaterSurface.shader");
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/WaterSurface.shader");
     model = new ModelObject(height, width, 20, 20);
 }
 

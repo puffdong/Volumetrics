@@ -3,8 +3,8 @@
 #include <GL/glew.h>
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
-#include "../../OBJLoader.h"
-#include "../../core/rendering/Shader.h" 
+#include "core/OBJLoader.hpp"
+#include "core/rendering/Shader.hpp" 
 
 class VoxelStructure {
 private:
@@ -35,7 +35,7 @@ private:
 	glm::mat4 getModelMatrix(int x, int y, int z);
 	
 private:
-	GLuint instance_vbo;
+	GLuint instanceVBO;
 
 	void init_instance_buffer(int h, int w, int d);
 	void delete_instance_buffer();

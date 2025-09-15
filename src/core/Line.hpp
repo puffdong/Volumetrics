@@ -1,8 +1,8 @@
 #pragma once
-#include "../core/rendering/Shader.h"
+#include "../core/rendering/Shader.hpp"
 #include <vector>
 #include <glm/glm.hpp>
-#include "../core/rendering/Renderer.h"
+#include "../core/rendering/Renderer.hpp"
 
 struct LinePrimitive {
     glm::vec3 start;

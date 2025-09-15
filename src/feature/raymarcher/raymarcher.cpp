@@ -1,12 +1,12 @@
 #include "raymarcher.hpp"
 #include <iostream>
-#include "../../core/rendering/Renderer.h"
+#include "core/rendering/Renderer.hpp"
 #include <vector>
 
 Raymarcher::Raymarcher(RayScene* scene)
     : ray_scene(scene)
 {
-    shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/raymarching/volumetric_marcher.shader");
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/raymarching/volumetric_marcher.shader");
 
     std::cout << "Generating perlin noise" << std::endl;
 
@@ -59,5 +59,5 @@ void Raymarcher::enqueue(RenderPass pass, Camera* camera, glm::vec3 sun_dir) con
 
 
 void save_perlin() {
-    PerlinNoiseTexture perlinTexture2D(512, 512, "/Dev/OpenGL/Volumetrics/testing/test.ppm");
+    PerlinNoiseTexture perlinTexture2D(512, 512, "/Users/puff/Developer/graphics/Volumetrics/testing/test.ppm");
 }

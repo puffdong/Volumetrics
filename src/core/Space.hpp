@@ -1,23 +1,23 @@
 #pragma once
 
-#include "../OBJLoader.h"
-#include "../core/rendering/Texture.h"
+#include "core/OBJLoader.hpp"
+#include "core/rendering/Texture.hpp"
 
 #include "glm/glm.hpp"
 #include <vector>
 
-#include "Camera.h"
-#include "WorldObject.h"
+#include "Camera.hpp"
+#include "WorldObject.hpp"
 #include "Line.hpp"
 
-#include "../feature/Sun.hpp"
-#include "../feature/Skybox.h"
-#include "../feature/volumetrics/VoxelStructure.h"
-#include "../feature/raymarcher/raymarcher.hpp"
-#include "../feature/raymarcher/rayscene.hpp"
-#include "../feature/water/WaterSurface.hpp"
+#include "feature/Sun.hpp"
+#include "feature/Skybox.hpp"
+#include "feature/volumetrics/VoxelStructure.hpp"
+#include "feature/raymarcher/raymarcher.hpp"
+#include "feature/raymarcher/rayscene.hpp"
+#include "feature/water/WaterSurface.hpp"
 
-#include "../utils/ButtonMap.h"
+#include "core/utils/ButtonMap.hpp"
 
 class Space {
 private:

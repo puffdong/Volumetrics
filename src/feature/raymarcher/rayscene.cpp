@@ -1,5 +1,5 @@
 #include "rayscene.hpp"
-#include "../../utils/perlin_noise_generator.hpp"
+#include "core/utils/perlin_noise_generator.hpp"
 #include <iostream>
 
 RayScene::RayScene(glm::vec3 world_origin) : origin(world_origin) {

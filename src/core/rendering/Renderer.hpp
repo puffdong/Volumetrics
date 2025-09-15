@@ -1,6 +1,6 @@
 #pragma once
 #include "RenderCommand.hpp"
-#include "Shader.h"
+#include "Shader.hpp"
 #include <vector>
 
 // Error handling
@@ -17,7 +17,6 @@ bool GLLogCall(const char* function, const char* file, int line);
 
 static RenderState current {};  
 
-// Renderer.hpp
 class Renderer
 {    
 public: 

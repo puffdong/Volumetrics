@@ -1,4 +1,4 @@
-#include "Space.h"
+#include "Space.hpp"
 #include <iostream>
 #include "ui/ui_dumptruck.hpp"
 
@@ -22,12 +22,12 @@ Space::Space()
 	// sphere2 = ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
 
 		skybox = new Skybox(
-		std::string("/Dev/OpenGL/Volumetrics/res/models/skybox-full-tweaked.obj"),
-		std::string("/Dev/OpenGL/Volumetrics/res/shaders/Skybox.shader"),
-		std::string("/Dev/OpenGL/Volumetrics/res/textures/skybox/cloud-landscape.tga")
+		std::string("/Users/puff/Developer/graphics/Volumetrics/res/models/skybox-full-tweaked.obj"),
+		std::string("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Skybox.shader"),
+		std::string("/Users/puff/Developer/graphics/Volumetrics/res/textures/skybox/cloud-landscape.tga")
 	);
 
-	Shader* worldShader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/WorldObject.shader");
+	Shader* worldShader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/WorldObject.shader");
 
 	std::vector<LinePrimitive> lines = {{glm::vec3(5.f, 0.0f, 0.0f), glm::vec3(-5.0f, 0.0f, 0.0f)},
 										{glm::vec3(0.f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -5.0f)},
@@ -35,7 +35,7 @@ Space::Space()
 										{glm::vec3(2.f, 2.0f, 2.0f), glm::vec3(-2.0f, -2.0f, -2.0f)}};
 	line = new Line(lines);
 	
-	WorldObject* teapotObject = new WorldObject(worldShader, "/Dev/OpenGL/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f));
+	WorldObject* teapotObject = new WorldObject(worldShader, "/Users/puff/Developer/graphics/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f));
 	wObjects.push_back(teapotObject);
 }
 

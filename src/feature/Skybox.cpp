@@ -1,6 +1,6 @@
-#include "Skybox.h"
+#include "Skybox.hpp"
 
-#include "../core/rendering/Renderer.h"
+#include "core/rendering/Renderer.hpp"
 
 Skybox::Skybox(const std::string& modelPath, const std::string& shaderPath, const std::string& texturePath)
 {

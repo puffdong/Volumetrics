@@ -18,7 +18,7 @@
 // NOTE: LoadTGA does NOT support all TGA variants! You may need to re-save your TGA
 // with different settings to find a suitable format.
 
-#include "LoadTGA.h"
+#include "LoadTGA.hpp"
 
 static bool gMipmap = true;
 
@@ -53,7 +53,7 @@ bool LoadTGATextureData(const char* filename, TextureData* texture)	// Loads A T
 	long row, rowLimit;
 	GLubyte pixelData[4];
 
-	// Nytt fšr flipping-stšd 111114
+	// Nytt fï¿½r flipping-stï¿½d 111114
 	char flipped;
 	long step;
 

@@ -4,10 +4,10 @@
 #pragma /* frickin */ once
 
 #include "imgui.h"
-#include "../Space.h"
-#include "../Camera.h"
-#include "../WorldObject.h"
-#include "../glm/glm.hpp"
+#include "core/Space.hpp"
+#include "core/Camera.hpp"
+#include "core/WorldObject.hpp"
+#include "glm/glm.hpp"
 
 #define PI 3.14159265358979323846f
 

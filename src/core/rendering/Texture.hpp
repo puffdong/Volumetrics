@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Renderer.h"
-#include "../../LoadTGA.h"
+#include "Renderer.hpp"
+#include "core/LoadTGA.hpp"
 
 class Texture
 {

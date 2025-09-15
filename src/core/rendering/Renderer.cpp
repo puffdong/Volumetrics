@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "Renderer.hpp"
 #include <GL/glew.h>
 #include <iostream>
 
@@ -60,7 +60,7 @@ void Renderer::InitRenderer(int width, int height)
     current.line_smooth     = false;
     InitQuad();
     InitFramebuffer(width, height);
-    test_shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/test_shader.shader");
+    test_shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/test_shader.shader");
     
     glViewport(0,0, width, height);
 }

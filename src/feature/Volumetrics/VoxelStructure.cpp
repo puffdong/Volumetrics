@@ -1,10 +1,10 @@
-#include "VoxelStructure.h"
-#include "../../core/rendering/Renderer.h"
+#include "VoxelStructure.hpp"
+#include "core/rendering/Renderer.hpp"
 
 VoxelStructure::VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue, float cellSize)
     : height(h), width(w), depth(d), position(pos), cellSize(cellSize), instanceVBO(0) {
-    shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/VoxelShaders/VoxelDebug.shader");
-    cube = new ModelObject("/Dev/OpenGL/Volumetrics/res/models/VoxelModels/defaultCube.obj");
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/VoxelShaders/VoxelDebug.shader");
+    cube = new ModelObject("/Users/puff/Developer/graphics/Volumetrics/res/models/VoxelModels/defaultCube.obj");
 
     numVoxels = height * width * depth;
     voxels.resize(numVoxels);
@@ -31,8 +31,8 @@ void VoxelStructure::init_instance_buffer(int h, int w, int d) {
     GLuint vao = cube->getVAO();
     glBindVertexArray(vao);
 
-    glGenBuffers(1, &instance_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
+    glGenBuffers(1, &instanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
     glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), instanceModelMatrices.data(), GL_STATIC_DRAW);
 
     GLsizei vec4Size = sizeof(glm::vec4);
@@ -59,16 +59,16 @@ void VoxelStructure::init_instance_buffer(int h, int w, int d) {
 }
 
 void VoxelStructure::delete_instance_buffer() {
-    if (instance_vbo != 0) {
-        glDeleteBuffers(1, &instance_vbo);
+    if (instanceVBO != 0) {
+        glDeleteBuffers(1, &instanceVBO);
     }
 }
 
 VoxelStructure::~VoxelStructure() {
     delete shader;
     delete cube;
-    if (instance_vbo != 0) {
-        glDeleteBuffers(1, &instance_vbo);
+    if (instanceVBO != 0) {
+        glDeleteBuffers(1, &instanceVBO);
     }
 }
 

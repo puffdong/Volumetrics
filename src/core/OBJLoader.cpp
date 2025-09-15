@@ -1,6 +1,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "OBJLoader.h"
-#include "./core/rendering/Renderer.h"
+#include "OBJLoader.hpp"
+#include "./core/rendering/Renderer.hpp"
 #include "tiny_obj_loader.h"
 #include <iostream>
 #include <unordered_map>

@@ -13,17 +13,16 @@
 #include <sstream>
 #include <filesystem>
 
-#include "./core/rendering/Renderer.h"
-#include "./core/rendering/Shader.h"
-#include "./core/rendering/Texture.h"
+#include "core/rendering/Renderer.hpp"
+#include "core/rendering/Shader.hpp"
+#include "core/rendering/Texture.hpp"
 
-#include "core/Space.h"
-#include "core/Camera.h"
+#include "core/Space.hpp"
+#include "core/Camera.hpp"
 
 #include "core/ui/ui_dumptruck.hpp"
 
-// utils
-#include "utils/ButtonMap.h"
+#include "core/utils/ButtonMap.hpp"
 
 ButtonMap bm;
 Space* space;

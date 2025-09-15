@@ -1,4 +1,4 @@
-#include "WorldObject.h"
+#include "WorldObject.hpp"
 
 WorldObject::WorldObject(Shader* s, const std::string& modelPath, glm::vec3 pos, glm::vec3 rot)
 {

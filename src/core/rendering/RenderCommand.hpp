@@ -1,5 +1,5 @@
 #pragma once
-#include "Shader.h"
+#include "Shader.hpp"
 #include "glm/glm.hpp"
 
 enum class DrawType { Arrays, Elements, ArraysInstanced, ElementsInstanced, Framebuffer };

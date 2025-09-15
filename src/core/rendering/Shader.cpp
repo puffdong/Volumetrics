@@ -1,11 +1,11 @@
-#include "Shader.h"
+#include "Shader.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 
-#include "Renderer.h"
+#include "Renderer.hpp"
 
 Shader::Shader(const std::string& filepath) : m_FilePath(filepath), m_RendererID(0), m_UniformLocationCache()
 {
