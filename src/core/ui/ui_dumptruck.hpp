@@ -67,5 +67,4 @@ namespace ui {
         ImGui::End();
         ImGui::PopID();
     }
-
 }

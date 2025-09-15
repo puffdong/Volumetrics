@@ -4,7 +4,7 @@
 VoxelStructure::VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue, float cellSize)
     : height(h), width(w), depth(d), position(pos), cellSize(cellSize), instanceVBO(0) {
     shader = new Shader("/Dev/OpenGL/Volumetrics/res/shaders/VoxelShaders/VoxelDebug.shader");
-    voxelCube = new ModelObject("/Dev/OpenGL/Volumetrics/res/models/VoxelModels/defaultCube.obj");
+    cube = new ModelObject("/Dev/OpenGL/Volumetrics/res/models/VoxelModels/defaultCube.obj");
 
     numVoxels = height * width * depth;
     voxels.resize(numVoxels);
@@ -12,6 +12,11 @@ VoxelStructure::VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue
         voxels[i] = initValue;
     }
 
+    init_instance_buffer(height, width, depth);
+    
+}
+
+void VoxelStructure::init_instance_buffer(int h, int w, int d) {
     std::vector<glm::mat4> instanceModelMatrices;
     instanceModelMatrices.reserve(numVoxels);
 
@@ -23,11 +28,11 @@ VoxelStructure::VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue
         }
     }
 
-    GLuint vao = voxelCube->getVAO();
+    GLuint vao = cube->getVAO();
     glBindVertexArray(vao);
 
-    glGenBuffers(1, &instanceVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glGenBuffers(1, &instance_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
     glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), instanceModelMatrices.data(), GL_STATIC_DRAW);
 
     GLsizei vec4Size = sizeof(glm::vec4);
@@ -53,11 +58,17 @@ VoxelStructure::VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue
     glBindVertexArray(0);
 }
 
+void VoxelStructure::delete_instance_buffer() {
+    if (instance_vbo != 0) {
+        glDeleteBuffers(1, &instance_vbo);
+    }
+}
+
 VoxelStructure::~VoxelStructure() {
     delete shader;
-    delete voxelCube;
-    if (instanceVBO != 0) {
-        glDeleteBuffers(1, &instanceVBO);
+    delete cube;
+    if (instance_vbo != 0) {
+        glDeleteBuffers(1, &instance_vbo);
     }
 }
 
@@ -88,8 +99,8 @@ void VoxelStructure::drawVoxels(glm::mat4 projMatrix, glm::mat4 viewMatrix) {
     shader->SetUniformMat4("proj", projMatrix);
     shader->SetUniformMat4("view", viewMatrix);
 
-    GLuint vao = voxelCube->getVAO();             
-    unsigned int indexCount = voxelCube->getIndexCount(); 
+    GLuint vao = cube->getVAO();             
+    unsigned int indexCount = cube->getIndexCount(); 
 
     RenderCommand cmd{};
     cmd.vao        = vao;

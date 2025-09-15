@@ -19,17 +19,24 @@ private:
 	float cellSize;
 
 	Shader* shader;
-	ModelObject* voxelCube;
-	GLuint instanceVBO;
-
-public:
+	ModelObject* cube;
+	
+	public:
 	VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue, float cellSize);
 	~VoxelStructure();
+	
+	void resize_grid(int h, int w, int d);
 
 	void setVoxelValue(int x, int y, int z, int value);
 	int getVoxelValue(int x, int y, int z);
-
+	
 	glm::vec3 getVoxelToWorldSpace(int x, int y, int z);
 	void drawVoxels(glm::mat4 projMatrix, glm::mat4 viewMatrix);
 	glm::mat4 getModelMatrix(int x, int y, int z);
+	
+private:
+	GLuint instance_vbo;
+
+	void init_instance_buffer(int h, int w, int d);
+	void delete_instance_buffer();
 };
