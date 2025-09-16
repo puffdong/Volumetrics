@@ -1,12 +1,16 @@
 #include "Application.hpp"
 
 Application::Application(const AppConfig& cfg) {
-    init(cfg);
+    bool success = init(cfg);
+    if (!success) {
+        std::cout << "Application failed to initialize" << std::endl;
+    }
+    
 }
 
 bool Application::Application::init(const AppConfig& cfg) {
     if (!glfwInit())
-        return -1;
+        return false;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -18,7 +22,7 @@ bool Application::Application::init(const AppConfig& cfg) {
     {
         std::cout << "umm glfw didnt work" << std::endl;
         glfwTerminate();
-        return -1;
+        return false;
     }
 
     glfwMakeContextCurrent(window);
@@ -64,6 +68,7 @@ bool Application::Application::init(const AppConfig& cfg) {
 
     if (glewInit() != GLEW_OK) {
         std::cout << "glew init Error!" << std::endl;
+        return false;
     }
 
     int initial_width = cfg.initial_width;
@@ -82,10 +87,12 @@ bool Application::Application::init(const AppConfig& cfg) {
         space->update_projection_matrix_aspect_ratio(static_cast<float>(initial_width) / initial_height);
     }
 
-    float lastTime = glfwGetTime();
+    float last_time = glfwGetTime();
 
     pending_width = initial_width;
     pending_height = initial_height;
+
+    return true;
 }
 
 void Application::mouse_callback(GLFWwindow*, double xpos, double ypos)
@@ -233,10 +240,10 @@ int Application::run() {
 
         Renderer::BeginFrame({0.1f, 0.1f, 0.2f, 1.0f});
 
-        float currentTime = glfwGetTime();
-        float deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
-        space->tick(deltaTime, bm);
+        float current_time = glfwGetTime();
+        float delta_time = current_time - last_time;
+        last_time = current_time;
+        space->tick(delta_time, bm);
         space->enqueue_renderables();
 
         Renderer::ExecutePipeline();
@@ -252,4 +259,13 @@ int Application::run() {
 
         glfwPollEvents();
     }
+    return shutdown();
+}
+
+int Application::shutdown() {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwTerminate();
+    return 0;
 }

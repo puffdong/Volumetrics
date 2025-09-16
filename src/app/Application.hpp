@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <stdexcept>
 
 // OpenGL
 #include <GL/glew.h>
@@ -35,9 +36,10 @@ private:
     Space* space;
     ButtonMap bm;
 
-    float lastTime;
+    float last_time;
     
     bool init(const AppConfig& cfg);
+    int shutdown();
 
     // callback functions and respective variables
     bool mouse_active = true;
