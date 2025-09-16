@@ -3,6 +3,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "core/rendering/Shader.hpp"
+#include "core/rendering/Renderer.hpp"
 #include "core/OBJLoader.hpp"
 #include "core/utils/ButtonMap.hpp"
 
@@ -22,5 +23,5 @@ public:
 
     void tick(ButtonMap bm, float delta);
 
-    void render(glm::mat4 proj, glm::mat4 view, glm::vec3 camera_pos);
+    void render(Renderer& renderer, glm::mat4 proj, glm::mat4 view, glm::vec3 camera_pos);
 };

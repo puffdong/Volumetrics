@@ -49,7 +49,7 @@ public:
 	Space();
 
 	void tick(float delta, ButtonMap bm);
-	void enqueue_renderables();
+	void enqueue_renderables(Renderer& renderer);
 	Camera* get_camera();
 	void change_fov(double xoffset, double yoffset); 
 	void update_projection_matrix_aspect_ratio(float aspectRatio);

@@ -19,7 +19,7 @@ void WorldObject::tick(float deltaTIme) {
 
 }
 
-void WorldObject::draw(glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 modelMatrix) {
+void WorldObject::draw(Renderer& renderer, glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 modelMatrix) {
 	shader->HotReloadIfChanged();
 	shader->Bind();
 	shader->SetUniformMat4("u_MVP", projMatrix * worldMatrix * modelMatrix);
@@ -33,7 +33,7 @@ void WorldObject::draw(glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 mo
 	cmd.model      = modelMatrix; // swap this tbh, doesn't even make any semantic sense, the mvp is different from modelmtrx
     cmd.shader     = shader;
 
-    Renderer::Submit(RenderPass::Forward, cmd);
+    renderer.submit(RenderPass::Forward, cmd);
 }
 
 void WorldObject::setPosition(const glm::vec3& p) { position = p; }

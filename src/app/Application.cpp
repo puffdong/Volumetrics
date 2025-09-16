@@ -79,7 +79,7 @@ bool Application::Application::init(const AppConfig& cfg) {
     
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
-    Renderer::InitRenderer(initial_width, initial_height);
+    renderer.init_renderer(initial_width, initial_height);
 
     space = new Space();
 
@@ -228,7 +228,7 @@ int Application::run() {
         glfwPollEvents();
 
         if (resize_dirty && glfwGetTime() - last_resize_event > RESIZE_SETTLE) {
-            Renderer::Resize(pending_width, pending_height);
+            renderer.resize(pending_width, pending_height);
             if (space) space->update_projection_matrix_aspect_ratio(static_cast<float>(pending_width) / pending_height);
             resize_dirty = false;
 
@@ -238,15 +238,15 @@ int Application::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        Renderer::BeginFrame({0.1f, 0.1f, 0.2f, 1.0f});
+        renderer.begin_frame({0.1f, 0.1f, 0.2f, 1.0f});
 
         float current_time = glfwGetTime();
         float delta_time = current_time - last_time;
         last_time = current_time;
         space->tick(delta_time, bm);
-        space->enqueue_renderables();
+        space->enqueue_renderables(renderer);
 
-        Renderer::ExecutePipeline();
+        renderer.execute_pipeline();
 
         // ui 
         ui::stats_overlay(space->get_camera());

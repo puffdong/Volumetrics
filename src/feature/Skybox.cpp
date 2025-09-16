@@ -14,7 +14,7 @@ Skybox::Skybox(const std::string& modelPath, const std::string& shaderPath, cons
 	texture->Unbind();
 }
 
-void Skybox::draw(glm::mat4 projMatrix, Camera* camera)
+void Skybox::draw(Renderer& renderer, glm::mat4 projMatrix, Camera* camera)
 {
 	shader->Bind();
 	glm::mat4 modelTrans = glm::scale(glm::translate(glm::mat4(1.f), camera->get_position()), glm::vec3(5.f, 5.f, 5.f));
@@ -38,10 +38,10 @@ void Skybox::draw(glm::mat4 projMatrix, Camera* camera)
 
     cmd.textures.push_back(tex);
 
-    Renderer::Submit(RenderPass::Skypass, cmd);
+    renderer.submit(RenderPass::Skypass, cmd);
 }
 
-void Skybox::enqueue(RenderPass pass) const
+void Skybox::enqueue(Renderer& renderer, RenderPass pass) const
 {	
 	TextureBinding tex{};
 	tex.id = texture->get_id();
@@ -59,7 +59,7 @@ void Skybox::enqueue(RenderPass pass) const
 
     cmd.textures.push_back(tex);
 
-    Renderer::Submit(RenderPass::Forward, cmd);
+    renderer.submit(RenderPass::Forward, cmd);
 }
 
 void Skybox::update_static_uniforms(glm::mat4 proj, float near, float far) {

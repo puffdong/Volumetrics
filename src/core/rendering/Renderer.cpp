@@ -14,25 +14,7 @@ bool GLLogCall(const char* function, const char* file, int line) {
     return true;
 }
 
-// static storage cuh
-
-// FBO
-GLuint Renderer::sceneFBO      = 0;
-GLuint Renderer::sceneColorTex = 0;
-GLuint Renderer::sceneDepthRBO = 0;
-
-GLuint Renderer::volumetrics_fbo;
-GLuint Renderer::volumetrics_fbo_color;
-GLuint Renderer::volumetrics_fbo_depth;
-
-GLuint Renderer::quadVAO = 0;
-GLuint Renderer::quadVBO = 0;
-
-Shader* Renderer::test_shader = nullptr;
-
-std::vector<RenderCommand> Renderer::queues[int(RenderPass::Volumetrics)+1]; // what the fuck, hate hardcoded stuff
-
-void Renderer::InitRenderer(int width, int height)
+void Renderer::init_renderer(int width, int height)
 {  
     GLCall(glDepthFunc(GL_LESS));
     GLCall(glEnable(GL_BLEND));
@@ -58,14 +40,14 @@ void Renderer::InitRenderer(int width, int height)
     current.cull_face       = false;
     current.cull_front_back = GL_BACK;
     current.line_smooth     = false;
-    InitQuad();
-    InitFramebuffer(width, height);
+    init_quad();
+    init_framebuffer(width, height);
     test_shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/test_shader.shader");
     
     glViewport(0,0, width, height);
 }
 
-void Renderer::InitFramebuffer(int width, int height)
+void Renderer::init_framebuffer(int width, int height)
 {
     // clean up old resources if they exist
     if (sceneFBO)
@@ -164,28 +146,27 @@ void Renderer::InitFramebuffer(int width, int height)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Renderer::InitQuad() {
+void Renderer::init_quad() {
     if (quadVAO) return; // already done
 
-        float verts[] = {
-            //   pos   // uv
-            -1.f, -1.f, 0.f, 0.f,
-             3.f, -1.f, 2.f, 0.f,  // single-triangle trick
-            -1.f,  3.f, 0.f, 2.f
-        };
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+    float verts[] = {
+        //   pos   // uv
+        -1.f, -1.f, 0.f, 0.f,
+            3.f, -1.f, 2.f, 0.f,  // single-triangle trick
+        -1.f,  3.f, 0.f, 2.f
+    };
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
 }
 
-void Renderer::PresentToScreen()
-{
+void Renderer::present_to_screen() {
     // 1. back to default framebuffer
     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // 2. assume window size viewport already set by the platform layer
@@ -203,11 +184,11 @@ void Renderer::PresentToScreen()
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void Renderer::Resize(int width, int height) {
-    InitFramebuffer(width, height); // the function re-initializes the framebuffer
+void Renderer::resize(int width, int height) {
+    init_framebuffer(width, height); // the function re-initializes the framebuffer
 }
 
-void Renderer::BeginFrame(const glm::vec4& clear)
+void Renderer::begin_frame(const glm::vec4& clear)
 {
     // glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
     // Establish a known baseline before clearing
@@ -220,36 +201,36 @@ void Renderer::BeginFrame(const glm::vec4& clear)
     for (auto& q : queues) q.clear();
 }
 
-void Renderer::Submit(RenderPass pass, const RenderCommand& cmd)
+void Renderer::submit(RenderPass pass, const RenderCommand& cmd)
 {
     queues[int(pass)].push_back(cmd);
 }
 
-void Renderer::Flush(RenderPass pass)
+void Renderer::flush(RenderPass pass)
 {
     for (const auto& cmd : queues[int(pass)])
-        executeCommand(cmd);
+        execute_command(cmd);
 }
 
-void Renderer::ExecutePipeline() {
+void Renderer::execute_pipeline() {
     for (const auto& cmd : queues[int(RenderPass::Skypass)]) {
-        executeCommand(cmd);
+        execute_command(cmd);
     }
 
     for (const auto& cmd : queues[int(RenderPass::Forward)]) {
-        executeCommand(cmd);
+        execute_command(cmd);
     }
     
     for (const auto& cmd : queues[int(RenderPass::Transparent)]) {
-        executeCommand(cmd);
+        execute_command(cmd);
     }
 
     for (const auto& cmd : queues[int(RenderPass::Volumetrics)]) {
-        executeCommand(cmd);
+        execute_command(cmd);
     }
 }
 
-void Renderer::applyState(RenderState s) { // figure out what to do with this
+void Renderer::apply_state(RenderState s) { // figure out what to do with this
     auto apply = [](bool desired, bool enabled_cap, int GL_FUNC)
     {
         if (desired && !enabled_cap) glEnable(GL_FUNC);
@@ -268,9 +249,9 @@ void Renderer::applyState(RenderState s) { // figure out what to do with this
     current = s;
 }
 
-void Renderer::executeCommand(const RenderCommand& c)
+void Renderer::execute_command(const RenderCommand& c)
 {
-    applyState(c.state);
+    apply_state(c.state);
 
     c.shader->Bind();
     c.shader->SetUniformMat4("model", c.model);

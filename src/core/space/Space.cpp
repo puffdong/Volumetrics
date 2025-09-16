@@ -67,7 +67,7 @@ void Space::tick(float delta, ButtonMap bm)
 
 }
 
-void Space::enqueue_renderables() {
+void Space::enqueue_renderables(Renderer& renderer) {
 	glm::mat4 view_matrix = camera->get_view_matrix();
 	glm::vec3 cam_pos = camera->get_position();
 	glm::vec3 sun_dir = sun->get_direction();
@@ -76,16 +76,16 @@ void Space::enqueue_renderables() {
 	
 	for (WorldObject* o : wObjects)
 	{
-		o->draw(proj, view_matrix, o->getModelMatrix());
+		o->draw(renderer, proj, view_matrix, o->getModelMatrix());
 	}
 	
-	skybox->draw(proj, camera); // draw prio u know
-	vox->drawVoxels(proj, view_matrix);
+	skybox->draw(renderer, proj, camera); // draw prio u know
+	vox->drawVoxels(renderer, proj, view_matrix);
 	
-	sun->render(proj, camera);
-	line->render(proj, camera->get_view_matrix()); // when to do this tho, prolly late...?
+	sun->render(renderer, proj, camera);
+	line->render(renderer, proj, camera->get_view_matrix()); // when to do this tho, prolly late...?
 
-	raymarcher->enqueue(RenderPass::Volumetrics, camera, sun_dir);
+	raymarcher->enqueue(renderer, RenderPass::Volumetrics, camera, sun_dir);
 }
 
 void Space::change_fov(double xoffset, double yoffset) { 

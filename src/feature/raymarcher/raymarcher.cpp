@@ -32,7 +32,7 @@ void Raymarcher::update_static_uniforms(glm::mat4 proj, float near, float far) {
     shader->Unbind();
 }
 
-void Raymarcher::enqueue(RenderPass pass, Camera* camera, glm::vec3 sun_dir) const {
+void Raymarcher::enqueue(Renderer& renderer, RenderPass pass, Camera* camera, glm::vec3 sun_dir) const {
     glm::mat4 invprojview = glm::inverse(proj * camera->get_view_matrix());
 
     shader->HotReloadIfChanged();
@@ -54,7 +54,7 @@ void Raymarcher::enqueue(RenderPass pass, Camera* camera, glm::vec3 sun_dir) con
     cmd.state.depth_write = false;
     cmd.textures.push_back(bind);
 
-    Renderer::Submit(pass, cmd);
+    renderer.submit(pass, cmd);
 }
 
 

@@ -55,15 +55,15 @@ void Line::init_render_stuff() {
     glBindVertexArray(0);
 }
 
-void Line::render(glm::mat4 proj, glm::mat4 view) {
+void Line::render(Renderer& renderer, glm::mat4 proj, glm::mat4 view) {
     shader->HotReloadIfChanged();
     shader->Bind();
     shader->SetUniformMat4("view", view);
 
-    enqueue();
+    enqueue(renderer);
 }
 
-void Line::enqueue(RenderPass pass) const
+void Line::enqueue(Renderer& renderer, RenderPass pass) const
 {
     RenderCommand cmd{};
     cmd.vao            = VAO;
@@ -74,7 +74,7 @@ void Line::enqueue(RenderPass pass) const
     cmd.shader         = shader;
     cmd.model          = glm::mat4(1.0f);
 
-    Renderer::Submit(pass, cmd);
+    renderer.submit(pass, cmd);
 }
 
 void Line::update_static_uniforms(glm::mat4 proj, float near, float far) {

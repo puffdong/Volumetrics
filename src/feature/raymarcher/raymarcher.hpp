@@ -26,7 +26,7 @@ public:
 
     // new
     void update_static_uniforms(glm::mat4 proj, float near, float far);
-    void enqueue(RenderPass pass, Camera* camera, glm::vec3 sun_dir) const;
+    void enqueue(Renderer& renderer, RenderPass pass, Camera* camera, glm::vec3 sun_dir) const;
 };
 
 

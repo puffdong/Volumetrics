@@ -34,6 +34,7 @@ public:
 private:
     GLFWwindow* window;
     Space* space;
+    Renderer renderer;
     ButtonMap bm;
 
     float last_time;

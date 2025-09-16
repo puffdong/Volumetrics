@@ -13,7 +13,7 @@ void WaterSurface::tick(ButtonMap bm, float delta) {
     time += delta;
 }
 
-void WaterSurface::render(glm::mat4 proj, glm::mat4 view, glm::vec3 camera_pos) {
+void WaterSurface::render(Renderer& renderer, glm::mat4 proj, glm::mat4 view, glm::vec3 camera_pos) {
     glm::mat4 modelTrans = glm::scale(glm::translate(glm::mat4(1.f), pos), glm::vec3(10.f, 10.f, 10.f));
 	glm::mat4 mvp = proj * view * modelTrans;
     
@@ -33,6 +33,6 @@ void WaterSurface::render(glm::mat4 proj, glm::mat4 view, glm::vec3 camera_pos) 
     cmd.state.cull_face    = true;
     cmd.state.line_smooth  = true;
 
-    Renderer::Submit(RenderPass::Forward, cmd);
+    renderer.submit(RenderPass::Forward, cmd);
 
 }

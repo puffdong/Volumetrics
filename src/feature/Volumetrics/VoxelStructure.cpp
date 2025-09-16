@@ -1,5 +1,5 @@
 #include "VoxelStructure.hpp"
-#include "core/rendering/Renderer.hpp"
+
 
 VoxelStructure::VoxelStructure(int h, int w, int d, glm::vec3 pos, int initValue, float cellSize)
     : height(h), width(w), depth(d), position(pos), cellSize(cellSize), instanceVBO(0) {
@@ -94,7 +94,7 @@ glm::vec3 VoxelStructure::getVoxelToWorldSpace(int x, int y, int z) {
     return voxelPos;
 }
 
-void VoxelStructure::drawVoxels(glm::mat4 projMatrix, glm::mat4 viewMatrix) {
+void VoxelStructure::drawVoxels(Renderer& renderer, glm::mat4 projMatrix, glm::mat4 viewMatrix) {
     shader->Bind();
     shader->SetUniformMat4("proj", projMatrix);
     shader->SetUniformMat4("view", viewMatrix);
@@ -110,7 +110,7 @@ void VoxelStructure::drawVoxels(glm::mat4 projMatrix, glm::mat4 viewMatrix) {
     cmd.instance_count = numVoxels;
     cmd.shader     = shader;
 
-    Renderer::Submit(RenderPass::Forward, cmd);
+    renderer.submit(RenderPass::Forward, cmd);
 }
 
 glm::mat4 VoxelStructure::getModelMatrix(int x, int y, int z) {

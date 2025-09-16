@@ -21,8 +21,8 @@ public:
     Line(glm::vec3 start, glm::vec3 end);
     Line(std::vector<LinePrimitive> lines);
     ~Line();
-    void render(glm::mat4 proj, glm::mat4 view);
-    void enqueue(RenderPass pass = RenderPass::Forward) const;
+    void render(Renderer& renderer, glm::mat4 proj, glm::mat4 view);
+    void enqueue(Renderer& renderer, RenderPass pass = RenderPass::Forward) const;
     void update_static_uniforms(glm::mat4 proj, float near, float far);
 
 private:

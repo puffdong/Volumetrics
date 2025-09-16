@@ -56,7 +56,7 @@ void Sun::init_billboard_model() {
     index_count = static_cast<GLsizei>(indices.size());
 }
 
-void Sun::render(glm::mat4 proj, Camera* camera) {
+void Sun::render(Renderer& renderer, glm::mat4 proj, Camera* camera) {
     glm::vec3 cam_pos = camera->get_position();
 
     glm::vec3 norm_sun_dir = glm::normalize(this->dir); 
@@ -92,6 +92,6 @@ void Sun::render(glm::mat4 proj, Camera* camera) {
 	cmd.state.depth_test  = false;
     cmd.state.depth_write = false;
 
-    Renderer::Submit(RenderPass::Skypass, cmd);
+    renderer.submit(RenderPass::Skypass, cmd);
 
 }
