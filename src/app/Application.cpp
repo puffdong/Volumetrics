@@ -1,14 +1,30 @@
 #include "Application.hpp"
 
-Application::Application(const AppConfig& cfg) {
-    bool success = init(cfg);
+Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path) {
+    bool success = init_glfw(cfg);
     if (!success) {
-        std::cout << "Application failed to initialize" << std::endl;
+        std::cout << "glfw failed to initialize" << std::endl;
     }
-    
+    int initial_width, initial_height; // bit jank... I don't understand what macos' resolution scaling is doing
+    glfwGetFramebufferSize(window, &initial_width, &initial_height); 
+    glViewport(0, 0, initial_width, initial_height);
+
+    pending_width = initial_width;
+    pending_height = initial_height;
+
+    renderer.init_renderer(initial_width, initial_height);
+
+    float aspect_ratio = static_cast<float>(initial_width) / initial_height;
+    renderer.set_projection_matrix(aspect_ratio, 70.f, 1.f, 256.f);
+
+    space = new Space(resources);
+
+    float last_time = glfwGetTime();
+
+    std::cout << resources.get_full_path("res://models/bunny.obj") << std::endl;
 }
 
-bool Application::Application::init(const AppConfig& cfg) {
+bool Application::Application::init_glfw(const AppConfig& cfg) {
     int initial_width = cfg.initial_width;
     int initial_height = cfg.initial_height;
     
@@ -73,25 +89,8 @@ bool Application::Application::init(const AppConfig& cfg) {
         std::cout << "glew init Error!" << std::endl;
         return false;
     }
-
-    glfwGetFramebufferSize(window, &initial_width, &initial_height);
-
-    glViewport(0, 0, initial_width, initial_height);
     
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-
-    renderer.init_renderer(initial_width, initial_height);
-
-    space = new Space();
-
-    if (space) {
-        space->update_projection_matrix_aspect_ratio(static_cast<float>(initial_width) / initial_height);
-    }
-
-    float last_time = glfwGetTime();
-
-    pending_width = initial_width;
-    pending_height = initial_height;
 
     return true;
 }
@@ -125,7 +124,8 @@ void Application::mouse_button_callback(GLFWwindow* window, int button, int acti
 }
 
 void Application::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    space->change_fov(xoffset, yoffset);
+    fov -= (float)yoffset;
+    renderer.set_fov(fov);
 }
 
 void Application::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -230,7 +230,7 @@ int Application::run() {
 
         if (resize_dirty && glfwGetTime() - last_resize_event > RESIZE_SETTLE) {
             renderer.resize(pending_width, pending_height);
-            if (space) space->update_projection_matrix_aspect_ratio(static_cast<float>(pending_width) / pending_height);
+            renderer.set_projection_matrix(static_cast<float>(pending_width) / pending_height, fov);
             resize_dirty = false;
 
             std::cout << "viewport resized to (" << pending_width << ", " << pending_height << ")" << std::endl;

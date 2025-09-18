@@ -6,6 +6,8 @@
 #include "glm/glm.hpp"
 #include <vector>
 
+#include "core/resources/ResourceManager.hpp"
+
 #include "core/Camera.hpp"
 #include "core/WorldObject.hpp"
 #include "core/Line.hpp"
@@ -21,14 +23,9 @@
 
 class Space {
 private:
-	std::vector<WorldObject*> wObjects;
+	ResourceManager& resources;
 
-	float fov = 70.f;
-	float near = 1.0f; // hmm... what is too close/too far? 
-	float far = 256.0f;
-	float aspect_ratio = 16.f / 9.0f;
-	glm::mat4 proj;
-	bool changes_made = true;
+	std::vector<WorldObject*> wObjects;
 
 	Camera* camera;
 
@@ -46,16 +43,13 @@ private:
 	Line* line;
 
 public:
-	Space();
+	Space(ResourceManager& resources);
 
 	void tick(float delta, ButtonMap bm);
 	void enqueue_renderables(Renderer& renderer);
 	Camera* get_camera();
-	void change_fov(double xoffset, double yoffset); 
-	void update_projection_matrix_aspect_ratio(float aspectRatio);
 
 private: 
 	void init_space();
-	void update_projection_uniforms(); // ooooh
 	
 };

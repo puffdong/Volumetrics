@@ -185,6 +185,24 @@ void Renderer::resize(int width, int height) {
     init_framebuffer(width, height); // the function re-initializes the framebuffer
 }
 
+void Renderer::set_projection_matrix(float new_aspect_ratio, float new_fov, float near_plane, float far_plane) {
+    if (aspect_ratio <= 0) {
+		aspect_ratio = 16.f / 9.f; // a bit of sanity checking
+	} else {
+		aspect_ratio = new_aspect_ratio;
+	}
+    near = near_plane;
+    far = far_plane;
+
+    fov = new_fov;
+    proj = glm::perspective(glm::radians(fov), aspect_ratio, near, far);
+	changes_made = true;
+}
+
+void Renderer::set_fov(float fov) {
+    set_projection_matrix(aspect_ratio, fov, near, far); // jank but honestly, pretty lush
+}
+
 void Renderer::begin_frame(const glm::vec4& clear)
 {
     // glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);

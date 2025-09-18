@@ -19,7 +19,7 @@ public:
 	Sun(glm::vec3 direction, glm::vec4 color);
 
     void tick(float delta);
-    void render(Renderer& renderer, glm::mat4 proj, Camera* camera);
+    void render(Renderer& renderer, Camera* camera);
 	glm::vec3 get_direction() { return dir; }
     glm::vec4 get_color() { return color; }
 

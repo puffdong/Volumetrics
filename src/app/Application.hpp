@@ -17,6 +17,7 @@
 // core
 #include "core/rendering/Renderer.hpp"
 #include "core/space/Space.hpp"
+#include "core/resources/ResourceManager.hpp"
 #include "core/ui/ui_dumptruck.hpp"
 #include "core/utils/ButtonMap.hpp"
 
@@ -35,11 +36,14 @@ private:
     GLFWwindow* window;
     Space* space;
     Renderer renderer;
+    ResourceManager resources;
     ButtonMap bm;
 
     float last_time;
+
+    float fov = 70.f;
     
-    bool init(const AppConfig& cfg);
+    bool init_glfw(const AppConfig& cfg);
     int shutdown();
 
     // callback functions and respective variables

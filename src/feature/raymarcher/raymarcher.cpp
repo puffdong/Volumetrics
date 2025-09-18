@@ -17,25 +17,16 @@ void Raymarcher::tick(float delta) {
     time += delta;
 }
 
-void Raymarcher::update_static_uniforms(glm::mat4 proj, float near, float far) {
-    shader->Bind();
-    Raymarcher::proj = proj;
-    near_plane = near;
-    far_plane = far;
-    shader->SetUniform1f("near_plane", near_plane);
-    shader->SetUniform1f("far_plane", far_plane);
-    shader->Unbind();
-}
 
 void Raymarcher::enqueue(Renderer& renderer, RenderPass pass, Camera* camera, glm::vec3 sun_dir) const {
-    glm::mat4 invprojview = glm::inverse(proj * camera->get_view_matrix());
+    glm::mat4 invprojview = glm::inverse(renderer.get_proj() * camera->get_view_matrix());
 
     shader->HotReloadIfChanged();
     shader->Bind();
     shader->SetUniform1f("time", time);
     shader->SetUniformMat4("invprojview", invprojview);
-    shader->SetUniform1f("near_plane", near_plane);
-    shader->SetUniform1f("far_plane", far_plane);
+    shader->SetUniform1f("near_plane", renderer.get_near());
+    shader->SetUniform1f("far_plane", renderer.get_far());
     shader->SetUniform3f("camera_pos", camera->get_position());
     shader->SetUniform3f("sun_dir", sun_dir); 
 

@@ -56,7 +56,7 @@ void Sun::init_billboard_model() {
     index_count = static_cast<GLsizei>(indices.size());
 }
 
-void Sun::render(Renderer& renderer, glm::mat4 proj, Camera* camera) {
+void Sun::render(Renderer& renderer, Camera* camera) {
     glm::vec3 cam_pos = camera->get_position();
 
     glm::vec3 norm_sun_dir = glm::normalize(this->dir); 
@@ -78,7 +78,7 @@ void Sun::render(Renderer& renderer, glm::mat4 proj, Camera* camera) {
     glm::mat4 trans = glm::translate(glm::mat4(1.0f), sun_pos);
     glm::mat4 model_matrix = trans * rot;
 
-    glm::mat4 mvp = proj * camera->get_view_matrix() * model_matrix;
+    glm::mat4 mvp = renderer.get_proj() * camera->get_view_matrix() * model_matrix;
 
     shader->Bind();
     shader->SetUniform3f("sun_dir", this->dir); 

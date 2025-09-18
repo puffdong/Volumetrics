@@ -2,10 +2,8 @@
 #include <iostream>
 #include "core/ui/ui_dumptruck.hpp"
 
-Space::Space()
-{
-	proj = glm::perspective(glm::radians(70.f), aspect_ratio, 1.0f, 256.0f);
-	
+Space::Space(ResourceManager& resources) : resources(resources)
+{	
 	camera = new Camera();
 
 	water_surface = new WaterSurface(glm::vec3(5.f, -10.f, 5.f), 20.f, 20.f);
@@ -38,10 +36,6 @@ Space::Space()
 
 void Space::tick(float delta, ButtonMap bm)
 {
-	if (changes_made) { // whenever aspect ratio and fov changes, this has to propogate somehow, right :)
-		update_projection_uniforms();
-		changes_made = false;
-	}
 	time += delta;
 
 	for (WorldObject* o : wObjects)
@@ -73,43 +67,21 @@ void Space::enqueue_renderables(Renderer& renderer) {
 	
 	for (WorldObject* o : wObjects)
 	{
-		o->draw(renderer, proj, view_matrix, o->getModelMatrix());
+		o->draw(renderer, view_matrix, o->getModelMatrix());
 	}
 	
-	skybox->draw(renderer, proj, camera); // draw prio u know
-	vox->drawVoxels(renderer, proj, view_matrix);
+	skybox->draw(renderer, camera); // draw prio u know
+	vox->drawVoxels(renderer, view_matrix);
 	
-	sun->render(renderer, proj, camera);
-	line->render(renderer, proj, camera->get_view_matrix()); // when to do this tho, prolly late...?
+	sun->render(renderer, camera);
+	line->render(renderer, camera->get_view_matrix()); // when to do this tho, prolly late...?
 
 	raymarcher->enqueue(renderer, RenderPass::Volumetrics, camera, sun_dir);
-}
-
-void Space::change_fov(double xoffset, double yoffset) { 
-	fov -= (float)yoffset;
-	proj = glm::perspective(glm::radians(fov), aspect_ratio, near, far);
-	changes_made = true;
-}
-
-void Space::update_projection_matrix_aspect_ratio(float aspectRatio) {
-    if (aspectRatio <= 0) {
-		aspectRatio = 16.f / 9.f;
-	} else {
-		aspect_ratio = aspectRatio;
-	}
-    change_fov(0.0, 0.0); // a bit dumb that we rely on "fov func" to update the proj matrix
-	changes_made = true;
 }
 
 Camera* Space::get_camera() { 
 	return camera; 
 };
-
-void Space::update_projection_uniforms() {
-	raymarcher->update_static_uniforms(proj, near, far);
-	line->update_static_uniforms(proj, near, far);
-	std::cout << "<Updated static uniforms>" << std::endl;
-}
 
 
 

@@ -16,7 +16,6 @@ protected:
 
 	glm::vec3 position;
 	glm::vec3 rotation;
-	float specularExponent = 200.f;
 	glm::vec3 scale = glm::vec3(1.0f);
 
 public:
@@ -31,7 +30,7 @@ public:
     void setScale(const glm::vec3& s);
 
 	virtual void tick(float deltaTime);
-	virtual void draw(Renderer& renderer, glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 modelMatrix);
+	virtual void draw(Renderer& renderer, glm::mat4 worldMatrix, glm::mat4 modelMatrix);
 	glm::mat4 getModelMatrix();                               
 
 	Shader* getShader();

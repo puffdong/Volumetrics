@@ -32,7 +32,7 @@ private:
 	int getVoxelValue(int x, int y, int z);
 	
 	glm::vec3 getVoxelToWorldSpace(int x, int y, int z);
-	void drawVoxels(Renderer& renderer, glm::mat4 projMatrix, glm::mat4 viewMatrix);
+	void drawVoxels(Renderer& renderer, glm::mat4 viewMatrix);
 	glm::mat4 getModelMatrix(int x, int y, int z);
 	
 private:

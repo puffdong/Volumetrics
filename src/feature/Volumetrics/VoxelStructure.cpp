@@ -94,9 +94,9 @@ glm::vec3 VoxelStructure::getVoxelToWorldSpace(int x, int y, int z) {
     return voxelPos;
 }
 
-void VoxelStructure::drawVoxels(Renderer& renderer, glm::mat4 projMatrix, glm::mat4 viewMatrix) {
+void VoxelStructure::drawVoxels(Renderer& renderer, glm::mat4 viewMatrix) {
     shader->Bind();
-    shader->SetUniformMat4("proj", projMatrix);
+    shader->SetUniformMat4("proj", renderer.get_proj());
     shader->SetUniformMat4("view", viewMatrix);
 
     GLuint vao = cube->getVAO();             

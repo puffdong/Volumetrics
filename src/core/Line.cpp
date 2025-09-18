@@ -55,9 +55,10 @@ void Line::init_render_stuff() {
     glBindVertexArray(0);
 }
 
-void Line::render(Renderer& renderer, glm::mat4 proj, glm::mat4 view) {
+void Line::render(Renderer& renderer, glm::mat4 view) {
     shader->HotReloadIfChanged();
     shader->Bind();
+    shader->SetUniformMat4("projection", renderer.get_proj());
     shader->SetUniformMat4("view", view);
 
     enqueue(renderer);
@@ -76,10 +77,3 @@ void Line::enqueue(Renderer& renderer, RenderPass pass) const
 
     renderer.submit(pass, cmd);
 }
-
-void Line::update_static_uniforms(glm::mat4 proj, float near, float far) {
-    shader->Bind();
-    shader->SetUniformMat4("projection", proj);
-    shader->Unbind();
-}
-
