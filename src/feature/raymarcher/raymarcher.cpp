@@ -7,14 +7,10 @@ Raymarcher::Raymarcher(RayScene* scene)
     : ray_scene(scene)
 {
     shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/raymarching/volumetric_marcher.shader");
-
-    std::cout << "Generating perlin noise" << std::endl;
-
     PerlinNoiseTexture perlinTexture3D(128, 128, 128);
     GLCall(GLuint textureID3D = perlinTexture3D.getTextureID());
 
     perlin3d = textureID3D;
-    std::cout << "Finished generating perlin noise" << std::endl;
 }
 
 void Raymarcher::tick(float delta) {
@@ -22,7 +18,6 @@ void Raymarcher::tick(float delta) {
 }
 
 void Raymarcher::update_static_uniforms(glm::mat4 proj, float near, float far) {
-    // update only the static uniforms once.
     shader->Bind();
     Raymarcher::proj = proj;
     near_plane = near;

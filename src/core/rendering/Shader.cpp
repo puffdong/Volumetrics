@@ -12,7 +12,7 @@ Shader::Shader(const std::string& filepath) : m_FilePath(filepath), m_RendererID
     ShaderProgramSource source = ParseShader(filepath);
     m_RendererID = CreateShader(source.VertexSource, source.FragmentSource);
     m_LastWriteTime = std::filesystem::last_write_time(filepath);
-    std::cout << "Compiled shader: " << filepath << std::endl;
+    std::cout << "Shader compiled: " << filepath << std::endl;
 }
 
 Shader::~Shader() {
@@ -25,7 +25,6 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath) {
     enum class ShaderType {
         NONE = -1, VERTEX = 0, FRAGMENT = 1
     };
-
 
     std::string line;
     std::stringstream ss[2]; // two types of shaders
@@ -52,7 +51,7 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath) {
         }
     }
 
-    return { ss[0].str(), ss[1].str() }; // return ShaderProgramSource struct
+    return { ss[0].str(), ss[1].str() }; // ShaderProgramSource struct
 }
 
 
@@ -86,7 +85,6 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
     glAttachShader(program, vs);
     glAttachShader(program, fs);
 
-    // Link the shader program
     glLinkProgram(program);
     int linkSuccess;
     glGetProgramiv(program, GL_LINK_STATUS, &linkSuccess);
@@ -99,22 +97,6 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
         std::cout << message << std::endl;
         glDeleteProgram(program);
         return 0;
-    }
-
-    // Validate the shader program
-    glValidateProgram(program);
-    int validateSuccess;
-    glGetProgramiv(program, GL_VALIDATE_STATUS, &validateSuccess);
-    if (validateSuccess == GL_FALSE) {
-        int length;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-        std::vector<char> messageBuffer(length); 
-        glGetProgramInfoLog(program, length, &length, messageBuffer.data());
-        
-        std::cout << "Warning: Shader program (ID: " << program 
-                  << ", Path: " << m_FilePath
-                  << ") validation failed!" << std::endl;
-        std::cout << "Validation InfoLog: " << messageBuffer.data() << std::endl;
     }
 
     glDeleteShader(vs);
@@ -135,20 +117,20 @@ void Shader::HotReloadIfChanged()
 {
     namespace fs = std::filesystem;
     fs::file_time_type now = fs::last_write_time(m_FilePath);
-    if (now == m_LastWriteTime) return;          // nothing changed
+    if (now == m_LastWriteTime) return;
 
     ShaderProgramSource s = ParseShader(m_FilePath);
     unsigned int newID = CreateShader(s.VertexSource, s.FragmentSource);
 
-    if (newID) {                                 // re‑compile succeeded
+    if (newID) {
         glDeleteProgram(m_RendererID);
         m_RendererID = newID;
-        m_UniformLocationCache.clear();          // locations changed!
+        m_UniformLocationCache.clear();
         m_LastWriteTime = now;
-        std::cout << "[shader] hot-reloaded " << m_FilePath << '\n';
+        std::cout << "Hot-reloaded shader: " << m_FilePath << '\n';
     }
     else {
-        std::cout << "[shader] reload failed! keeping old program\n";
+        std::cout << "Shader hot reload failed.";
     }
 }
 

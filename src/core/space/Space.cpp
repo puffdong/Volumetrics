@@ -12,10 +12,7 @@ Space::Space()
 	sun = new Sun(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	vox = new VoxelStructure(20, 20, 20, glm::vec3(20, 1, 1), 1, 0.75f);
-	vox->setVoxelValue(2, 2, 2, 3);
-	std::cout << vox->getVoxelValue(2, 2, 2) << std::endl;
-	std::cout << vox->getVoxelValue(2, 2, 3) << std::endl;
-
+	
 	ray_scene = new RayScene(glm::vec3(0.0, 0.0, 0.0));
 	raymarcher = new Raymarcher(ray_scene);
 	sphere1 = ray_scene->add_sphere(glm::vec3(-5.0f, -3.0f, -10.0f), 15.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));

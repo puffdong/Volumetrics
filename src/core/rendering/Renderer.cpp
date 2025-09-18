@@ -96,9 +96,6 @@ void Renderer::init_framebuffer(int width, int height)
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "Renderer::recreateSceneFBO -> Framebuffer incomplete!" << std::endl;
     }
-    else {
-        std::cout << "complete" << std::endl;
-    }
     
     if (volumetrics_fbo)
     {

@@ -9,6 +9,9 @@ Application::Application(const AppConfig& cfg) {
 }
 
 bool Application::Application::init(const AppConfig& cfg) {
+    int initial_width = cfg.initial_width;
+    int initial_height = cfg.initial_height;
+    
     if (!glfwInit())
         return false;
 
@@ -17,7 +20,7 @@ bool Application::Application::init(const AppConfig& cfg) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
-    window = glfwCreateWindow(1920, 1080, "volumetrics", NULL, NULL);
+    window = glfwCreateWindow(initial_width, initial_height, "volumetrics", NULL, NULL);
     if (!window)
     {
         std::cout << "umm glfw didnt work" << std::endl;
@@ -71,8 +74,6 @@ bool Application::Application::init(const AppConfig& cfg) {
         return false;
     }
 
-    int initial_width = cfg.initial_width;
-    int initial_height = cfg.initial_height;
     glfwGetFramebufferSize(window, &initial_width, &initial_height);
 
     glViewport(0, 0, initial_width, initial_height);

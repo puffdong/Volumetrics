@@ -3,11 +3,11 @@
 #include <GL/glew.h>
 
 // std libs
+#include <optional>
+#include <filesystem>  
 #include <vector>
 #include <string>
-#include <filesystem>  
 #include <unordered_map>
-// #include <map> // hmm gotta get wifi cuz i don't remember off the top of my head
 
 // Core
 #include "core/rendering/Shader.hpp"
@@ -15,15 +15,19 @@
 #include "core/rendering/Texture.hpp"
 
 class ResourceManager {    
-public: 
-    ResourceManager();
-    // GLuint load_shader(const std::string& filepath);
-    // GLuint load_texture(const std::string& filepath);
-    // GLuint load_model(const std::string& filepath);
+private:
+    std::string root_path;
+    std::string asset_handle;
+
+    std::unordered_map<int, GLuint> shader_map;
+
+public:
+    ResourceManager(const std::string& assets_root_path, const std::string& assets_handle = "res://");
+    std::string get_full_path(const std::string& asset_path);
+    int load_shader(const std::string& filepath);
     
-private: 
-    std::vector<GLuint> shaders;
-    std::vector<GLuint> textures;
-    std::vector<GLuint> models;
+private:
+
+
 
 };
