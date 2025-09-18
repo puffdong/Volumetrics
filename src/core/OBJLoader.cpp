@@ -1,6 +1,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "OBJLoader.h"
-#include "./core/rendering/Renderer.h"
+#include "OBJLoader.hpp"
+#include "./core/rendering/Renderer.hpp"
 #include "tiny_obj_loader.h"
 #include <iostream>
 #include <unordered_map>
@@ -150,11 +150,6 @@ void ModelObject::loadThroughTiny(const std::string& filepath) {
     // Unbind the VAO
     GLCall(glBindVertexArray(0));
 
-    // Store the VAO and other related information in your ModelObject class, assuming you have the following member variables:
-    // GLuint m_VAO;
-    // GLuint m_VBO;
-    // GLuint m_EBO;
-    // GLsizei m_indexCount;
     m_VAO = VAO;
     m_VBO = VBO;
     m_EBO = EBO;
@@ -193,11 +188,6 @@ void ModelObject::createFlatGround(float width, float depth) {
         -width / 2.0f, 0.0f,  depth / 2.0f,     0.0f, 1.0f, 0.0f,     0.0f, 1.0f
     };
 
-    // Create index data
-    // std::vector<unsigned int> indices = {
-    //     0, 1, 2,
-    //     2, 3, 0
-    // };
     std::vector<unsigned int> indices = { // vector should be up eh????
         2, 1, 0,
         0, 3, 2
@@ -343,16 +333,6 @@ void ModelObject::createHeightmap(float width, float depth, float height, Textur
 
     for (size_t i = 0; i < vertexArray.size(); i++)
     {
-        /*dataArray.push_back(vertexArray[i].x);
-        dataArray.push_back(vertexArray[i].y);
-        dataArray.push_back(vertexArray[i].z);
-
-        dataArray.push_back(normalArray[i].x);
-        dataArray.push_back(normalArray[i].y);
-        dataArray.push_back(normalArray[i].z);
-
-        dataArray.push_back(texCoordArray[i].x);
-        dataArray.push_back(texCoordArray[i].y);*/
         dataArray[i * 8 + 0] = vertexArray[i].x;
         dataArray[i * 8 + 1] = vertexArray[i].y;
         dataArray[i * 8 + 2] = vertexArray[i].z;
@@ -443,15 +423,13 @@ void ModelObject::createFlatGround(float width, float depth, int numRows, int nu
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
 
-    // Bind and populate VAO
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    // Set vertex attribute pointers
-    GLsizei stride = 8 * sizeof(float); // 3 for position, 3 for normals, and 2 for texture coordinates
+    GLsizei stride = 8 * sizeof(float);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(1);
@@ -459,15 +437,11 @@ void ModelObject::createFlatGround(float width, float depth, int numRows, int nu
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(6 * sizeof(float)));
 
-    // Unbind the VAO
     glBindVertexArray(0);
 
-    // Store the VAO and other related information in your ModelObject class
     m_VAO = VAO;
     m_VBO = VBO;
     m_EBO = EBO;
-
-    // std::cout << m_VAO << " " << m_VBO << " " << m_EBO << std::endl; // This line was present in the original
 
     m_indexCount = static_cast<GLsizei>(indices.size());
 }

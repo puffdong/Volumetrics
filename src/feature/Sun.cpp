@@ -1,8 +1,8 @@
 #include "Sun.hpp"
-#include "../core/rendering/Renderer.h"
+#include "core/rendering/Renderer.hpp"
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp> // For glm::lookAt (though not used directly in final method)
-#include <glm/geometric.hpp>          // For glm::normalize, glm::cross, glm::length, glm::dot
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/geometric.hpp>
 
 
 Sun::Sun(glm::vec3 direction, glm::vec4 color) 
@@ -28,8 +28,7 @@ void Sun::init_billboard_model() {
     -width / 2.0f, 0.0f,  depth / 2.0f,     0.0f, 1.0f, 0.0f,     0.0f, 1.0f
     };
 
-    // Indices 
-    std::vector<unsigned int> indices = { // this "pointed down" before so I swapped the order hah
+    std::vector<unsigned int> indices = {
         2, 1, 0,
         0, 3, 2
     };
@@ -57,11 +56,7 @@ void Sun::init_billboard_model() {
     index_count = static_cast<GLsizei>(indices.size());
 }
 
-void Sun::render(glm::mat4 proj, Camera* camera) {
-    glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-
-    // i caved in and used ai, man i need to refine my math skills, I thought i had it down. i was close tho so yay?
+void Sun::render(Renderer& renderer, Camera* camera) {
     glm::vec3 cam_pos = camera->get_position();
 
     glm::vec3 norm_sun_dir = glm::normalize(this->dir); 
@@ -83,16 +78,20 @@ void Sun::render(glm::mat4 proj, Camera* camera) {
     glm::mat4 trans = glm::translate(glm::mat4(1.0f), sun_pos);
     glm::mat4 model_matrix = trans * rot;
 
-    glm::mat4 mvp = proj * camera->get_view_matrix() * model_matrix;
+    glm::mat4 mvp = renderer.get_proj() * camera->get_view_matrix() * model_matrix;
 
     shader->Bind();
     shader->SetUniform3f("sun_dir", this->dir); 
-    shader->SetUniformMat4("mvp", mvp);
 
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    RenderCommand cmd{};
+    cmd.vao        = VAO;
+    cmd.draw_type   = DrawType::Elements;
+    cmd.count      = index_count;
+	cmd.model      = mvp; 
+    cmd.shader     = shader;
+	cmd.state.depth_test  = false;
+    cmd.state.depth_write = false;
 
-    glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
+    renderer.submit(RenderPass::Skypass, cmd);
+
 }

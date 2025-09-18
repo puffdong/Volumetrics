@@ -1,13 +1,12 @@
 #pragma once
-#include <iostream>  // std::cout, std::cerr, std::endl
-#include <fstream>   // std::ofstream
-// …your existing includes…
+#include <iostream>
+#include <fstream>
 #include <cmath>
 #include <vector>
 #include <algorithm>
 #include <random>
 #include <GL/glew.h>
-#include "../core/rendering/Renderer.h"    
+#include "core/rendering/Renderer.hpp"
 
 class PerlinNoiseTexture {
 public:
@@ -199,10 +198,3 @@ private:
     }
 
 };
-
-// Usage Example
-// PerlinNoiseTexture perlinTexture2D(512, 512);
-// GLuint textureID2D = perlinTexture2D.getTextureID();
-
-// PerlinNoiseTexture perlinTexture3D(128, 128, 128);
-// GLuint textureID3D = perlinTexture3D.getTextureID();

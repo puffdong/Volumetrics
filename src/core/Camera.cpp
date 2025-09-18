@@ -1,4 +1,4 @@
-#include "Camera.h"
+#include "Camera.hpp"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     : position(position),
@@ -52,7 +52,7 @@ void Camera::process_keyboard(const ButtonMap& bm, float deltaTime)
         position += right * velocity;
     if (bm.Space)
         position += worldUp * velocity;
-    if (bm.Ctrl)
+    if (bm.LeftCtrl)
         position -= worldUp * velocity;
 }
 

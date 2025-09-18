@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include "glm/glm.hpp"
-#include "LoadTGA.h"
+#include "LoadTGA.hpp"
 
 class ModelObject {
 private:

@@ -7,11 +7,12 @@ layout(location = 2) in vec2 aTexCoord; // Vertex texture coordinates
 out vec2 v_texCoord;
 
 uniform mat4 u_MVP;
+uniform mat4 model;
 
 void main()
 {
 	v_texCoord = aTexCoord;
-	gl_Position = u_MVP * vec4(aPos, 1.0f);
+	gl_Position = model * vec4(aPos, 1.0f);
 }
 
 #shader fragment

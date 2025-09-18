@@ -1,10 +1,11 @@
 #pragma once
+#include <vector>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include <vector>
-#include "../../core/rendering/Shader.h"
-#include "../../OBJLoader.h"
-#include "../../utils/ButtonMap.h"
+#include "core/rendering/Shader.hpp"
+#include "core/rendering/Renderer.hpp"
+#include "core/OBJLoader.hpp"
+#include "core/utils/ButtonMap.hpp"
 
 class WaterSurface {
 private:
@@ -22,5 +23,5 @@ public:
 
     void tick(ButtonMap bm, float delta);
 
-    void render(glm::mat4 proj, glm::mat4 view, glm::vec3 camera_pos);
+    void render(Renderer& renderer, glm::mat4 proj, glm::mat4 view, glm::vec3 camera_pos);
 };

@@ -1,4 +1,4 @@
-#include "WorldObject.h"
+#include "WorldObject.hpp"
 
 WorldObject::WorldObject(Shader* s, const std::string& modelPath, glm::vec3 pos, glm::vec3 rot)
 {
@@ -19,23 +19,42 @@ void WorldObject::tick(float deltaTIme) {
 
 }
 
-void WorldObject::draw(glm::mat4 projMatrix, glm::mat4 worldMatrix, glm::mat4 modelMatrix) {
+void WorldObject::draw(Renderer& renderer, glm::mat4 worldMatrix, glm::mat4 modelMatrix) {
+	glm::mat4 projMatrix = renderer.get_proj();
+	
 	shader->HotReloadIfChanged();
 	shader->Bind();
 	shader->SetUniformMat4("u_MVP", projMatrix * worldMatrix * modelMatrix);
 	shader->SetUniformMat4("modelMatrix", modelMatrix);
 	shader->SetUniformMat4("worldMatrix", worldMatrix);
-	shader->SetUniform1i("u_Texture", 8);
-	shader->SetUniform1f("textureScale", 1.f);
-	model->render();
+
+	RenderCommand cmd{};
+    cmd.vao        = model->getVAO();
+    cmd.draw_type   = DrawType::Elements;
+    cmd.count      = model->getIndexCount();
+	cmd.model      = modelMatrix; // swap this tbh, doesn't even make any semantic sense, the mvp is different from modelmtrx
+    cmd.shader     = shader;
+
+    renderer.submit(RenderPass::Forward, cmd);
 }
 
-glm::vec3 WorldObject::getPosition() {
-	return position;
-}
+void WorldObject::setPosition(const glm::vec3& p) { position = p; }
+
+void WorldObject::setRotation(const glm::vec3& r) { rotation = r; } 
+
+void WorldObject::setScale   (const glm::vec3& s) { scale = s; }
 
 glm::mat4 WorldObject::getModelMatrix() {
-	return glm::translate(glm::mat4(1.f), position);
+	glm::mat4 m(1.0f);
+    // Translate
+    m = glm::translate(m, position);
+    // Rotate (angles are in RADIANS)
+    m = glm::rotate(m, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)); // roll
+    m = glm::rotate(m, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)); // yaw
+    m = glm::rotate(m, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)); // pitch
+    // Scale
+    m = glm::scale(m, scale);
+    return m;
 }
 
 Shader* WorldObject::getShader() {

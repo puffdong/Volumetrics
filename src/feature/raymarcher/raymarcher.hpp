@@ -3,22 +3,24 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <vector>
-#include "../../utils/perlin_noise_generator.hpp"
-#include "../../OBJLoader.h"
-#include "../../core/rendering/Shader.h" 
+#include "core/utils/perlin_noise_generator.hpp"
+#include "core/OBJLoader.hpp"
+#include "core/rendering/Shader.hpp" 
 #include "rayscene.hpp"
+#include "core/Camera.hpp"
 
 class Raymarcher {
 private:
     Shader* shader;
-    unsigned int quadVAO, quadVBO;
     RayScene* ray_scene;
     GLuint perlin3d;
     float time = 0.0;
 
 public:
     Raymarcher(RayScene* scene);
-    void render(glm::vec3 camera_pos, glm::mat4 view_matrix, glm::mat4 projMatrix, float delta, float near, float far);
+
+    void tick(float delta);
+    void enqueue(Renderer& renderer, RenderPass pass, Camera* camera, glm::vec3 sun_dir) const;
 };
 
 

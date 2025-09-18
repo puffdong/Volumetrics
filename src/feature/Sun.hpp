@@ -1,10 +1,9 @@
 #pragma once
 #include <GL/glew.h>
 #include "glm/glm.hpp"
-#include "../core/Camera.h"
-#include "../core/rendering/Shader.h"
-
-
+#include "core/rendering/Renderer.hpp"
+#include "core/Camera.hpp"
+#include "core/rendering/Shader.hpp"
 
 class Sun {
 public:
@@ -20,7 +19,7 @@ public:
 	Sun(glm::vec3 direction, glm::vec4 color);
 
     void tick(float delta);
-    void render(glm::mat4 proj, Camera* camera);
+    void render(Renderer& renderer, Camera* camera);
 	glm::vec3 get_direction() { return dir; }
     glm::vec4 get_color() { return color; }
 

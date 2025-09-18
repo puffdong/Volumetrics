@@ -1,8 +1,8 @@
 #pragma once
-#include "../core/rendering/Shader.h"
+#include "../core/rendering/Shader.hpp"
 #include <vector>
 #include <glm/glm.hpp>
-#include "../core/rendering/Renderer.h"
+#include "../core/rendering/Renderer.hpp"
 
 struct LinePrimitive {
     glm::vec3 start;
@@ -19,10 +19,10 @@ private:
 
 public:
     Line(glm::vec3 start, glm::vec3 end);
-    Line(std::vector<LinePrimitive> lines); // needs to be divisible by 2
+    Line(std::vector<LinePrimitive> lines);
     ~Line();
-    void render(glm::mat4 proj, glm::mat4 view);
-    void enqueue(RenderPass pass = RenderPass::Forward) const;
+    void render(Renderer& renderer, glm::mat4 view);
+    void enqueue(Renderer& renderer, RenderPass pass = RenderPass::Forward) const;
 
 private:
     void init_render_stuff();

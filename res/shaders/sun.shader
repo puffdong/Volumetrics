@@ -9,7 +9,7 @@ layout(location = 2) in vec2 aTexCoord; // Vertex texture coordinates
 // uniform vec2 BillboardSize;
 // uniform vec3 particleCenter_worldspace;
 
-uniform mat4 mvp;
+uniform mat4 model;
 
 void main()
 {
@@ -18,7 +18,7 @@ void main()
 	// Get the screen-space position of the particle's center
 	// gl_Position = vec4(vertexPosition_worldspace, 1.0f);
 
-	gl_Position = mvp * vec4(aPos, 1.0f);
+	gl_Position = model * vec4(aPos, 1.0f);
 }
 
 #shader fragment
