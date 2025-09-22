@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Project Name
-project(VoxelVolume)
+project(Volumetrics)
 
 # Set C++ Standard
 set(CMAKE_CXX_STANDARD 17)
