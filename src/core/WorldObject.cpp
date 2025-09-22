@@ -46,13 +46,10 @@ void WorldObject::setScale   (const glm::vec3& s) { scale = s; }
 
 glm::mat4 WorldObject::getModelMatrix() {
 	glm::mat4 m(1.0f);
-    // Translate
     m = glm::translate(m, position);
-    // Rotate (angles are in RADIANS)
     m = glm::rotate(m, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)); // roll
     m = glm::rotate(m, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)); // yaw
     m = glm::rotate(m, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)); // pitch
-    // Scale
     m = glm::scale(m, scale);
     return m;
 }

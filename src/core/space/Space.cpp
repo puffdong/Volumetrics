@@ -6,6 +6,10 @@ Space::Space(ResourceManager& resources) : resources(resources)
 {	
 	camera = new Camera();
 
+	init_space();
+}
+
+void Space::init_space() {
 	water_surface = new WaterSurface(glm::vec3(5.f, -10.f, 5.f), 20.f, 20.f);
 	sun = new Sun(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
@@ -23,20 +27,40 @@ Space::Space(ResourceManager& resources) : resources(resources)
 	);
 
 	Shader* worldShader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/WorldObject.shader");
+	
+	WorldObject* teapotObject = new WorldObject(worldShader, "/Users/puff/Developer/graphics/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f));
+	wObjects.push_back(teapotObject);
 
 	std::vector<LinePrimitive> lines = {{glm::vec3(5.f, 0.0f, 0.0f), glm::vec3(-5.0f, 0.0f, 0.0f)},
 										{glm::vec3(0.f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -5.0f)},
 										{glm::vec3(0.f, 5.0f, 0.0f), glm::vec3(0.0f, -5.0f, 0.0f)},
 										{glm::vec3(2.f, 2.0f, 2.0f), glm::vec3(-2.0f, -2.0f, -2.0f)}};
-	line = new Line(lines);
+	uninitialized_objects.push_back(std::make_unique<Line>(std::move(lines)));
 	
-	WorldObject* teapotObject = new WorldObject(worldShader, "/Users/puff/Developer/graphics/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f));
-	wObjects.push_back(teapotObject);
+}
+
+void Space::process_init_queue() {
+	for (auto& obj : uninitialized_objects) {
+        obj->init(resources); // virtual call resolves to actual subclass
+    }
+
+    // Move them to the main objects vector
+    objects.insert(objects.end(),
+                   std::make_move_iterator(uninitialized_objects.begin()),
+                   std::make_move_iterator(uninitialized_objects.end()));
+
+    uninitialized_objects.clear();
 }
 
 void Space::tick(float delta, ButtonMap bm)
 {
 	time += delta;
+
+	process_init_queue();
+
+	for (auto& o : objects) {
+		o->tick(delta, bm);
+	}
 
 	for (WorldObject* o : wObjects)
 	{
@@ -63,8 +87,14 @@ void Space::enqueue_renderables(Renderer& renderer) {
 	glm::vec3 cam_pos = camera->get_position();
 	glm::vec3 sun_dir = sun->get_direction();
 
+	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
+
 	// water_surface->render(proj, view_matrix, cam_pos); // tbh this one is transparent, and also not really working...
 	
+	for (auto& o : objects) {
+		o->enqueue(renderer, resources);
+	}
+
 	for (WorldObject* o : wObjects)
 	{
 		o->draw(renderer, view_matrix, o->getModelMatrix());
@@ -74,9 +104,9 @@ void Space::enqueue_renderables(Renderer& renderer) {
 	vox->drawVoxels(renderer, view_matrix);
 	
 	sun->render(renderer, camera);
-	line->render(renderer, camera->get_view_matrix()); // when to do this tho, prolly late...?
+	// line->render(renderer, camera->get_view_matrix()); // when to do this tho, prolly late...?
 
-	raymarcher->enqueue(renderer, RenderPass::Volumetrics, camera, sun_dir);
+	// raymarcher->enqueue(renderer, RenderPass::Volumetrics, camera, sun_dir);
 }
 
 Camera* Space::get_camera() { 

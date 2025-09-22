@@ -1,12 +1,15 @@
 #pragma once
-
-#include "core/OBJLoader.hpp"
-#include "core/rendering/Texture.hpp"
+#include <vector>
+#include <string>
+#include <memory>
 
 #include "glm/glm.hpp"
-#include <vector>
 
 #include "core/resources/ResourceManager.hpp"
+#include "core/rendering/Renderer.hpp"
+
+#include "core/BaseObject.hpp"
+
 
 #include "core/Camera.hpp"
 #include "core/WorldObject.hpp"
@@ -26,10 +29,13 @@ private:
 	ResourceManager& resources;
 
 	std::vector<WorldObject*> wObjects;
-
-	Camera* camera;
-
+	
 	float time = 0.0;
+	
+	std::vector<std::unique_ptr<BaseObject>> uninitialized_objects;
+	std::vector<std::unique_ptr<BaseObject>> objects;
+	
+	Camera* camera;
 
 	Sun* sun;
 	Skybox* skybox;
@@ -40,13 +46,15 @@ private:
 	RayScene* ray_scene;
 	RaySphere* sphere1;
 	RaySphere* sphere2;
-	Line* line;
+	// Line* line;
 
 public:
 	Space(ResourceManager& resources);
 
 	void tick(float delta, ButtonMap bm);
 	void enqueue_renderables(Renderer& renderer);
+
+	void process_init_queue();
 	Camera* get_camera();
 
 private: 

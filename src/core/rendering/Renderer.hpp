@@ -26,10 +26,13 @@ public:
     void flush(RenderPass pass);
     void present_to_screen(); // to be removed
     
+    // getters n' setters
     void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 1.0, float far_plane = 256);
     void set_fov(float fov);
+    void set_view(glm::mat4 v) { view = v; };
     
     inline glm::mat4 get_proj() const { return proj; };
+    inline glm::mat4 get_view() const { return view; }
     inline float get_fov() const { return fov; };
     inline float get_near() const { return near; };
     inline float get_far() const { return far; };
@@ -42,7 +45,9 @@ private:
 	float far = 256.0f;
 	float aspect_ratio = 16.f / 9.0f;
 	glm::mat4 proj;
+    glm::mat4 view;
 	bool changes_made = true;
+
 
     // work in progress
     GLuint sceneFBO = 0;

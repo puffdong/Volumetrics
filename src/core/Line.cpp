@@ -1,29 +1,31 @@
 #include "Line.hpp"
 
-Line::Line(glm::vec3 start, glm::vec3 end) {
+Line::Line(const glm::vec3& start, const glm::vec3& end,
+           const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sc)
+  : BaseObject(pos, rot, sc) {
     line_primitives.reserve(2);
     line_primitives.push_back({start, end});
     num_lines = 1;
-    init_render_stuff();
 }
 
-Line::Line(std::vector<LinePrimitive> lines) {
+Line::Line(std::vector<LinePrimitive> lines, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sc)
+  : BaseObject(pos, rot, sc) {
     for (int i = 0; i < lines.size(); i++) {
         line_primitives.push_back(lines[i]);
     }
     num_lines = lines.size();
-    init_render_stuff();
 }
 
 Line::~Line() {
-    delete shader;
+    // delete shader; // TODO: fix later
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &instanceVBO);
 }
 
-void Line::init_render_stuff() { 
-    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Line.shader");
+void Line::init(ResourceManager& resources) {
+    r_shader = resources.load_shader("res://shaders/Line.shader");
+    
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &instanceVBO);
@@ -55,25 +57,25 @@ void Line::init_render_stuff() {
     glBindVertexArray(0);
 }
 
-void Line::render(Renderer& renderer, glm::mat4 view) {
-    shader->HotReloadIfChanged();
-    shader->Bind();
-    shader->SetUniformMat4("projection", renderer.get_proj());
-    shader->SetUniformMat4("view", view);
+void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
+    if (auto shader = resources.get_shader(r_shader.id)) {
+        (*shader)->HotReloadIfChanged();
+        (*shader)->Bind();
+        (*shader)->SetUniformMat4("projection", renderer.get_proj());
+        (*shader)->SetUniformMat4("view", renderer.get_view());
 
-    enqueue(renderer);
-}
+        RenderCommand cmd{};
+        cmd.vao            = VAO;
+        cmd.draw_type       = DrawType::ArraysInstanced;
+        cmd.primitive      = GL_LINES;
+        cmd.count          = 2;
+        cmd.instance_count  = num_lines;
+        cmd.shader         = (*shader);
+        cmd.model          = glm::mat4(1.0f);
 
-void Line::enqueue(Renderer& renderer, RenderPass pass) const
-{
-    RenderCommand cmd{};
-    cmd.vao            = VAO;
-    cmd.draw_type       = DrawType::ArraysInstanced;
-    cmd.primitive      = GL_LINES;
-    cmd.count          = 2;
-    cmd.instance_count  = num_lines;
-    cmd.shader         = shader;
-    cmd.model          = glm::mat4(1.0f);
-
-    renderer.submit(pass, cmd);
+        renderer.submit(RenderPass::Forward, cmd);
+    } else {
+        std::cout << "Shader for resource ID " << r_shader.id << " not found!" << "\n";
+        return;
+    }
 }

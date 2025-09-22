@@ -1,28 +1,45 @@
 #pragma once
-#include "../core/rendering/Shader.hpp"
-#include <vector>
+#include "core/BaseObject.hpp"
 #include <glm/glm.hpp>
-#include "../core/rendering/Renderer.hpp"
+#include <vector>
+#include <iostream>
+
+#include "../core/rendering/Shader.hpp"
 
 struct LinePrimitive {
     glm::vec3 start;
     glm::vec3 end;
 };
 
-class Line {
+class Line : public BaseObject {
 private:
     std::vector<LinePrimitive> line_primitives;
     int num_lines;
 
-    Shader* shader;
+    Resource r_shader;
+
+    // Shader* shader;
     unsigned int VAO, VBO, instanceVBO;
 
 public:
-    Line(glm::vec3 start, glm::vec3 end);
-    Line(std::vector<LinePrimitive> lines);
-    ~Line();
-    void render(Renderer& renderer, glm::mat4 view);
-    void enqueue(Renderer& renderer, RenderPass pass = RenderPass::Forward) const;
+    Line(const glm::vec3& start,
+         const glm::vec3& end,
+         const glm::vec3& pos = glm::vec3(0.0f),
+         const glm::vec3& rot = glm::vec3(0.0f),
+         const glm::vec3& sc  = glm::vec3(1.0f));
+
+    Line(std::vector<LinePrimitive> lines,
+         const glm::vec3& pos = glm::vec3(0.0f),
+         const glm::vec3& rot = glm::vec3(0.0f),
+         const glm::vec3& sc  = glm::vec3(1.0f));
+
+    ~Line() override;
+
+    void init(ResourceManager& resources) override;
+    void enqueue(Renderer& renderer, ResourceManager& resources) override;
+
+    // void render(Renderer& renderer, glm::mat4 view);
+    // void enqueue(Renderer& renderer, RenderPass pass = RenderPass::Forward) const;
 
 private:
     void init_render_stuff();
