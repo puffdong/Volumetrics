@@ -1,23 +1,30 @@
 #pragma once
+#include <unordered_map>
+
 #include "glm/glm.hpp"
 #include "core/utils/ButtonMap.hpp"
 #include "core/rendering/Renderer.hpp"
 #include "core/resources/ResourceManager.hpp"
 
-class BaseObject {
+class Base {
 protected:
+    uint64_t id = 0; // 0 : uninitialized, any other, its in the scene 
+    Base* parent = nullptr; // if nullptr, it is the de facto base for this lil branch
+    std::unordered_map<int, Base*> children;
+
     glm::vec3 position = glm::vec3(0.0f);
 	glm::vec3 rotation = glm::vec3(0.0f);
 	glm::vec3 scale    = glm::vec3(1.0f);
 
-public: 
-    BaseObject(glm::vec3 pos = glm::vec3(0.f),
-               glm::vec3 rot = glm::vec3(0.f),
-               glm::vec3 scale = glm::vec3(1.f));
+public:
+    Base(glm::vec3 pos = glm::vec3(0.f),
+         glm::vec3 rot = glm::vec3(0.f),
+         glm::vec3 scale = glm::vec3(1.f), 
+         Base* parent = nullptr);
 
-    virtual ~BaseObject();
+    virtual ~Base();
 
-    virtual void init(ResourceManager& resources) = 0;
+    virtual void init(ResourceManager& resources, uint64_t id) = 0;
     virtual void tick(float delta, ButtonMap bm);
     virtual void enqueue(Renderer& renderer, ResourceManager& resources) = 0;
 

@@ -3,7 +3,7 @@
     #define ASSET_PATH "/Users/puff/Developer/graphics/Volumetrics/res/"
     #endif
 #if defined _WIN32 || defined _WIN64
-    #define ASSET_PATH ""
+    #define ASSET_PATH "C:/Dev/OpenGL/Volumetrics/res/"
 #endif 
 
 int main(void)

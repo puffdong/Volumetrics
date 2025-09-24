@@ -18,14 +18,16 @@
 
 
 enum ResourceType {
+    NONE = -1,
     SHADER = 0,
     TEXTURE = 1,
     MODEL = 2
 };
 
 struct Resource {
-    int id;
-    ResourceType type;
+    int id = -1;
+    std::string asset_path = "";
+    ResourceType type = NONE;
 };
 
 class ResourceManager {    
@@ -43,7 +45,7 @@ public:
     ResourceManager(const std::string& assets_root_path, const std::string& assets_handle = "res://");
     std::string get_full_path(const std::string& asset_path);
     
-    Resource load_shader(const std::string& shader_path);
+    Resource load_shader(const std::string& shader_asset_path);
     // I am going to abstract this thing below later but need it for now heh
     // The plan is to not even have "shaders" be a thing and any uniform and such is going to just be 
     // abstracted away blah blah, we working on it yuh yuh

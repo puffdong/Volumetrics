@@ -18,11 +18,11 @@ int ResourceManager::generate_new_id() { // its crude, but hey, it gets the work
     // currently nothing actually gets deleted during run-time so we won't have any issue as of yet
 }
 
-Resource ResourceManager::load_shader(const std::string& shader_path) {
+Resource ResourceManager::load_shader(const std::string& shader_asset_path) {
     int resource_id = generate_new_id();
-    shader_map[resource_id] = new Shader(get_full_path(shader_path));
+    shader_map[resource_id] = new Shader(get_full_path(shader_asset_path));
 
-    Resource s_res = { resource_id, SHADER }; // res_id, opengl_id, type
+    Resource s_res = { resource_id, shader_asset_path, SHADER }; // res_id, opengl_id, type
     resoruce_map[resource_id] = std::move(s_res); // keep resource thing in here
     return s_res;
 }
@@ -32,6 +32,8 @@ std::optional<Shader*> ResourceManager::get_shader(int resource_id) {
         Resource res = resoruce_map[resource_id];
         if (res.type == SHADER) { 
             return shader_map[res.id]; 
+        } else {
+            return std::nullopt;
         }
     } else {
         return std::nullopt;

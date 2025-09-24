@@ -42,7 +42,7 @@ void Renderer::init_renderer(int width, int height)
     current.line_smooth     = false;
     init_quad();
     init_framebuffer(width, height);
-    test_shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/test_shader.shader");
+    // test_shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/test_shader.shader");
     
     glViewport(0,0, width, height);
 }
@@ -163,23 +163,23 @@ void Renderer::init_quad() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
 }
 
-void Renderer::present_to_screen() {
-    // 1. back to default framebuffer
-    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    // 2. assume window size viewport already set by the platform layer
-    glClear(GL_COLOR_BUFFER_BIT);
-    test_shader->HotReloadIfChanged();
-    test_shader->Bind();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sceneColorTex);
-    test_shader->SetUniform1i("u_Scene", 0);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, volumetrics_fbo_color);
-    test_shader->SetUniform1i("volumetrics_tex", volumetrics_fbo_color);
+// void Renderer::present_to_screen() {
+//     // 1. back to default framebuffer
+//     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//     // 2. assume window size viewport already set by the platform layer
+//     glClear(GL_COLOR_BUFFER_BIT);
+//     test_shader->HotReloadIfChanged();
+//     test_shader->Bind();
+//     glActiveTexture(GL_TEXTURE0);
+//     glBindTexture(GL_TEXTURE_2D, sceneColorTex);
+//     test_shader->SetUniform1i("u_Scene", 0);
+//     glActiveTexture(GL_TEXTURE1);
+//     glBindTexture(GL_TEXTURE_2D, volumetrics_fbo_color);
+//     test_shader->SetUniform1i("volumetrics_tex", volumetrics_fbo_color);
 
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-}
+//     glBindVertexArray(quadVAO);
+//     glDrawArrays(GL_TRIANGLES, 0, 3);
+// }
 
 void Renderer::resize(int width, int height) {
     init_framebuffer(width, height); // the function re-initializes the framebuffer

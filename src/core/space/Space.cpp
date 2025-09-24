@@ -21,14 +21,14 @@ void Space::init_space() {
 	// sphere2 = ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
 
 		skybox = new Skybox(
-		std::string("/Users/puff/Developer/graphics/Volumetrics/res/models/skybox-full-tweaked.obj"),
-		std::string("/Users/puff/Developer/graphics/Volumetrics/res/shaders/Skybox.shader"),
-		std::string("/Users/puff/Developer/graphics/Volumetrics/res/textures/skybox/cloud-landscape.tga")
+		std::string(resources.get_full_path("res://models/skybox-full-tweaked.obj")),
+		std::string(resources.get_full_path("res://shaders/Skybox.shader")),
+		std::string(resources.get_full_path("res://textures/skybox/cloud-landscape.tga"))
 	);
 
-	Shader* worldShader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/WorldObject.shader");
+	Shader* worldShader = new Shader(resources.get_full_path("res://shaders/WorldObject.shader"));
 	
-	WorldObject* teapotObject = new WorldObject(worldShader, "/Users/puff/Developer/graphics/Volumetrics/res/models/teapot.obj", glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f));
+	WorldObject* teapotObject = new WorldObject(worldShader, resources.get_full_path("res://models/teapot.obj"), glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f));
 	wObjects.push_back(teapotObject);
 
 	std::vector<LinePrimitive> lines = {{glm::vec3(5.f, 0.0f, 0.0f), glm::vec3(-5.0f, 0.0f, 0.0f)},
@@ -41,8 +41,8 @@ void Space::init_space() {
 
 void Space::process_init_queue() {
 	for (auto& obj : uninitialized_objects) {
-        obj->init(resources); // virtual call resolves to actual subclass
-    }
+        obj->init(resources, UUID()); // virtual call resolves to actual subclass
+    }   // TODO TODO TODO 
 
     // Move them to the main objects vector
     objects.insert(objects.end(),

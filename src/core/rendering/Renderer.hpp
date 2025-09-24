@@ -24,7 +24,7 @@ public:
     void submit(RenderPass pass, const RenderCommand& cmd);
     void execute_pipeline(); // kinda about to be changed
     void flush(RenderPass pass);
-    void present_to_screen(); // to be removed
+    // void present_to_screen(); // to be removed
     
     // getters n' setters
     void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 1.0, float far_plane = 256);
@@ -70,6 +70,6 @@ private:
 
     void init_framebuffer(int width, int height);
 
-    Shader* test_shader;
+    // Shader* test_shader;
 };
 

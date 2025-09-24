@@ -1,5 +1,5 @@
 #pragma once
-#include "core/BaseObject.hpp"
+#include "core/Base.hpp"
 #include <glm/glm.hpp>
 #include <vector>
 #include <iostream>
@@ -11,7 +11,7 @@ struct LinePrimitive {
     glm::vec3 end;
 };
 
-class Line : public BaseObject {
+class Line : public Base {
 private:
     std::vector<LinePrimitive> line_primitives;
     int num_lines;
@@ -35,12 +35,7 @@ public:
 
     ~Line() override;
 
-    void init(ResourceManager& resources) override;
+    void init(ResourceManager& resources, uint64_t id) override;
+    void tick(float delta, ButtonMap bm) override;
     void enqueue(Renderer& renderer, ResourceManager& resources) override;
-
-    // void render(Renderer& renderer, glm::mat4 view);
-    // void enqueue(Renderer& renderer, RenderPass pass = RenderPass::Forward) const;
-
-private:
-    void init_render_stuff();
 };

@@ -8,7 +8,7 @@
 #include "core/resources/ResourceManager.hpp"
 #include "core/rendering/Renderer.hpp"
 
-#include "core/BaseObject.hpp"
+#include "core/Base.hpp"
 
 
 #include "core/Camera.hpp"
@@ -23,6 +23,7 @@
 #include "feature/water/WaterSurface.hpp"
 
 #include "core/utils/ButtonMap.hpp"
+#include "core/utils/uuid.hpp"
 
 class Space {
 private:
@@ -32,8 +33,8 @@ private:
 	
 	float time = 0.0;
 	
-	std::vector<std::unique_ptr<BaseObject>> uninitialized_objects;
-	std::vector<std::unique_ptr<BaseObject>> objects;
+	std::vector<std::unique_ptr<Base>> uninitialized_objects;
+	std::vector<std::unique_ptr<Base>> objects;
 	
 	Camera* camera;
 

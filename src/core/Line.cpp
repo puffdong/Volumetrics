@@ -1,15 +1,16 @@
 #include "Line.hpp"
+#include <iostream>
 
 Line::Line(const glm::vec3& start, const glm::vec3& end,
            const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sc)
-  : BaseObject(pos, rot, sc) {
+  : Base(pos, rot, sc) {
     line_primitives.reserve(2);
     line_primitives.push_back({start, end});
     num_lines = 1;
 }
 
 Line::Line(std::vector<LinePrimitive> lines, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sc)
-  : BaseObject(pos, rot, sc) {
+  : Base(pos, rot, sc) {
     for (int i = 0; i < lines.size(); i++) {
         line_primitives.push_back(lines[i]);
     }
@@ -23,7 +24,8 @@ Line::~Line() {
     glDeleteBuffers(1, &instanceVBO);
 }
 
-void Line::init(ResourceManager& resources) {
+void Line::init(ResourceManager& resources, uint64_t id) {
+    id = id;
     r_shader = resources.load_shader("res://shaders/Line.shader");
     
     glGenVertexArrays(1, &VAO);
@@ -55,6 +57,10 @@ void Line::init(ResourceManager& resources) {
     glVertexAttribDivisor(2, 1); 
 
     glBindVertexArray(0);
+}
+
+void Line::tick(float delta, ButtonMap bm) {
+    std::cout << "line UUID: " << id << std::endl;
 }
 
 void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
