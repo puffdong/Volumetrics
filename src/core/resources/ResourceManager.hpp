@@ -1,7 +1,4 @@
 #pragma once
-// OpenGL stuff
-#include <GL/glew.h>
-
 // std libs
 #include <optional>
 #include <filesystem>  
@@ -15,6 +12,7 @@
 #include "core/rendering/Shader.hpp"
 #include "core/rendering/Model.hpp"
 #include "core/rendering/Texture.hpp"
+#include "core/utils/uuid.hpp"
 
 
 enum ResourceType {
@@ -25,7 +23,7 @@ enum ResourceType {
 };
 
 struct Resource {
-    int id = -1;
+    uint64_t id = 0;
     std::string asset_path = "";
     ResourceType type = NONE;
 };
@@ -35,10 +33,10 @@ private:
     std::string root_path;
     std::string asset_handle;
 
-    std::unordered_map<int, Resource> resoruce_map;
+    std::unordered_map<int, Resource> resource_map;
     std::unordered_map<int, Shader*> shader_map;
 
-    int number_of_resources = 0; // increments every time a new object is loaded regardless of what it is
+    int number_of_resources = 0;
     std::unordered_set<int> resource_id_set;
 
 public:
@@ -49,12 +47,12 @@ public:
     // I am going to abstract this thing below later but need it for now heh
     // The plan is to not even have "shaders" be a thing and any uniform and such is going to just be 
     // abstracted away blah blah, we working on it yuh yuh
-    std::optional<Shader*> get_shader(int resource_id);
+    std::optional<Shader*> get_shader(uint64_t resource_id);
 
-    void unload_all_resources(); // shutdown of everything
+    void unload_all_resources(); // shutdown of everything, TODO
     
 private:
-    int generate_new_id();
+    uint64_t generate_new_id();
 
 
 };

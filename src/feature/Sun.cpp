@@ -7,7 +7,7 @@
 
 Sun::Sun(glm::vec3 direction, glm::vec4 color) 
     : dir(direction), color(color), time(0.0f) {
-        shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/sun.shader");
+        shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/sun.shader");
         init_billboard_model();
     }
 

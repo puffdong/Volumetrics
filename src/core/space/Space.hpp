@@ -10,7 +10,6 @@
 
 #include "core/Base.hpp"
 
-
 #include "core/Camera.hpp"
 #include "core/WorldObject.hpp"
 #include "core/Line.hpp"

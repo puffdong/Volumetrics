@@ -1,6 +1,6 @@
 #pragma once
-#include <string>
 #include <GL/glew.h>
+#include <string>
 #include <filesystem>  
 #include <unordered_map>
 #include "glm/glm.hpp"

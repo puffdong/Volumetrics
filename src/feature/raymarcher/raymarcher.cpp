@@ -6,7 +6,7 @@
 Raymarcher::Raymarcher(RayScene* scene)
     : ray_scene(scene)
 {
-    shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/raymarching/volumetric_marcher.shader");
+    shader = new Shader("/Users/puff/Developer/graphics/Volumetrics/res/shaders/raymarching/volumetric_marcher.shader");
     PerlinNoiseTexture perlinTexture3D(128, 128, 128);
     GLCall(GLuint textureID3D = perlinTexture3D.getTextureID());
 

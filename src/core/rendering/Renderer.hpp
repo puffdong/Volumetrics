@@ -1,9 +1,10 @@
 #pragma once
+#include <glm/gtc/matrix_transform.hpp> // get that perspective thing
+#include "glm/glm.hpp"
+#include <vector>
+
 #include "RenderCommand.hpp"
 #include "Shader.hpp"
-#include "glm/glm.hpp"
-#include <glm/gtc/matrix_transform.hpp> // get that perspective thing
-#include <vector>
 
 // Error handling
 // #define ASSERT(x) if (!(x)) __debugbreak();

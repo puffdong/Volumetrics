@@ -41,8 +41,9 @@ void Space::init_space() {
 
 void Space::process_init_queue() {
 	for (auto& obj : uninitialized_objects) {
-        obj->init(resources, UUID()); // virtual call resolves to actual subclass
-    }   // TODO TODO TODO 
+		const uint64_t id = UUID{}.value();
+        obj->init(resources, id); // virtual call resolves to actual subclass
+    }   
 
     // Move them to the main objects vector
     objects.insert(objects.end(),

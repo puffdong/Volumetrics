@@ -25,7 +25,8 @@ Line::~Line() {
 }
 
 void Line::init(ResourceManager& resources, uint64_t id) {
-    id = id;
+    _id = id;
+    std::cout << "line UUID: " << _id << std::endl;
     r_shader = resources.load_shader("res://shaders/Line.shader");
     
     glGenVertexArrays(1, &VAO);
@@ -60,7 +61,7 @@ void Line::init(ResourceManager& resources, uint64_t id) {
 }
 
 void Line::tick(float delta, ButtonMap bm) {
-    std::cout << "line UUID: " << id << std::endl;
+    
 }
 
 void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
