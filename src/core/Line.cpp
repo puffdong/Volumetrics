@@ -24,9 +24,7 @@ Line::~Line() {
     glDeleteBuffers(1, &instanceVBO);
 }
 
-void Line::init(ResourceManager& resources, uint64_t id) {
-    _id = id;
-    std::cout << "line UUID: " << _id << std::endl;
+void Line::init(ResourceManager& resources) {
     r_shader = resources.load_shader("res://shaders/Line.shader");
     
     glGenVertexArrays(1, &VAO);
@@ -61,7 +59,7 @@ void Line::init(ResourceManager& resources, uint64_t id) {
 }
 
 void Line::tick(float delta, ButtonMap bm) {
-    
+
 }
 
 void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
@@ -82,7 +80,7 @@ void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
 
         renderer.submit(RenderPass::Forward, cmd);
     } else {
-        std::cout << "Shader for resource ID " << r_shader.id << " not found!" << "\n";
+        std::cout << "Shader for resource ID " << r_shader.id.value() << " not found!" << "\n";
         return;
     }
 }

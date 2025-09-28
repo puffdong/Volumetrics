@@ -1,7 +1,9 @@
 #include "Base.hpp"
 
 Base::Base(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent)
-: position(pos), rotation(rot), scale(scale), _parent(parent) {}
+: position(pos), rotation(rot), scale(scale), _parent(parent) {
+    _id = UUID<Base>{};
+}
 
 void Base::tick(float delta, ButtonMap bm) {}
 Base::~Base() {}

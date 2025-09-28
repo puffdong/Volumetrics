@@ -35,7 +35,7 @@ public:
 
     ~Line() override;
 
-    void init(ResourceManager& resources, uint64_t id) override;
+    void init(ResourceManager& resources) override;
     void tick(float delta, ButtonMap bm) override;
     void enqueue(Renderer& renderer, ResourceManager& resources) override;
 };
