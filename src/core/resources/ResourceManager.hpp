@@ -12,7 +12,7 @@
 #include "core/rendering/Shader.hpp"
 #include "core/rendering/Model.hpp"
 #include "core/rendering/Texture.hpp"
-#include "core/utils/uuid.hpp"
+#include "core/UUID.hpp"
 
 
 enum ResourceType {

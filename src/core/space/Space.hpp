@@ -22,7 +22,7 @@
 #include "feature/water/WaterSurface.hpp"
 
 #include "core/utils/ButtonMap.hpp"
-#include "core/utils/uuid.hpp"
+#include "core/UUID.hpp"
 
 class Space {
 private:
