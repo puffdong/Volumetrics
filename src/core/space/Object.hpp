@@ -22,7 +22,7 @@ public:
            const std::string& model_path = "",
            const std::string& texture_path = "");
     
-    void init(ResourceManager& resources) override;
+    void init(ResourceManager& resources, Space* space) override;
     void tick(float delta, ButtonMap bm) override;
     void enqueue(Renderer& renderer, ResourceManager& resources) override;
 };

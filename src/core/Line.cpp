@@ -24,7 +24,8 @@ Line::~Line() {
     glDeleteBuffers(1, &instanceVBO);
 }
 
-void Line::init(ResourceManager& resources) {
+void Line::init(ResourceManager& resources, Space* space) {
+    _space = space;
     r_shader = resources.load_shader("res://shaders/Line.shader");
     
     glGenVertexArrays(1, &VAO);

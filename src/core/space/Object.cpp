@@ -12,7 +12,8 @@ Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent,
             r_texture.asset_path = texture_path;
            }
 
-void Object::init(ResourceManager& resources) {
+void Object::init(ResourceManager& resources, Space* space) {
+    _space = space;
     _model = new ModelObject(resources.get_full_path(r_model.asset_path));
     if (r_texture.asset_path != "") {
         _texture = new Texture(resources.get_full_path(r_texture.asset_path));

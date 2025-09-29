@@ -38,7 +38,7 @@ void Space::init_space() {
 
 void Space::process_init_queue() {
 	for (auto& obj : uninitialized_objects) {
-        obj->init(resources);
+        obj->init(resources, this);
 		std::cout << "Initialized object. UUID: " << obj->get_id() << std::endl;
     }   
 
