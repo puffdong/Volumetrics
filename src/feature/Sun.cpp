@@ -80,7 +80,7 @@ void Sun::render(Renderer& renderer, Camera* camera) {
 
     glm::mat4 mvp = renderer.get_proj() * camera->get_view_matrix() * model_matrix;
 
-    shader->Bind();
+    shader->bind();
     shader->SetUniform3f("sun_dir", this->dir); 
 
     RenderCommand cmd{};

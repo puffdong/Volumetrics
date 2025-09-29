@@ -167,7 +167,7 @@ void Renderer::init_quad() {
 //     // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 //     // 2. assume window size viewport already set by the platform layer
 //     glClear(GL_COLOR_BUFFER_BIT);
-//     test_shader->HotReloadIfChanged();
+//     test_shader->hot_reload_if_changed();
 //     test_shader->Bind();
 //     glActiveTexture(GL_TEXTURE0);
 //     glBindTexture(GL_TEXTURE_2D, sceneColorTex);
@@ -267,7 +267,7 @@ void Renderer::execute_command(const RenderCommand& c)
 {
     apply_state(c.state);
 
-    c.shader->Bind();
+    c.shader->bind();
     c.shader->SetUniformMat4("model", c.model);
 
     for (const auto& t : c.textures) {

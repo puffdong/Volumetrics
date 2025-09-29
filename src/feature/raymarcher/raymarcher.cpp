@@ -21,8 +21,8 @@ void Raymarcher::tick(float delta) {
 void Raymarcher::enqueue(Renderer& renderer, RenderPass pass, Camera* camera, glm::vec3 sun_dir) const {
     glm::mat4 invprojview = glm::inverse(renderer.get_proj() * camera->get_view_matrix());
 
-    shader->HotReloadIfChanged();
-    shader->Bind();
+    shader->hot_reload_if_changed();
+    shader->bind();
     shader->SetUniform1f("time", time);
     shader->SetUniformMat4("invprojview", invprojview);
     shader->SetUniform1f("near_plane", renderer.get_near());

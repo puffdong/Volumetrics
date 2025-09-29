@@ -13,19 +13,18 @@ struct ShaderProgramSource {
 class Shader
 {
 private:
-	std::string m_FilePath;
-	unsigned int m_RendererID;
-	std::filesystem::file_time_type m_LastWriteTime;
-	// caching for uniforms
-	std::unordered_map<std::string, int> m_UniformLocationCache;
+	std::string _file_path;
+	unsigned int _rendering_id;
+	std::filesystem::file_time_type _last_write_time;
+	std::unordered_map<std::string, int> uniform_location_cache;
 public:
-	Shader(const std::string& filepath);
+	Shader(const std::string& file_path);
 	~Shader();
 
-	void Bind() const;
-	void Unbind() const;
-	void HotReloadIfChanged();
-	unsigned int GetRendererID() const;
+	void bind() const;
+	void unbind() const;
+	void hot_reload_if_changed();
+	unsigned int get_renderer_id() const { return _rendering_id; };
 
 	// Set uniforms
 	void SetUniform1f(const std::string& name, GLfloat v0);
@@ -42,8 +41,8 @@ public:
 
 
 private:
-	ShaderProgramSource ParseShader(const std::string& filepath);
-	unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader);
-	unsigned int CompileShader(const std::string& source, unsigned int type);
-	int GetUniformLocation(const std::string& name);
+	ShaderProgramSource parse_shader(const std::string& file_path);
+	unsigned int create_shader(const std::string& vertexShader, const std::string& fragmentShader);
+	unsigned int compile_shader(const std::string& source, unsigned int type);
+	int get_uniform_location(const std::string& name);
 };

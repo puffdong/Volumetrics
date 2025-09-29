@@ -95,7 +95,7 @@ glm::vec3 VoxelStructure::getVoxelToWorldSpace(int x, int y, int z) {
 }
 
 void VoxelStructure::drawVoxels(Renderer& renderer, glm::mat4 viewMatrix) {
-    shader->Bind();
+    shader->bind();
     shader->SetUniformMat4("proj", renderer.get_proj());
     shader->SetUniformMat4("view", viewMatrix);
 

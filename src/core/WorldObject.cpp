@@ -22,8 +22,8 @@ void WorldObject::tick(float deltaTIme) {
 void WorldObject::draw(Renderer& renderer, glm::mat4 worldMatrix, glm::mat4 modelMatrix) {
 	glm::mat4 projMatrix = renderer.get_proj();
 	
-	shader->HotReloadIfChanged();
-	shader->Bind();
+	shader->hot_reload_if_changed();
+	shader->bind();
 	shader->SetUniformMat4("u_MVP", projMatrix * worldMatrix * modelMatrix);
 	shader->SetUniformMat4("modelMatrix", modelMatrix);
 	shader->SetUniformMat4("worldMatrix", worldMatrix);

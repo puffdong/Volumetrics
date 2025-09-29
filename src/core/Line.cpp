@@ -64,8 +64,8 @@ void Line::tick(float delta, ButtonMap bm) {
 
 void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
     if (auto shader = resources.get_shader(r_shader.id)) {
-        (*shader)->HotReloadIfChanged();
-        (*shader)->Bind();
+        (*shader)->hot_reload_if_changed();
+        (*shader)->bind();
         (*shader)->SetUniformMat4("projection", renderer.get_proj());
         (*shader)->SetUniformMat4("view", renderer.get_view());
 

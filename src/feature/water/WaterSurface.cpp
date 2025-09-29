@@ -17,7 +17,7 @@ void WaterSurface::render(Renderer& renderer, glm::mat4 proj, glm::mat4 view, gl
     glm::mat4 modelTrans = glm::scale(glm::translate(glm::mat4(1.f), pos), glm::vec3(10.f, 10.f, 10.f));
 	glm::mat4 mvp = proj * view * modelTrans;
     
-    shader->Bind();
+    shader->bind();
     GLCall(shader->SetUniform1i("u_Texture", 8));
 
 
