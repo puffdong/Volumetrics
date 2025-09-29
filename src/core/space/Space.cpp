@@ -1,5 +1,6 @@
 #include "Space.hpp"
 #include <iostream>
+#include <string>
 #include "core/ui/ui_dumptruck.hpp"
 
 Space::Space(ResourceManager& resources) : resources(resources)
@@ -26,25 +27,21 @@ void Space::init_space() {
 		std::string(resources.get_full_path("res://textures/skybox/cloud-landscape.tga"))
 	);
 
-	Shader* worldShader = new Shader(resources.get_full_path("res://shaders/WorldObject.shader"));
-	
-	WorldObject* teapotObject = new WorldObject(worldShader, resources.get_full_path("res://models/teapot.obj"), glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f));
-	wObjects.push_back(teapotObject);
-
 	std::vector<LinePrimitive> lines = {{glm::vec3(5.f, 0.0f, 0.0f), glm::vec3(-5.0f, 0.0f, 0.0f)},
 										{glm::vec3(0.f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -5.0f)},
 										{glm::vec3(0.f, 5.0f, 0.0f), glm::vec3(0.0f, -5.0f, 0.0f)},
 										{glm::vec3(2.f, 2.0f, 2.0f), glm::vec3(-2.0f, -2.0f, -2.0f)}};
 	uninitialized_objects.push_back(std::make_unique<Line>(std::move(lines)));
+	uninitialized_objects.push_back(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/WorldObject.shader", "res://models/teapot.obj", ""));
 	
 }
 
 void Space::process_init_queue() {
 	for (auto& obj : uninitialized_objects) {
-        obj->init(resources); // virtual call resolves to actual subclass
+        obj->init(resources);
+		std::cout << "Initialized object. UUID: " << obj->get_id() << std::endl;
     }   
 
-    // Move them to the main objects vector
     objects.insert(objects.end(),
                    std::make_move_iterator(uninitialized_objects.begin()),
                    std::make_move_iterator(uninitialized_objects.end()));
@@ -60,12 +57,8 @@ void Space::tick(float delta, ButtonMap bm)
 
 	for (auto& o : objects) {
 		o->tick(delta, bm);
-	}
-
-	for (WorldObject* o : wObjects)
-	{
-		o->tick(delta);
-		ui::transform_window(*o, "teapot");
+		std::string title = std::to_string(o->get_id());
+		ui::transform_window(*o, title.c_str());
 	}
 
 	camera->tick(delta, bm);
@@ -94,17 +87,11 @@ void Space::enqueue_renderables(Renderer& renderer) {
 	for (auto& o : objects) {
 		o->enqueue(renderer, resources);
 	}
-
-	for (WorldObject* o : wObjects)
-	{
-		o->draw(renderer, view_matrix, o->getModelMatrix());
-	}
 	
 	skybox->draw(renderer, camera); // draw prio u know
 	vox->drawVoxels(renderer, view_matrix);
 	
 	sun->render(renderer, camera);
-	// line->render(renderer, camera->get_view_matrix()); // when to do this tho, prolly late...?
 
 	// raymarcher->enqueue(renderer, RenderPass::Volumetrics, camera, sun_dir);
 }

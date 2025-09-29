@@ -9,9 +9,9 @@
 #include "core/rendering/Renderer.hpp"
 
 #include "core/Base.hpp"
+#include "core/space/Object.hpp"
 
 #include "core/Camera.hpp"
-#include "core/WorldObject.hpp"
 #include "core/Line.hpp"
 
 #include "feature/Sun.hpp"
@@ -27,8 +27,6 @@
 class Space {
 private:
 	ResourceManager& resources;
-
-	std::vector<WorldObject*> wObjects;
 	
 	float time = 0.0;
 	
@@ -46,7 +44,6 @@ private:
 	RayScene* ray_scene;
 	RaySphere* sphere1;
 	RaySphere* sphere2;
-	// Line* line;
 
 public:
 	Space(ResourceManager& resources);

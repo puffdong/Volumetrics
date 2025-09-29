@@ -35,6 +35,7 @@ public:
     virtual void enqueue(Renderer& renderer, ResourceManager& resources) = 0;
 
     // getters n' setters
+    UUID<Base> get_id() const { return _id; };
     virtual glm::mat4 get_model_matrix() const; // the default behaviour is defined but should be overriden if needed
     glm::vec3 get_position() const { return position; };
     glm::vec3 get_rotation() const { return rotation; };
@@ -46,4 +47,5 @@ public:
     void set_scale(const glm::vec3& s) { scale = s; };
     void set_visibility(const bool v) { _visible = v; };
     void set_active(const bool v) { _active = v; };
+    
 };

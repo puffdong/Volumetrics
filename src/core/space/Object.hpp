@@ -1,10 +1,17 @@
 #include "core/Base.hpp"
 
+// to be removed when resource manager is cooler
+#include "core/OBJLoader.hpp"
+
 class Object : public Base {
 private:
     Resource r_shader;
-    // Resource r_model;
-    // Resource r_texture;
+    Resource r_model;
+    Resource r_texture;
+
+    // for now before we rework it, I just want to get stuff being a Base thing
+    ModelObject* _model;
+	Texture* _texture;
 
 public:
     Object(glm::vec3 pos = glm::vec3(0.f),

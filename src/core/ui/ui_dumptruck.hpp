@@ -6,7 +6,7 @@
 #include "imgui.h"
 #include "core/space/Space.hpp"
 #include "core/Camera.hpp"
-#include "core/WorldObject.hpp"
+#include "core/Base.hpp"
 #include "glm/glm.hpp"
 
 #define PI 3.14159265358979323846f
@@ -37,31 +37,31 @@ namespace ui {
 
     static inline float to_deg(float r) { return r * (180.0f / 3.1415926535f); }
     static inline float to_rad(float d) { return d * (3.1415926535f / 180.0f); } 
-    
-    static void transform_window(WorldObject& obj, const char* title)
+
+    static void transform_window(Base& obj, const char* title)
     {
-        ImGui::PushID(&obj);
+        ImGui::PushID(obj.get_id());
 
         if (ImGui::Begin(title)) {
             // Position (xyz)
-            glm::vec3 p = obj.getPosition();
+            glm::vec3 p = obj.get_position();
             float pos[3] = { p.x, p.y, p.z };
             if (ImGui::InputFloat3("Position", pos, "%.3f")) {
-                obj.setPosition({ pos[0], pos[1], pos[2] });
+                obj.set_position({ pos[0], pos[1], pos[2] });
             }
 
-            glm::vec3 r = obj.getRotation();
+            glm::vec3 r = obj.get_rotation();
             float rot[3] = { r.x, r.y, r.z };
             if (ImGui::SliderFloat3("Rotation", rot, -PI, PI, "%.3f",
                                     ImGuiSliderFlags_AlwaysClamp)) {
-                obj.setRotation({ rot[0], rot[1], rot[2] });
+                obj.set_rotation({ rot[0], rot[1], rot[2] });
             }
-
-            glm::vec3 scale = obj.getScale();
+            
+            glm::vec3 scale = obj.get_scale();
             float s[3] = {scale.x, scale.y, scale.z};
             if (ImGui::SliderFloat3("Scale", s, 0.01f, 10.0f, "%.3f",
                                    ImGuiSliderFlags_AlwaysClamp)) {
-                obj.setScale({ s[0], s[1], s[2] });
+                obj.set_scale({ s[0], s[1], s[2] });
             }
         }
         ImGui::End();
