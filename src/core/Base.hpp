@@ -14,7 +14,7 @@ protected:
     UUID<Base> _id; // 0 : uninitialized, any other, its in the scene
     Space* _space;
     Base* _parent = nullptr; // if nullptr, it is the de facto base for this lil branch
-    std::unordered_map<int, Base*> _children;
+    std::unordered_map<UUID<Base>, Base*, uuid_hash<Base>> _children;
 
     glm::vec3 position = glm::vec3(0.0f);
 	glm::vec3 rotation = glm::vec3(0.0f);
@@ -31,8 +31,8 @@ public:
 
     virtual ~Base();
 
-    virtual void init(ResourceManager& resources, Space* space) = 0;
-    virtual void tick(float delta, ButtonMap bm);
+    virtual void init(ResourceManager& resources, Space* space);
+    virtual void tick(float delta);
     virtual void enqueue(Renderer& renderer, ResourceManager& resources) = 0;
 
     // getters n' setters

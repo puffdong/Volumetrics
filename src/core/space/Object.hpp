@@ -23,6 +23,6 @@ public:
            const std::string& texture_path = "");
     
     void init(ResourceManager& resources, Space* space) override;
-    void tick(float delta, ButtonMap bm) override;
+    void tick(float delta) override;
     void enqueue(Renderer& renderer, ResourceManager& resources) override;
 };

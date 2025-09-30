@@ -25,7 +25,7 @@ Line::~Line() {
 }
 
 void Line::init(ResourceManager& resources, Space* space) {
-    _space = space;
+    Base::init(resources, _space);
     r_shader = resources.load_shader("res://shaders/Line.shader");
     
     glGenVertexArrays(1, &VAO);
@@ -59,7 +59,7 @@ void Line::init(ResourceManager& resources, Space* space) {
     glBindVertexArray(0);
 }
 
-void Line::tick(float delta, ButtonMap bm) {
+void Line::tick(float delta) {
 
 }
 

@@ -1,12 +1,19 @@
 #include "Base.hpp"
+#include "core/space/Space.hpp"
+#include <iostream>
 
 Base::Base(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent)
 : position(pos), rotation(rot), scale(scale), _parent(parent) {
-    _id = UUID<Base>{};
+    _id = UUID<Base>{}; // generate id yuh
 }
 
-void Base::tick(float delta, ButtonMap bm) {}
 Base::~Base() {}
+
+void Base::init(ResourceManager& resources, Space* space) {
+    _space = space;
+}
+
+void Base::tick(float delta) {}
 
 glm::mat4 Base::get_model_matrix() const {
     glm::mat4 m(1.0f);

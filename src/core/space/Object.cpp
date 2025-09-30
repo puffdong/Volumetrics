@@ -13,7 +13,7 @@ Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent,
            }
 
 void Object::init(ResourceManager& resources, Space* space) {
-    _space = space;
+    Base::init(resources, space);
     _model = new ModelObject(resources.get_full_path(r_model.asset_path));
     if (r_texture.asset_path != "") {
         _texture = new Texture(resources.get_full_path(r_texture.asset_path));
@@ -24,7 +24,7 @@ void Object::init(ResourceManager& resources, Space* space) {
     r_shader = resources.load_shader(shader_path);
 }
 
-void Object::tick(float delta, ButtonMap bm) {
+void Object::tick(float delta) {
 
 }
 

@@ -1,0 +1,132 @@
+#include "VoxelGrid.hpp"
+#include "core/space/Space.hpp"
+
+VoxelGrid::VoxelGrid(int h, int w, int d, 
+                     uint8_t init_value, float cell_size,
+			         glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent)
+    : height(h), width(w), depth(d), cell_size(cell_size), Base(pos, rot, scale, parent) 
+{   
+    num_voxels = h * w * d;
+    voxels = std::vector<uint8_t>(num_voxels, static_cast<uint8_t>(init_value));
+}
+
+void VoxelGrid::init(ResourceManager& resources, Space* space) {
+    Base::init(resources, space);
+    r_shader = resources.load_shader("res://shaders/VoxelShaders/VoxelDebug.shader");
+    cube = new ModelObject(resources.get_full_path("res://models/VoxelModels/defaultCube.obj"));
+
+    init_instance_buffer();
+}
+
+void VoxelGrid::tick(float delta) {
+
+}
+
+void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
+    if (auto shader = resources.get_shader(r_shader.id)) {
+        (*shader)->hot_reload_if_changed();
+        (*shader)->bind();
+        (*shader)->SetUniformMat4("proj", renderer.get_proj());
+        (*shader)->SetUniformMat4("view", renderer.get_view());
+
+        GLuint vao = cube->getVAO();             
+        unsigned int index_count = cube->getIndexCount(); 
+
+        RenderCommand cmd{};
+        cmd.vao        = vao;
+        cmd.draw_type   = DrawType::ElementsInstanced;
+        cmd.primitive = GL_TRIANGLES;
+        cmd.count      = index_count;
+        cmd.instance_count = num_voxels;
+        cmd.shader     = (*shader);
+        cmd.state.depth_test = true;
+        cmd.state.depth_write = true;
+
+        renderer.submit(RenderPass::Forward, cmd);
+    } else {
+        std::cout << "something fucked up when displaying the voxelgrid" << std::endl;
+    }
+}
+
+void VoxelGrid::init_instance_buffer() {
+    std::vector<glm::mat4> instance_model_matrices;
+    instance_model_matrices.reserve(num_voxels);
+
+    for (int current_h = 0; current_h < height; current_h++) {
+        for (int current_d = 0; current_d < depth; current_d++) {
+            for (int current_w = 0; current_w < width; current_w++) {
+                instance_model_matrices.push_back(get_model_matrix(current_h, current_d, current_w));
+            }
+        }
+    }
+
+    GLuint vao = cube->getVAO();
+    glBindVertexArray(vao);
+
+    glGenBuffers(1, &instanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, instance_model_matrices.size() * sizeof(glm::mat4), instance_model_matrices.data(), GL_STATIC_DRAW);
+
+    GLsizei vec4Size = sizeof(glm::vec4);
+    GLsizei mat4Size = sizeof(glm::mat4);
+
+    glEnableVertexAttribArray(3); // First 
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, mat4Size, (void*)0);
+    glVertexAttribDivisor(3, 1);
+
+    glEnableVertexAttribArray(4); // Second
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, mat4Size, (void*)(1 * vec4Size));
+    glVertexAttribDivisor(4, 1);
+
+    glEnableVertexAttribArray(5); // Third
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, mat4Size, (void*)(2 * vec4Size));
+    glVertexAttribDivisor(5, 1);
+
+    glEnableVertexAttribArray(6); // Fourth
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, mat4Size, (void*)(3 * vec4Size));
+    glVertexAttribDivisor(6, 1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+void VoxelGrid::delete_instance_buffer() {
+    if (instanceVBO != 0) {
+        glDeleteBuffers(1, &instanceVBO);
+    }
+}
+
+VoxelGrid::~VoxelGrid() {
+    delete cube;
+    if (instanceVBO != 0) {
+        glDeleteBuffers(1, &instanceVBO);
+    }
+}
+
+uint8_t VoxelGrid::get_voxel_value(int x, int y, int z) {
+    int index = height * width * z + width * y + x; // myeeee, math :)
+    if (index >= 0 && index < num_voxels) {
+        return voxels[index];
+    }
+    return 0;
+}
+
+void VoxelGrid::set_voxel_value(int x, int y, int z, uint8_t value) {
+    int index = height * width * z + width * y + x;
+    if (index >= 0 && index < num_voxels) {
+        voxels[index] = static_cast<uint8_t>(value); // making sure its a byte :o u can never be too sure, or?
+    }
+}
+
+glm::vec3 VoxelGrid::get_voxel_world_pos(int x, int y, int z) {
+    glm::vec3 local_pos = glm::vec3(x, y, z) * cell_size;
+    return position + local_pos; 
+}
+
+glm::mat4 VoxelGrid::get_model_matrix(int x, int y, int z) {
+    glm::vec3 voxel_world_pos = get_voxel_world_pos(x, y, z);
+    glm::mat4 m = glm::mat4(1.0f);
+    m = glm::translate(m, voxel_world_pos);
+    m = glm::scale(m, glm::vec3(cell_size * 0.5f)); 
+    return glm::scale(glm::translate(glm::mat4(1.f), voxel_world_pos), glm::vec3(this->cell_size * 0.5f));
+}

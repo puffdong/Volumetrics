@@ -16,7 +16,6 @@
 
 #include "feature/Sun.hpp"
 #include "feature/Skybox.hpp"
-#include "feature/volumetrics/VoxelStructure.hpp"
 #include "feature/raymarcher/raymarcher.hpp"
 #include "feature/raymarcher/rayscene.hpp"
 #include "feature/water/WaterSurface.hpp"
@@ -28,33 +27,32 @@ class Space {
 private:
 	ResourceManager& resources;
 	
-	float time = 0.0;
-	
 	std::vector<std::unique_ptr<Base>> uninitialized_objects;
 	std::vector<std::unique_ptr<Base>> objects;
 	
 	Camera* camera;
+	
+	float time = 0.0;
 
 	Sun* sun;
 	Skybox* skybox;
 	WaterSurface* water_surface;
 
-	VoxelStructure* vox;
 	Raymarcher* raymarcher;
-	RayScene* ray_scene;
-	RaySphere* sphere1;
-	RaySphere* sphere2;
+	// VoxelStructure* vox;
+
 
 public:
 	Space(ResourceManager& resources);
 
 	void tick(float delta, ButtonMap bm);
 	void enqueue_renderables(Renderer& renderer);
-
-	void process_init_queue();
-	Camera* get_camera();
-
-private: 
+	
+	Camera* get_camera() const { return camera; };
+	Sun* get_sun() const { return sun; }
+	
+private:
 	void init_space();
+	void process_init_queue();
 	
 };
