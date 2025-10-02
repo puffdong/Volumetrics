@@ -169,6 +169,10 @@ void Shader::SetUniform1i(const std::string& name, GLint i)
     GLCall(glUniform1i(get_uniform_location(name), i));
 }
 
+void Shader::SetUniform3i(const std::string& name, glm::ivec3 ivec) {
+    GLCall(glUniform3i(get_uniform_location(name), ivec.x, ivec.y, ivec.z));
+}
+
 void Shader::SetUniform1iv(const std::string& name, std::vector<int> inVector)
 {
     GLCall(glUniform1iv(get_uniform_location(name), (GLint)inVector.size(), &inVector[0]));

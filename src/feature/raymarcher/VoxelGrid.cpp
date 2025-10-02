@@ -1,13 +1,32 @@
 #include "VoxelGrid.hpp"
 #include "core/space/Space.hpp"
 
-VoxelGrid::VoxelGrid(int h, int w, int d, 
+VoxelGrid::VoxelGrid(int w, int h, int d, 
                      uint8_t init_value, float cell_size,
 			         glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent)
-    : height(h), width(w), depth(d), cell_size(cell_size), Base(pos, rot, scale, parent) 
+    : width(w), height(h), depth(d), cell_size(cell_size), Base(pos, rot, scale, parent) 
 {   
     num_voxels = h * w * d;
     voxels = std::vector<uint8_t>(num_voxels, static_cast<uint8_t>(init_value));
+    
+    // edges
+    set_voxel_value(0, 0, 0, 1);
+    set_voxel_value(w - 1, h - 1, d - 1, 1);
+    set_voxel_value(0, h - 1, 0, 1);
+    set_voxel_value(0, 0, d - 1, 1);
+    set_voxel_value(w - 1, 0, 0, 1);
+    set_voxel_value(w - 1, h - 1, 0, 1);
+    set_voxel_value(w - 1, 0, d - 1, 1);
+    set_voxel_value(0, h - 1, d - 1, 1);
+
+    // lil cube
+    for (int c1 = 0; c1 < 5; c1++) {
+        for (int c2 = 0; c2 < 5; c2++) {
+           for (int c3 = 0; c3 < 5; c3++) {
+               set_voxel_value(5 + c1, 5 + c2, 5 + c3, 1 + c1);
+           }
+        }
+    }
 }
 
 void VoxelGrid::init(ResourceManager& resources, Space* space) {
@@ -16,6 +35,7 @@ void VoxelGrid::init(ResourceManager& resources, Space* space) {
     cube = new ModelObject(resources.get_full_path("res://models/VoxelModels/defaultCube.obj"));
 
     init_instance_buffer();
+    create_voxel_texture();
 }
 
 void VoxelGrid::tick(float delta) {
@@ -26,11 +46,16 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->SetUniformMat4("proj", renderer.get_proj());
-        (*shader)->SetUniformMat4("view", renderer.get_view());
+        (*shader)->SetUniformMat4("u_proj", renderer.get_proj());
+        (*shader)->SetUniformMat4("u_view", renderer.get_view());
+        (*shader)->SetUniform3i("u_grid_dim", glm::ivec3(width, height, depth));
+        (*shader)->SetUniform3f("u_grid_origin", position);
+        (*shader)->SetUniform1f("u_voxel_size", cell_size);
 
         GLuint vao = cube->getVAO();             
         unsigned int index_count = cube->getIndexCount(); 
+
+        TextureBinding bind{ voxel_tex, GL_TEXTURE_3D, 0, "u_voxels" };
 
         RenderCommand cmd{};
         cmd.vao        = vao;
@@ -41,10 +66,11 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
         cmd.shader     = (*shader);
         cmd.state.depth_test = true;
         cmd.state.depth_write = true;
+        cmd.textures.push_back(bind);
 
         renderer.submit(RenderPass::Forward, cmd);
     } else {
-        std::cout << "something fucked up when displaying the voxelgrid" << std::endl;
+        std::cout << "something fricked up when displaying the voxelgrid" << std::endl;
     }
 }
 
@@ -95,6 +121,34 @@ void VoxelGrid::delete_instance_buffer() {
         glDeleteBuffers(1, &instanceVBO);
     }
 }
+
+void VoxelGrid::create_voxel_texture() {
+    if (!voxel_tex) glGenTextures(1, &voxel_tex);
+
+    glBindTexture(GL_TEXTURE_3D, voxel_tex);
+
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    // void glTexImage3D( GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, void *data );
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_R8UI, width, height, depth, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, voxels.data());
+    glBindTexture(GL_TEXTURE_3D, 0);
+}
+
+void VoxelGrid::update_voxel_data() {
+    glBindTexture(GL_TEXTURE_3D, voxel_tex);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, width, height, depth,
+                    GL_RED_INTEGER, GL_UNSIGNED_BYTE, voxels.data());
+    glBindTexture(GL_TEXTURE_3D, 0);
+}
+
+
 
 VoxelGrid::~VoxelGrid() {
     delete cube;

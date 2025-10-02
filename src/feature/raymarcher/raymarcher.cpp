@@ -13,9 +13,9 @@ Raymarcher::Raymarcher() : Base()
 
 void Raymarcher::init(ResourceManager& resources, Space* space) {
     Base::init(resources, space);
-    r_shader = resources.load_shader("res://shaders/raymarching/volumetric_marcher.shader");
+    r_shader = resources.load_shader("res://shaders/raymarching/raymarcher.shader");
 
-    voxel_grid = new VoxelGrid(20, 20, 20, 1, 0.75f, 
+    voxel_grid = new VoxelGrid(20, 20, 20, 0, 0.75f, 
                                glm::vec3(20, 20, 20), // pos
                                glm::vec3(0.f), // rot
                                glm::vec3(1.f), // scale
@@ -66,11 +66,17 @@ void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
 
         TextureBinding bind{ perlin3d, GL_TEXTURE_3D, 0, "noise_texture" };
 
+        (*shader)->SetUniform3i("u_grid_dim", voxel_grid->get_grid_dim());
+        (*shader)->SetUniform3f("u_grid_origin", voxel_grid->get_position());
+        (*shader)->SetUniform1f("u_voxel_size", voxel_grid->get_cell_size());
+        TextureBinding bind2{ voxel_grid->get_voxel_texture_id(), GL_TEXTURE_3D, 1, "u_voxels" };
+
         RenderCommand cmd{};
         cmd.draw_type = DrawType::Framebuffer;
         cmd.shader    = (*shader);
         cmd.state.depth_write = false;
         cmd.textures.push_back(bind);
+        cmd.textures.push_back(bind2);
 
         renderer.submit(RenderPass::Volumetrics, cmd);
 

@@ -34,8 +34,9 @@ uniform vec3  sphere_colors[5];
 uniform float sphere_radiuses[5];
 uniform int   num_spheres;
 
-const int   MAX_STEPS         = 96;  // perf lever
-const float STEP_SIZE         = 0.45;   // meters per step
+const int MAX_STEPS = 96;
+const float STEP_SIZE = 0.45;
+
 const float SIGMA_T           = 1.1;    // extinction multiplier
 
 const float NOISE_FREQ        = 0.10;   // 3D noise scale (higher = finer)
@@ -142,6 +143,57 @@ float twoStepShadow(vec3 p) {
     }
     return T;
 }
+
+// do some of this, some of that, get back a color
+// vec4 raymarch(vec3 ray_origin, vec3 ray_direction) {
+//     // early exit strategy    
+//     float t = 0.0;
+//     float T = 1.0;
+
+//     vec3 color = vec3(0.0);
+//     float alpha = 0.0f;
+
+//     for (int i = 0; i < MAX_STEPS; ++i) {
+//         // do some early breaking
+
+//         vec3 point = ray_origin + ray_direction * t;
+        
+//         float dens; vec3 tint; vec3 c; float r; float x2;
+//         samplePuffs(p, dens, tint, c, r, x2);
+
+//         if (dens > 0.0005) {
+//             // Extinction over this slice
+//             float sigma = dens * SIGMA_T;
+//             float atten = exp(-sigma * STEP_SIZE);
+//             float absorb = 1.0 - atten;
+
+//             // Lighting (cheap but nicer):
+//             // - wrap diffuse using analytic sphere normal
+//             // - two-tap shadow
+//             // - silver-lining accent near edge
+//             vec3  nSphere = normalize(p - c);
+//             float ndotl   = dot(nSphere, sun_dir);
+//             float wrap    = clamp((ndotl + WRAP_LIGHT) / (1.0 + WRAP_LIGHT), 0.0, 1.0);
+
+//             float shadowT = twoStepShadow(p);
+
+//             float edge    = smoothstep(LINING_EDGE_START, LINING_EDGE_END, x2);
+//             float lining  = edge * clamp(dot(rd, sun_dir), 0.0, 1.0); // stronger on sun-facing rim
+
+//             float light   = AMBIENT + shadowT * (wrap + LINING_GAIN * lining);
+//             vec3  Li      = SUN_COLOR * light;
+
+//             color += T * (tint * Li) * absorb;
+//             T   *= atten;
+
+//             t += STEP_SIZE;
+//         }
+//     }
+
+//     float alpha = clamp(1.0 - T, 0.0, 1.0);
+
+//     return vec4(color, alpha);
+// }
 
 void main() {
     vec3 ro = origin;
