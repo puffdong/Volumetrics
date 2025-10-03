@@ -3,6 +3,7 @@
 #include "core/space/Space.hpp"
 #include "core/rendering/Renderer.hpp"
 #include "core/utils/perlin_noise_generator.hpp"
+#include "core/ui/ui_dumptruck.hpp"
 
 
 
@@ -15,7 +16,7 @@ void Raymarcher::init(ResourceManager& resources, Space* space) {
     Base::init(resources, space);
     r_shader = resources.load_shader("res://shaders/raymarching/raymarcher.shader");
 
-    voxel_grid = new VoxelGrid(20, 20, 20, 0, 0.75f, 
+    voxel_grid = new VoxelGrid(20, 20, 20, 0, 1.5f, 
                                glm::vec3(20, 20, 20), // pos
                                glm::vec3(0.f), // rot
                                glm::vec3(1.f), // scale
@@ -36,6 +37,7 @@ void Raymarcher::tick(float delta) {
     time += delta;
     voxel_grid->tick(delta);
     sun_direction = _space->get_sun()->get_direction();
+    ui::raymarcher_panel(*this, *voxel_grid);
     
 
     // sphere1->pos.x = 13 * sin(time * 0.1f);

@@ -7,21 +7,21 @@ uniform mat4 invprojview;
 uniform float near_plane;
 uniform float far_plane;
 
-out vec3 origin;
-out vec3 ray;
+out vec3 v_origin;
+out vec3 v_ray;
 
 void main() {
     gl_Position = vec4(aPos, 0.0, 1.0);
-    origin = (invprojview * vec4(aPos, -1.0, 1.0) * near_plane).xyz;
-    ray = (invprojview * vec4(aPos * (far_plane - near_plane), far_plane + near_plane, far_plane - near_plane)).xyz;
+    v_origin = (invprojview * vec4(aPos, -1.0, 1.0) * near_plane).xyz;
+    v_ray = (invprojview * vec4(aPos * (far_plane - near_plane), far_plane + near_plane, far_plane - near_plane)).xyz;
 }
 
 #shader fragment
 #version 330 core
 layout(location = 0) out vec4 color;
 
-in vec3 origin;
-in vec3 ray;
+in vec3 v_origin;
+in vec3 v_ray;
 
 uniform float time;
 uniform vec3 sun_dir;
@@ -41,11 +41,12 @@ const vec3 SPHERE_POSITION = vec3(-5.0, -3.0, -10.0);
 const vec3 SPHERE_COLOR = vec3(1.0);
 
 // constants
-const int MAX_STEPS = 96;
-const float STEP_SIZE = 0.25;
+const int MAX_STEPS = 56;
+const float STEP_SIZE = 0.5;
+const float HIT_STEP_SIZE = 0.2; // a bit lower but myeee
 
 
-const float MAX_DIST = 100.0;
+const float MAX_DIST = 256.0;
 const float MIN_DIST = 0.000001;
 // const int MAX_STEPS = 16;
 
@@ -55,115 +56,63 @@ uint voxel_value_at(ivec3 cell) {
 }
 
 ivec3 world_to_cell(vec3 p) {
-    vec3 local = (p - u_grid_origin) / u_voxel_size;
-    return ivec3(floor(local));
+    vec3 local = (p - u_grid_origin + vec3(u_voxel_size / 2)) / u_voxel_size; // the added vec3(// HALF OF CELL_SIZE //) makes it line up with the debug view
+    return ivec3(floor(local)); // yet it feels inherently wrong. prolly debug is the one that is off
 }
 
-float march_voxels(vec3 position) {
-    ivec3 cell = world_to_cell(position);
-    uint value = voxel_value_at(cell);
-    if (value == 0u) {
-        return 0.3;
-    } else {
-        return 0.0;
-    }
+float occupancy_at_world(vec3 p) {
+    return float(voxel_value_at(world_to_cell(p)) > 0u);
 }
 
-float smin( float a, float b, float k )
-{
-    k *= 1.0;
-    float r = exp2(-a/k) + exp2(-b/k);
-    return -k*log2(r);
-}
-
-// Signed Distance Function for a sphere
-float sdfSphere(vec3 position, vec3 center, float radius) {
-    // center.x = center.x + 5 * sin(time);
-
-    return length(position - center) - radius;
-}
-
-float sdfTorus(vec3 p, vec2 t)
-{   
-    return length(vec2(length(p.xz)-t.x, p.y) ) - t.y;
-}
-
-// Scene function - add more SDFs here to create complex scenes
-float sceneSDF(vec3 position) {
-    // float tmp = 1000;
-    return march_voxels(position);
-    // return sdfSphere(position, SPHERE_POSITION, SPHERE_RADIUS);
-    // for (int i = 0; i < 5; i++) {
-    //     if (i < num_spheres) {
-    //         // tmp = smin(sdfSphere(position, sphere_positions[i], sphere_radiuses[i]), tmp, 2.0);
-    //         tmp = smin(sdfSphere(position, sphere_positions[i], 5), tmp, 2.0);
-    //     }
-    // }
-
-    // return tmp;
-}
-
-// Shading function to calculate color based on the distance to the scene
-vec3 getNormal(vec3 position) {
-    vec2 epsilon = vec2(0.001, 0.0);
-    float dx = sceneSDF(position + vec3(epsilon.x, epsilon.y, epsilon.y)) - sceneSDF(position - vec3(epsilon.x, epsilon.y, epsilon.y));
-    float dy = sceneSDF(position + vec3(epsilon.y, epsilon.x, epsilon.y)) - sceneSDF(position - vec3(epsilon.y, epsilon.x, epsilon.y));
-    float dz = sceneSDF(position + vec3(epsilon.y, epsilon.y, epsilon.x)) - sceneSDF(position - vec3(epsilon.y, epsilon.y, epsilon.x));
-    return normalize(vec3(dx, dy, dz));
-}
-
-vec4 do_raymarch(vec3 origin, vec3 dir) {
-    float distance = 0.0;
+vec4 do_raymarch2(vec3 ray_origin, vec3 ray_direction) {
+    float t = 0.0;
     float collected_noise = 0.0;
-    bool first_hit = true; 
-    bool hit_something = false;
-    vec3 hit_point;
 
-    for (int i = 0; i < MAX_STEPS; i++) {
-        vec3 pos = origin + dir * distance;
-        float distToScene = sceneSDF(pos);
-        
-        if (distToScene < MIN_DIST) { // we are inside, aka "smoke"
-            if (first_hit) {
+    bool hit_something = false;
+
+    for (int i = 0; i < MAX_STEPS; ++i) {
+        vec3 p = ray_origin + ray_direction * t;
+
+
+
+        float occ = occupancy_at_world(p);
+
+        if (occ > 0.5) {
+            if (!hit_something) {
                 hit_something = true;
-                first_hit = false;
-                hit_point = pos;
+                t -= STEP_SIZE; // take a step back and then increase step size later on to fill in the gaps
             }
 
-            collected_noise += texture(noise_texture, pos * 0.1).x * 0.25;
+            float noise = texture(noise_texture, (p) * 0.05).r;
+
+            collected_noise += noise * HIT_STEP_SIZE * 0.5 * 0.9;
+
+            if (collected_noise >= 1.0) {
+                collected_noise = 1.0;
+                break;
+            }
         }
 
-        if (first_hit) {
-            distance += distToScene;
+        if (hit_something) {
+            t += HIT_STEP_SIZE;
         } else {
-            distance += 0.01;
+        t += STEP_SIZE;
         }
-
-        if (distance > MAX_DIST * 100) {
-            break;
-        }
-        if (collected_noise > 1.0) {
-            collected_noise = 1.0;
-            break;
-        }
-        distance += 0.1;
+        if (t > MAX_DIST) break;
     }
+
     vec4 result = vec4(0.0);
-
     if (hit_something) {
-        vec3 normal = getNormal(hit_point);
-        float lightIntensity = dot(normal, normalize(vec3(1.0, 1.0, 1.0))) * 0.5 + 0.5;
-        result = vec4(1.0 * lightIntensity, 0.5 * lightIntensity, 0.2 * lightIntensity, collected_noise);
+        vec3 base_color = vec3(1.0, 8.0, 8.0);
+        result = vec4(base_color, clamp(collected_noise, 0.0, 1.0));
     }
-
     return result;
 }
 
 void main() {
 
-    vec3 rayDir = normalize(ray);
-
-    vec4 result = do_raymarch(origin, rayDir);
+    vec3 ray_direction = normalize(v_ray);
+    vec4 result = do_raymarch2(v_origin, ray_direction);
 
     color = result;
 }

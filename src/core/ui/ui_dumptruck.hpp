@@ -18,16 +18,16 @@ namespace ui {
                                  ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
                                  ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
         ImGui::SetNextWindowBgAlpha(0.35f);
-        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Always);
         if (ImGui::Begin("##overlay", nullptr, flags)) {
             ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
             ImGui::Separator();
-            ImGui::Text("Camera pos: %.2f, %.2f, %.2f",
+            ImGui::Text("c_pos: %.1f, %.1f, %.1f",
                 camera->position.x,
                 camera->position.y,
                 camera->position.z);
             ImGui::Separator();
-            ImGui::Text("Camera dir: %.2f, %.2f, %.2f",
+            ImGui::Text("c_dir: %.1f, %.1f, %.1f",
                 camera->front.x,
                 camera->front.y,
                 camera->front.z);
@@ -64,6 +64,51 @@ namespace ui {
                 obj.set_scale({ s[0], s[1], s[2] });
             }
         }
+        ImGui::End();
+        ImGui::PopID();
+    }
+
+    static void raymarcher_panel(Raymarcher& marcher, VoxelGrid& grid)
+    {
+        ImGui::PushID(&grid);
+
+        if (ImGui::Begin("Raymarcher")) {
+
+            if (ImGui::CollapsingHeader("Voxel Grid", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+                {
+                    glm::vec3 p = grid.get_position();
+                    float pos[3] = { p.x, p.y, p.z };
+                    if (ImGui::InputFloat3("Grid position", pos, "%.3f")) {
+                        grid.set_position(glm::vec3{ pos[0], pos[1], pos[2] });
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::SmallButton("Reset##grid_pos")) {
+                        grid.set_position(glm::vec3{0.0f, 0.0f, 0.0f});
+                    }
+                }
+
+                {
+                    float cell_size = grid.get_cell_size();
+                    if (ImGui::DragFloat("Cell size", &cell_size, 0.01f, 0.0001f, 1000.0f, "%.4f",
+                                         ImGuiSliderFlags_AlwaysClamp)) {
+                        if (cell_size < 0.0001f) cell_size = 0.0001f;
+                        grid.set_cell_size(cell_size);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::SmallButton("Reset##cell_size")) {
+                        grid.set_cell_size(1.0f);
+                    }
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip("voxel size bruddah");
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Marcher", 0)) {
+                ImGui::TextDisabled("soon brother, soon");
+            }
+        }
+
         ImGui::End();
         ImGui::PopID();
     }

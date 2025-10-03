@@ -58,8 +58,8 @@ void Space::tick(float delta, ButtonMap bm)
 
 	for (auto& o : objects) {
 		o->tick(delta);
-		std::string title = std::to_string(o->get_id());
-		ui::transform_window(*o, title.c_str());
+		// std::string title = std::to_string(o->get_id());
+		// ui::transform_window(*o, title.c_str());
 	}
 
 
