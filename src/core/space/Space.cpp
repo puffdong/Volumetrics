@@ -9,13 +9,10 @@ Space::Space(ResourceManager& resources) : resources(resources)
 }
 
 void Space::init_space() {
-	water_surface = new WaterSurface(glm::vec3(5.f, -10.f, 5.f), 20.f, 20.f);
+	// water_surface = new WaterSurface(glm::vec3(5.f, -10.f, 5.f), 20.f, 20.f);
 	sun = new Sun(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-	// vox = new VoxelStructure(20, 20, 20, glm::vec3(20, 1, 1), 1, 0.75f);
 	
-	camera = new Camera();	
-	// sphere2 = ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
+	camera = new Camera();
 
 		skybox = new Skybox(
 		std::string(resources.get_full_path("res://models/skybox-full-tweaked.obj")),
@@ -31,6 +28,7 @@ void Space::init_space() {
 	uninitialized_objects.push_back(std::make_unique<Line>(std::move(lines)));
 	uninitialized_objects.push_back(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/WorldObject.shader", "res://models/teapot.obj", ""));
 	uninitialized_objects.push_back(std::make_unique<Raymarcher>());
+	uninitialized_objects.push_back(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
 
 }
 

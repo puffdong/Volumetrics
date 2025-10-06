@@ -36,7 +36,7 @@ private:
 
 	Sun* sun;
 	Skybox* skybox;
-	WaterSurface* water_surface;
+	// WaterSurface* water_surface;
 
 	Raymarcher* raymarcher;
 	// VoxelStructure* vox;
