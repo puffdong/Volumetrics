@@ -33,8 +33,7 @@ private:
 	
 	float time = 0.0;
 
-	Sun* sun;
-	Skybox* skybox;
+	Sun* sun; // keeping track of this whilst still keeping it within the objects list would be cool? 
 
 	Raymarcher* raymarcher;
 

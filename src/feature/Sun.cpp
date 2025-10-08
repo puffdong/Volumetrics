@@ -1,20 +1,25 @@
 #include "Sun.hpp"
-#include "core/rendering/Renderer.hpp"
+#include "core/space/Space.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/geometric.hpp>
+#include <iostream>
 
 
 Sun::Sun(glm::vec3 direction, glm::vec4 color) 
-    : dir(direction), color(color), time(0.0f) {
-        shader = new Shader("C:/Dev/OpenGL/Volumetrics/res/shaders/sun.shader");
-        init_billboard_model();
+    : dir(direction), color(color), time(0.0f), Base() {
     }
+
+void Sun::init(ResourceManager& resources, Space* space) {
+    Base::init(resources, space);
+    r_shader = resources.load_shader("res://shaders/sun.shader");
+    init_billboard_model();
+}
 
 void Sun::tick(float delta) {
     time += delta;
-    dir.x += 0.01 * sin(time); 
-    dir.z += 0.01 * cos(time);
+    dir.x += 0.005 * sin(time); 
+    dir.z += 0.005 * cos(time);
 }
 
 void Sun::init_billboard_model() {
@@ -56,8 +61,8 @@ void Sun::init_billboard_model() {
     index_count = static_cast<GLsizei>(indices.size());
 }
 
-void Sun::render(Renderer& renderer, Camera* camera) {
-    glm::vec3 cam_pos = camera->get_position();
+void Sun::enqueue(Renderer& renderer, ResourceManager& resources) {
+    glm::vec3 cam_pos = _space->get_camera()->get_position();
 
     glm::vec3 norm_sun_dir = glm::normalize(this->dir); 
     glm::vec3 sun_pos = cam_pos + (norm_sun_dir * sun_distance);
@@ -78,20 +83,22 @@ void Sun::render(Renderer& renderer, Camera* camera) {
     glm::mat4 trans = glm::translate(glm::mat4(1.0f), sun_pos);
     glm::mat4 model_matrix = trans * rot;
 
-    glm::mat4 mvp = renderer.get_proj() * camera->get_view_matrix() * model_matrix;
+    glm::mat4 mvp = renderer.get_proj() * renderer.get_view() * model_matrix;
+    if (auto shader = resources.get_shader(r_shader.id)) {
+        (*shader)->bind();
+        (*shader)->SetUniform3f("sun_dir", this->dir); 
 
-    shader->bind();
-    shader->SetUniform3f("sun_dir", this->dir); 
+        RenderCommand cmd{};
+        cmd.vao        = VAO;
+        cmd.draw_type   = DrawType::Elements;
+        cmd.count      = index_count;
+        cmd.model      = mvp; 
+        cmd.shader     = (*shader);
+        cmd.state.depth_test  = false;
+        cmd.state.depth_write = false;
 
-    RenderCommand cmd{};
-    cmd.vao        = VAO;
-    cmd.draw_type   = DrawType::Elements;
-    cmd.count      = index_count;
-	cmd.model      = mvp; 
-    cmd.shader     = shader;
-	cmd.state.depth_test  = false;
-    cmd.state.depth_write = false;
-
-    renderer.submit(RenderPass::Skypass, cmd);
-
+        renderer.submit(RenderPass::Skypass, cmd);
+    } else {
+        std::cout << "sun ain't sunning" << std::endl;
+    }
 }

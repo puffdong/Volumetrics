@@ -1,13 +1,12 @@
 #pragma once
-#include <GL/glew.h>
+#include "core/Base.hpp"
 #include "glm/glm.hpp"
-#include "core/rendering/Renderer.hpp"
-#include "core/Camera.hpp"
-#include "core/rendering/Shader.hpp"
 
-class Sun {
+class Space; // fwd decl
+
+class Sun : public Base {
 public:
-    Shader* shader;
+    Resource r_shader; 
 
 	glm::vec3 dir;
     glm::vec4 color;
@@ -18,10 +17,15 @@ public:
 
 	Sun(glm::vec3 direction, glm::vec4 color);
 
-    void tick(float delta);
-    void render(Renderer& renderer, Camera* camera);
-	glm::vec3 get_direction() { return dir; }
-    glm::vec4 get_color() { return color; }
+    void init(ResourceManager& resources, Space* space) override;
+    void tick(float delta) override;
+    void enqueue(Renderer& renderer, ResourceManager& resources) override;
+    
+	glm::vec3 get_direction() { return dir; };
+    glm::vec4 get_color() { return color; };
+    float get_distance() { return sun_distance; };
+    void set_distance(float distance) { sun_distance = distance; };
+
 
 private:
     GLuint VAO, VBO, EBO;

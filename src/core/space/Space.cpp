@@ -9,16 +9,9 @@ Space::Space(ResourceManager& resources) : resources(resources)
 }
 
 void Space::init_space() {
-	// water_surface = new WaterSurface(glm::vec3(5.f, -10.f, 5.f), 20.f, 20.f);
-	sun = new Sun(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	
 	camera = new Camera();
-
-		skybox = new Skybox(
-		std::string(resources.get_full_path("res://models/skybox-full-tweaked.obj")),
-		std::string(resources.get_full_path("res://shaders/Skybox.shader")),
-		std::string(resources.get_full_path("res://textures/skybox/cloud-landscape.tga"))
-	);
+	sun = new Sun(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	sun->init(resources, this);
 
 	std::vector<LinePrimitive> lines = {{glm::vec3(5.f, 0.0f, 0.0f), glm::vec3(-5.0f, 0.0f, 0.0f)},
 										{glm::vec3(0.f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -5.0f)},
@@ -29,7 +22,7 @@ void Space::init_space() {
 	uninitialized_objects.push_back(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/WorldObject.shader", "res://models/teapot.obj", ""));
 	uninitialized_objects.push_back(std::make_unique<Raymarcher>());
 	uninitialized_objects.push_back(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
-
+	uninitialized_objects.push_back(std::make_unique<Skybox>());
 }
 
 void Space::process_init_queue() {
@@ -67,18 +60,12 @@ void Space::enqueue_renderables(Renderer& renderer) {
 	glm::mat4 view_matrix = camera->get_view_matrix();
 	glm::vec3 cam_pos = camera->get_position();
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
-
-	skybox->draw(renderer, camera); // draw prio u know
 	
 	for (auto& o : objects) {
 		o->enqueue(renderer, resources);
 	}
 	
-	// vox->drawVoxels(renderer, view_matrix);
-	
-	sun->render(renderer, camera);
-
-	// raymarcher->enqueue(renderer, RenderPass::Volumetrics, camera, sun_dir);
+	sun->enqueue(renderer, resources); // skybox prio is just a coincidence because it sun enqueues after skybox does it. gotta get some prio thing into the renderer tbh tbh tbh 
 }
 
 
