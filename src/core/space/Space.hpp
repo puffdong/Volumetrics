@@ -17,7 +17,6 @@
 #include "feature/Sun.hpp"
 #include "feature/Skybox.hpp"
 #include "feature/raymarcher/raymarcher.hpp"
-#include "feature/raymarcher/rayscene.hpp"
 #include "feature/water/WaterSurface.hpp"
 
 #include "core/utils/ButtonMap.hpp"
@@ -36,10 +35,8 @@ private:
 
 	Sun* sun;
 	Skybox* skybox;
-	// WaterSurface* water_surface;
 
 	Raymarcher* raymarcher;
-	// VoxelStructure* vox;
 
 
 public:

@@ -64,26 +64,39 @@ float occupancy_at_world(vec3 p) {
     return float(voxel_value_at(world_to_cell(p)) > 0u);
 }
 
-vec4 do_raymarch2(vec3 ray_origin, vec3 ray_direction) {
-    float t = 0.0;
+uint get_voxel(vec3 pos) {
+    return voxel_value_at(world_to_cell(pos));
+}
+
+vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
+    float distance_traveled = 0.0f;
+    int iteration = 0;
+    
+    vec3 col = vec3(0.0f);
+    float alpha = 1.0f;
     float collected_noise = 0.0;
 
     bool hit_something = false;
 
     for (int i = 0; i < MAX_STEPS; ++i) {
-        vec3 p = ray_origin + ray_direction * t;
+        vec3 sample_pos = ray_origin + ray_direction * distance_traveled;
+        
+        // if (v == 0u) {
+        //     distance_traveled += STEP_SIZE;
+        //     iteration += 1;
+        //     continue;
+        // }
 
 
-
-        float occ = occupancy_at_world(p);
+        float occ = occupancy_at_world(sample_pos);
 
         if (occ > 0.5) {
             if (!hit_something) {
                 hit_something = true;
-                t -= STEP_SIZE; // take a step back and then increase step size later on to fill in the gaps
+                distance_traveled -= STEP_SIZE; // take a step back and then increase step size later on to fill in the gaps
             }
 
-            float noise = texture(noise_texture, (p) * 0.05).r;
+            float noise = texture(noise_texture, (sample_pos) * 0.05).r;
 
             collected_noise += noise * HIT_STEP_SIZE * 0.5 * 0.9;
 
@@ -94,11 +107,11 @@ vec4 do_raymarch2(vec3 ray_origin, vec3 ray_direction) {
         }
 
         if (hit_something) {
-            t += HIT_STEP_SIZE;
+            distance_traveled += HIT_STEP_SIZE;
         } else {
-        t += STEP_SIZE;
+        distance_traveled += STEP_SIZE;
         }
-        if (t > MAX_DIST) break;
+        if (distance_traveled > MAX_DIST) break;
     }
 
     vec4 result = vec4(0.0);
@@ -112,7 +125,7 @@ vec4 do_raymarch2(vec3 ray_origin, vec3 ray_direction) {
 void main() {
 
     vec3 ray_direction = normalize(v_ray);
-    vec4 result = do_raymarch2(v_origin, ray_direction);
+    vec4 result = do_raymarch(v_origin, ray_direction);
 
     color = result;
 }

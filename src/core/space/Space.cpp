@@ -69,8 +69,6 @@ void Space::enqueue_renderables(Renderer& renderer) {
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
 
 	skybox->draw(renderer, camera); // draw prio u know
-
-	// water_surface->render(proj, view_matrix, cam_pos); // tbh this one is transparent, and also not really working...
 	
 	for (auto& o : objects) {
 		o->enqueue(renderer, resources);
