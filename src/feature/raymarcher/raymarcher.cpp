@@ -16,8 +16,8 @@ void Raymarcher::init(ResourceManager& resources, Space* space) {
     Base::init(resources, space);
     r_shader = resources.load_shader("res://shaders/raymarching/raymarcher.shader");
 
-    voxel_grid = new VoxelGrid(20, 20, 20, 0, 1.5f, 
-                               glm::vec3(20, 20, 20), // pos
+    voxel_grid = new VoxelGrid(30, 30, 30, 0, 1.5f, 
+                               glm::vec3(-15, -5, -30), // pos
                                glm::vec3(0.f), // rot
                                glm::vec3(1.f), // scale
                                (Base*) this);

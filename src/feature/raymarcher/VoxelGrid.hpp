@@ -53,6 +53,8 @@ public:
 
 	glm::mat4 get_model_matrix(int x, int y, int z);
 	glm::vec3 get_voxel_world_pos(int x, int y, int z);
+
+	void add_cube(glm::ivec3 position, int width, int height, int depth, uint8_t value);
 	
 
 private:

@@ -20,13 +20,27 @@ VoxelGrid::VoxelGrid(int w, int h, int d,
     set_voxel_value(0, h - 1, d - 1, 1);
 
     // lil cube
-    for (int c1 = 0; c1 < 5; c1++) {
-        for (int c2 = 0; c2 < 5; c2++) {
-           for (int c3 = 0; c3 < 5; c3++) {
-               set_voxel_value(5 + c1, 5 + c2, 5 + c3, 1 + c1);
-           }
-        }
-    }
+    // for (int c1 = 0; c1 < 5; c1++) {
+    //     for (int c2 = 0; c2 < 5; c2++) {
+    //         for (int c3 = 0; c3 < 5; c3++) {
+    //             set_voxel_value(6 + c1, 6 + c2, 6 + c3, 1 + c1);
+    //         }
+    //     }
+    // }
+    add_cube(glm::ivec3(5, 5, 5), 10, 2, 10, 1);
+    add_cube(glm::ivec3(6, 6, 6), 8, 2, 8, 1);
+    add_cube(glm::ivec3(7, 7, 7), 6, 2, 6, 1);
+    add_cube(glm::ivec3(8, 8, 8), 4, 6, 4, 1);
+    // add_cube(glm::ivec3(9, 9, 9), 2, 4, 2, 1);
+    // add_cube(glm::ivec3(0, 0, 0), 10, 2, 10, 1);
+    // add_cube(glm::ivec3(0, 0, 0), 10, 2, 10, 1);
+    // for (int c1 = 0; c1 < 12; c1++) {
+    //     for (int c2 = 0; c2 < 2; c2++) {
+    //        for (int c3 = 0; c3 < 12; c3++) {
+    //            set_voxel_value(3 + c1, 4 + c2, 3 + c3, 5 + c1);
+    //        }
+    //     }
+    // }
 }
 
 void VoxelGrid::init(ResourceManager& resources, Space* space) {
@@ -183,4 +197,14 @@ glm::mat4 VoxelGrid::get_model_matrix(int x, int y, int z) {
     m = glm::translate(m, voxel_world_pos);
     m = glm::scale(m, glm::vec3(cell_size * 0.5f)); 
     return glm::scale(glm::translate(glm::mat4(1.f), voxel_world_pos), glm::vec3(this->cell_size * 0.5f));
+}
+
+void VoxelGrid::add_cube(glm::ivec3 position, int width, int height, int depth, uint8_t value) {
+    for (int w = 0; w < width; w++) {
+        for (int h = 0; h < height; h++) {
+           for (int d = 0; d < depth; d++) {
+               set_voxel_value(position.x + w, position.y + h, position.y + d, value);
+           }
+        }
+    }
 }

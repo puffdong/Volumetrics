@@ -21,7 +21,7 @@ void Space::init_space() {
 	uninitialized_objects.push_back(std::make_unique<Line>(std::move(lines)));
 	uninitialized_objects.push_back(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/WorldObject.shader", "res://models/teapot.obj", ""));
 	uninitialized_objects.push_back(std::make_unique<Raymarcher>());
-	uninitialized_objects.push_back(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
+	// uninitialized_objects.push_back(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
 	uninitialized_objects.push_back(std::make_unique<Skybox>());
 }
 

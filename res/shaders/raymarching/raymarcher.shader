@@ -25,7 +25,7 @@ in vec3 v_ray;
 
 uniform float time;
 uniform vec3 sun_dir;
-uniform sampler3D noise_texture;
+uniform sampler3D noise_texture; // bro rename this... 
 
 uniform usampler3D u_voxels; // GL_R8UI
 uniform ivec3 u_grid_dim; // (width, height, depth)
@@ -35,16 +35,22 @@ uniform float u_voxel_size; // world units per cell
 uniform float near_plane;
 uniform float far_plane;
 
-// temporary
-const float SPHERE_RADIUS = 15.0;
-const vec3 SPHERE_POSITION = vec3(-5.0, -3.0, -10.0);
-const vec3 SPHERE_COLOR = vec3(1.0);
-
 // constants
+// marching
 const int MAX_STEPS = 56;
 const float STEP_SIZE = 0.5;
 const float HIT_STEP_SIZE = 0.2; // a bit lower but myeee
 
+const float MAX_LIGHT_STEPS = 16;
+const float LIGHT_STEP_SIZE = 0.75;
+
+// light calc params
+const vec3 FOG_COLOR = vec3(0.05, 0.05, 0.05);
+const float ABSORPTION_COEFF = 0.5f;
+const float SCATTERING_COEFF = 0.5f;
+const float EXTINCTION_COEFF = 0.25; // absorption * scattering
+
+const float SHADOW_DENSITY = 1.0f;
 
 const float MAX_DIST = 256.0;
 const float MIN_DIST = 0.000001;
@@ -68,58 +74,82 @@ uint get_voxel(vec3 pos) {
     return voxel_value_at(world_to_cell(pos));
 }
 
+float rayleigh(float cos_theta) {
+    return (3.0f / (16.0f * 3.1415926538)) * (1 + cos_theta * cos_theta);
+}
+
+float sample_density(vec3 sample_pos) {
+    float noise = texture(noise_texture, (sample_pos) * 0.05).r;
+    return noise;
+}
+
 vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
     float distance_traveled = 0.0f;
     int iteration = 0;
     
     vec3 col = vec3(0.0f);
     float alpha = 1.0f;
-    float collected_noise = 0.0;
+    float collected_density = 0.0;
+    float thickness = 0.0f;
 
     bool hit_something = false;
 
     for (int i = 0; i < MAX_STEPS; ++i) {
-        vec3 sample_pos = ray_origin + ray_direction * distance_traveled;
         
-        // if (v == 0u) {
-        //     distance_traveled += STEP_SIZE;
-        //     iteration += 1;
-        //     continue;
-        // }
+        vec3 sample_pos = ray_origin + ray_direction * distance_traveled;
+        uint v = get_voxel(sample_pos); // snaps to closest voxel from vec3(float)
 
-
-        float occ = occupancy_at_world(sample_pos);
-
-        if (occ > 0.5) {
+        if (v != 0u) {
             if (!hit_something) {
-                hit_something = true;
+                hit_something = true; // first hit
                 distance_traveled -= STEP_SIZE; // take a step back and then increase step size later on to fill in the gaps
             }
+            // cool calcs below
+            float cos_theta = dot(ray_direction, vec3(0.0, 1.0, 0.0));
+            float phase = rayleigh(cos_theta);
 
-            float noise = texture(noise_texture, (sample_pos) * 0.05).r;
+            float sample_density = sample_density(sample_pos);
 
-            collected_noise += noise * HIT_STEP_SIZE * 0.5 * 0.9;
+            collected_density += sample_density * HIT_STEP_SIZE;// * 0.5 * 0.9;
+            thickness += sample_density * HIT_STEP_SIZE;
+            alpha = exp(-thickness * collected_density * EXTINCTION_COEFF);
 
-            if (collected_noise >= 1.0) {
-                collected_noise = 1.0;
+            vec3 light_pos = sample_pos;
+            float light = 0.0f;
+            light += sample_density * 1.0;
+            for (int j = 0; j < MAX_LIGHT_STEPS; ++j) {
+                light_pos = light_pos + normalize(sun_dir) * LIGHT_STEP_SIZE;
+                uint w = get_voxel(light_pos);
+                if (w != 0u) {
+                    light += sample_density;
+                }
+            }
+
+            vec3 light_attenuation = exp(-(light / vec3(1.0) * EXTINCTION_COEFF * 1.0));
+            col += vec3(1.0) * light_attenuation * alpha * phase * SCATTERING_COEFF * 1.0 * sample_density;
+
+            if (collected_density >= 1.0) {
+                collected_density = 1.0;
                 break;
             }
         }
 
+
+        // end of iteration stuff
+        if (distance_traveled > MAX_DIST) break;
         if (hit_something) {
             distance_traveled += HIT_STEP_SIZE;
         } else {
         distance_traveled += STEP_SIZE;
         }
-        if (distance_traveled > MAX_DIST) break;
     }
 
     vec4 result = vec4(0.0);
     if (hit_something) {
         vec3 base_color = vec3(1.0, 8.0, 8.0);
-        result = vec4(base_color, clamp(collected_noise, 0.0, 1.0));
+        result = vec4(FOG_COLOR, clamp(collected_density, 0.0, 1.0));
     }
-    return result;
+    return vec4(col, clamp(collected_density, 0.0, 1.0));
 }
 
 void main() {
