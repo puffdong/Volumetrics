@@ -1,7 +1,10 @@
+#pragma once
 #include "core/Base.hpp"
 
 // to be removed when resource manager is cooler
 #include "core/OBJLoader.hpp"
+
+class Space; // fwd decl
 
 class Object : public Base {
 private:
@@ -25,4 +28,6 @@ public:
     void init(ResourceManager& resources, Space* space) override;
     void tick(float delta) override;
     void enqueue(Renderer& renderer, ResourceManager& resources) override;
+
+    void swap_model(ModelObject* model); // shitty but I need it for a quick thing
 };

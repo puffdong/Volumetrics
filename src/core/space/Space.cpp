@@ -23,6 +23,14 @@ void Space::init_space() {
 	uninitialized_objects.push_back(std::make_unique<Raymarcher>());
 	// uninitialized_objects.push_back(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
 	uninitialized_objects.push_back(std::make_unique<Skybox>());
+
+	// THIS IS STINKY; EWWW
+	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/WorldObject.shader", "res://models/teapot.obj", "");
+	base_ground->init(resources, this);
+	ModelObject* ground_model = new ModelObject(256, 256, 50, 50);
+	base_ground->swap_model(ground_model);
+	objects.push_back(std::move(base_ground));
+	// THIS IS STINKY; BLEEEH
 }
 
 void Space::process_init_queue() {

@@ -7,8 +7,7 @@ extern "C" {
 #endif
 
 #ifdef __APPLE__
-#define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h> // this was causing so many extra warnings from everything that included it
 #else
 #if defined(_WIN32)
 #include <GL/glew.h>

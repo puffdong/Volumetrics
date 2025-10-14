@@ -1,4 +1,5 @@
 #include "Object.hpp"
+#include "core/space/Space.hpp"
 #include <iostream>
 
 Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent,
@@ -35,9 +36,13 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
         glm::mat4 model = get_model_matrix();
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->SetUniformMat4("u_MVP", proj * view * model);
-        (*shader)->SetUniformMat4("modelMatrix", model);
-        (*shader)->SetUniformMat4("worldMatrix", model);
+        (*shader)->SetUniform3f("u_camera_pos", _space->get_camera()->get_position());
+        (*shader)->SetUniform3f("u_sun_dir", _space->get_sun()->get_direction());
+        (*shader)->SetUniform3f("u_sun_color", glm::vec3(1.0, 1.0, 1.0));
+        // (*shader)->SetUniform3f("", _space->get_sun()->get_color())
+        (*shader)->SetUniformMat4("u_mvp", proj * view * model);
+        (*shader)->SetUniformMat4("u_model_matrix", model);
+        (*shader)->SetUniformMat4("u_view_matrix", view);
 
         // STILL GOTTA HANDLE TEXTURE STUFF BUT IDC RIGHT NOW, WE MOVING FAST AND SWIFT, OUT WITH OLD, IN WITH NEW
         RenderCommand cmd{};
@@ -52,4 +57,11 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
         std::cout << "Shader for resource ID: " << r_shader.id.value() << " not found!" << "\n";
         return;
     }
+}
+
+void Object::swap_model(ModelObject* model) {
+    if (_model) {
+        delete _model;
+    } 
+    _model = model;
 }

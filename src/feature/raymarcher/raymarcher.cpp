@@ -58,15 +58,15 @@ void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
 
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->SetUniform1f("time", time);
-        (*shader)->SetUniformMat4("invprojview", inverted_proj_view);
-        (*shader)->SetUniform1f("near_plane", renderer.get_near());
-        (*shader)->SetUniform1f("far_plane", renderer.get_far());
-        (*shader)->SetUniform3f("camera_pos", _space->get_camera()->get_position());
-        (*shader)->SetUniform3f("sun_dir", sun_direction);
-        _ray_scene->upload_primitives_to_gpu((*shader));
+        (*shader)->SetUniform1f("u_time", time);
+        (*shader)->SetUniformMat4("u_invprojview", inverted_proj_view);
+        (*shader)->SetUniform1f("u_near_plane", renderer.get_near());
+        (*shader)->SetUniform1f("u_far_plane", renderer.get_far());
+        (*shader)->SetUniform3f("u_camera_pos", _space->get_camera()->get_position());
+        (*shader)->SetUniform3f("u_sun_dir", sun_direction);
+        // _ray_scene->upload_primitives_to_gpu((*shader));
 
-        TextureBinding bind{ perlin3d, GL_TEXTURE_3D, 0, "noise_texture" };
+        TextureBinding bind{ perlin3d, GL_TEXTURE_3D, 0, "u_noise_texture" };
 
         (*shader)->SetUniform3i("u_grid_dim", voxel_grid->get_grid_dim());
         (*shader)->SetUniform3f("u_grid_origin", voxel_grid->get_position());

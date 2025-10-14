@@ -1,19 +1,19 @@
 #shader vertex
 #version 330 core
-layout (location = 0) in vec2 aPos;
-layout (location = 1) in vec2 aUV;
+layout (location = 0) in vec2 a_pos;
+layout (location = 1) in vec2 a_uv;
 
-uniform mat4 invprojview;
-uniform float near_plane;
-uniform float far_plane;
+uniform mat4 u_invprojview;
+uniform float u_near_plane;
+uniform float u_far_plane;
 
 out vec3 v_origin;
 out vec3 v_ray;
 
 void main() {
-    gl_Position = vec4(aPos, 0.0, 1.0);
-    v_origin = (invprojview * vec4(aPos, -1.0, 1.0) * near_plane).xyz;
-    v_ray = (invprojview * vec4(aPos * (far_plane - near_plane), far_plane + near_plane, far_plane - near_plane)).xyz;
+    gl_Position = vec4(a_pos, 0.0, 1.0);
+    v_origin = (u_invprojview * vec4(a_pos, -1.0, 1.0) * u_near_plane).xyz;
+    v_ray = (u_invprojview * vec4(a_pos * (u_far_plane - u_near_plane), u_far_plane + u_near_plane, u_far_plane - u_near_plane)).xyz;
 }
 
 #shader fragment
@@ -24,16 +24,18 @@ in vec3 v_origin;
 in vec3 v_ray;
 
 uniform float time;
-uniform vec3 sun_dir;
-uniform sampler3D noise_texture; // bro rename this... 
+uniform vec3 u_sun_dir;
+uniform vec3 u_camera_pos;
+uniform sampler3D u_noise_texture; // bro rename this... 
 
+// voxels
 uniform usampler3D u_voxels; // GL_R8UI
 uniform ivec3 u_grid_dim; // (width, height, depth)
 uniform vec3 u_grid_origin;
 uniform float u_voxel_size; // world units per cell
 
-uniform float near_plane;
-uniform float far_plane;
+uniform float u_near_plane;
+uniform float u_far_plane;
 
 // constants
 // marching
@@ -79,7 +81,7 @@ float rayleigh(float cos_theta) {
 }
 
 float sample_density(vec3 sample_pos) {
-    float noise = texture(noise_texture, (sample_pos) * 0.05).r;
+    float noise = texture(u_noise_texture, (sample_pos) * 0.05).r;
     return noise;
 }
 
@@ -118,7 +120,7 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
             float light = 0.0f;
             light += sample_density * 1.0;
             for (int j = 0; j < MAX_LIGHT_STEPS; ++j) {
-                light_pos = light_pos + normalize(sun_dir) * LIGHT_STEP_SIZE;
+                light_pos = light_pos + normalize(u_sun_dir) * LIGHT_STEP_SIZE;
                 uint w = get_voxel(light_pos);
                 if (w != 0u) {
                     light += sample_density;
