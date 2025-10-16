@@ -86,7 +86,7 @@ void Sun::enqueue(Renderer& renderer, ResourceManager& resources) {
     glm::mat4 mvp = renderer.get_proj() * renderer.get_view() * model_matrix;
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->bind();
-        (*shader)->SetUniform3f("sun_dir", this->dir); 
+        (*shader)->set_uniform_vec3("sun_dir", this->dir); 
 
         RenderCommand cmd{};
         cmd.vao        = VAO;

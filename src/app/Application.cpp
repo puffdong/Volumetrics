@@ -271,6 +271,7 @@ void Application::stop() {
 }
 
 int Application::shutdown() {
+    std::cout << "Shutting down..."; 
     delete space;
 
     renderer.destroy();

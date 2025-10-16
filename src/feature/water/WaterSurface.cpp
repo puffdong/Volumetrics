@@ -23,7 +23,7 @@ void WaterSurface::enqueue(Renderer& renderer, ResourceManager& resources) {
     glm::mat4 mvp = renderer.get_proj() * renderer.get_view() * model_matrix;
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->bind();
-        (*shader)->SetUniform1i("u_Texture", 8);
+        (*shader)->set_uniform_int("u_Texture", 8);
         RenderCommand cmd{};
         cmd.vao        = model->getVAO();
         cmd.draw_type   = DrawType::Elements;

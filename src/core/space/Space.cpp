@@ -9,7 +9,7 @@ Space::Space(ResourceManager& resources) : resources(resources)
 }
 
 void Space::init_space() {
-	camera = new Camera();
+	camera = new Camera(glm::vec3(0.0, 10.0, 0.0));
 	sun = new Sun(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	sun->init(resources, this);
 

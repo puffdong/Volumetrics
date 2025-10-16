@@ -43,6 +43,7 @@ public:
     std::string get_full_path(const std::string& asset_path);
     
     Resource load_shader(const std::string& shader_asset_path);
+    Resource load_shader(const std::string& vertex_asset_path, const std::string& fragment_asset_path);
     // I am going to abstract this thing below later but need it for now heh
     // The plan is to not even have "shaders" be a thing and any uniform and such is going to just be 
     // abstracted away blah blah, we working on it yuh yuh

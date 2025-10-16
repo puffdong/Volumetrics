@@ -36,13 +36,13 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
         glm::mat4 model = get_model_matrix();
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->SetUniform3f("u_camera_pos", _space->get_camera()->get_position());
-        (*shader)->SetUniform3f("u_sun_dir", _space->get_sun()->get_direction());
-        (*shader)->SetUniform3f("u_sun_color", glm::vec3(1.0, 1.0, 1.0));
+        (*shader)->set_uniform_vec3("u_camera_pos", _space->get_camera()->get_position());
+        (*shader)->set_uniform_vec3("u_sun_dir", _space->get_sun()->get_direction());
+        (*shader)->set_uniform_vec3("u_sun_color", glm::vec3(1.0, 1.0, 1.0));
         // (*shader)->SetUniform3f("", _space->get_sun()->get_color())
-        (*shader)->SetUniformMat4("u_mvp", proj * view * model);
-        (*shader)->SetUniformMat4("u_model_matrix", model);
-        (*shader)->SetUniformMat4("u_view_matrix", view);
+        (*shader)->set_uniform_mat4("u_mvp", proj * view * model);
+        (*shader)->set_uniform_mat4("u_model_matrix", model);
+        (*shader)->set_uniform_mat4("u_view_matrix", view);
 
         // STILL GOTTA HANDLE TEXTURE STUFF BUT IDC RIGHT NOW, WE MOVING FAST AND SWIFT, OUT WITH OLD, IN WITH NEW
         RenderCommand cmd{};

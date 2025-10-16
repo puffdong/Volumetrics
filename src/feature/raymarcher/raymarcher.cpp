@@ -14,7 +14,8 @@ Raymarcher::Raymarcher() : Base()
 
 void Raymarcher::init(ResourceManager& resources, Space* space) {
     Base::init(resources, space);
-    r_shader = resources.load_shader("res://shaders/raymarching/raymarcher.shader");
+    std::cout << "raymarcher init" << std::endl;
+    r_shader = resources.load_shader("res://shaders/raymarching/raymarcher.vs", "res://shaders/raymarching/raymarcher.fs");
 
     voxel_grid = new VoxelGrid(30, 30, 30, 0, 1.5f, 
                                glm::vec3(-15, -5, -30), // pos
@@ -58,19 +59,19 @@ void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
 
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->SetUniform1f("u_time", time);
-        (*shader)->SetUniformMat4("u_invprojview", inverted_proj_view);
-        (*shader)->SetUniform1f("u_near_plane", renderer.get_near());
-        (*shader)->SetUniform1f("u_far_plane", renderer.get_far());
-        (*shader)->SetUniform3f("u_camera_pos", _space->get_camera()->get_position());
-        (*shader)->SetUniform3f("u_sun_dir", sun_direction);
+        (*shader)->set_uniform_float("u_time", time);
+        (*shader)->set_uniform_mat4("u_invprojview", inverted_proj_view);
+        (*shader)->set_uniform_float("u_near_plane", renderer.get_near());
+        (*shader)->set_uniform_float("u_far_plane", renderer.get_far());
+        (*shader)->set_uniform_vec3("u_camera_pos", _space->get_camera()->get_position());
+        (*shader)->set_uniform_vec3("u_sun_dir", sun_direction);
         // _ray_scene->upload_primitives_to_gpu((*shader));
 
         TextureBinding bind{ perlin3d, GL_TEXTURE_3D, 0, "u_noise_texture" };
 
-        (*shader)->SetUniform3i("u_grid_dim", voxel_grid->get_grid_dim());
-        (*shader)->SetUniform3f("u_grid_origin", voxel_grid->get_position());
-        (*shader)->SetUniform1f("u_voxel_size", voxel_grid->get_cell_size());
+        (*shader)->set_uniform_ivec3("u_grid_dim", voxel_grid->get_grid_dim());
+        (*shader)->set_uniform_vec3("u_grid_origin", voxel_grid->get_position());
+        (*shader)->set_uniform_float("u_voxel_size", voxel_grid->get_cell_size());
         TextureBinding bind2{ voxel_grid->get_voxel_texture_id(), GL_TEXTURE_3D, 1, "u_voxels" };
 
         RenderCommand cmd{};

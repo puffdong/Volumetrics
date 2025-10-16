@@ -60,11 +60,11 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->SetUniformMat4("u_proj", renderer.get_proj());
-        (*shader)->SetUniformMat4("u_view", renderer.get_view());
-        (*shader)->SetUniform3i("u_grid_dim", glm::ivec3(width, height, depth));
-        (*shader)->SetUniform3f("u_grid_origin", position);
-        (*shader)->SetUniform1f("u_voxel_size", cell_size);
+        (*shader)->set_uniform_mat4("u_proj", renderer.get_proj());
+        (*shader)->set_uniform_mat4("u_view", renderer.get_view());
+        (*shader)->set_uniform_ivec3("u_grid_dim", glm::ivec3(width, height, depth));
+        (*shader)->set_uniform_vec3("u_grid_origin", position);
+        (*shader)->set_uniform_float("u_voxel_size", cell_size);
 
         GLuint vao = cube->getVAO();             
         unsigned int index_count = cube->getIndexCount(); 

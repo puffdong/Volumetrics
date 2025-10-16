@@ -67,8 +67,8 @@ void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->SetUniformMat4("projection", renderer.get_proj());
-        (*shader)->SetUniformMat4("view", renderer.get_view());
+        (*shader)->set_uniform_mat4("projection", renderer.get_proj());
+        (*shader)->set_uniform_mat4("view", renderer.get_view());
 
         RenderCommand cmd{};
         cmd.vao            = VAO;

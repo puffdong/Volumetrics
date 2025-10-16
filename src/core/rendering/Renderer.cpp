@@ -197,10 +197,10 @@ void Renderer::init_quad() {
 //     test_shader->Bind();
 //     glActiveTexture(GL_TEXTURE0);
 //     glBindTexture(GL_TEXTURE_2D, sceneColorTex);
-//     test_shader->SetUniform1i("u_Scene", 0);
+//     test_shader->set_uniform_int("u_Scene", 0);
 //     glActiveTexture(GL_TEXTURE1);
 //     glBindTexture(GL_TEXTURE_2D, volumetrics_fbo_color);
-//     test_shader->SetUniform1i("volumetrics_tex", volumetrics_fbo_color);
+//     test_shader->set_uniform_int("volumetrics_tex", volumetrics_fbo_color);
 
 //     glBindVertexArray(quadVAO);
 //     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -294,12 +294,12 @@ void Renderer::execute_command(const RenderCommand& c)
     apply_state(c.state);
 
     c.shader->bind();
-    c.shader->SetUniformMat4("model", c.model);
+    c.shader->set_uniform_mat4("model", c.model);
 
     for (const auto& t : c.textures) {
         glActiveTexture(GL_TEXTURE0 + t.unit);
         glBindTexture(t.target, t.id);
-        if (t.uniform_name) c.shader->SetUniform1i(t.uniform_name, t.unit);
+        if (t.uniform_name) c.shader->set_uniform_int(t.uniform_name, t.unit);
     }
 
     switch (c.draw_type)

@@ -48,10 +48,10 @@ void RayScene::upload_primitives_to_gpu(Shader* shader) {
         sphere_colors.push_back(sphere->color);
     };
 
-    shader->SetUniform3fv("sphere_positions", sphere_positions);
-    shader->SetUniform4fv("sphere_colors", sphere_colors);
-    shader->SetUniform1fv("sphere_radiuses", sphere_radiuses);
-    shader->SetUniform1i("num_spheres", (int)spheres.size());
+    shader->set_uniform_vec3_array("sphere_positions", sphere_positions);
+    shader->set_uniform_vec4_array("sphere_colors", sphere_colors);
+    shader->set_uniform_float_array("sphere_radiuses", sphere_radiuses);
+    shader->set_uniform_int("num_spheres", (int)spheres.size());
 }
 
 void RayScene::upload_volumetric_box_to_gpu(Shader* shader) {

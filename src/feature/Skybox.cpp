@@ -46,7 +46,7 @@ void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
 		renderer.submit(RenderPass::Skypass, cmd);
 		
 		(*shader)->bind();
-		(*shader)->SetUniformMat4("u_MVP", renderer.get_proj() * renderer.get_view());
+		(*shader)->set_uniform_mat4("u_MVP", renderer.get_proj() * renderer.get_view());
 		
 	}
 
