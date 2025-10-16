@@ -142,6 +142,32 @@ void Renderer::init_framebuffer(int width, int height)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void Renderer::destroy() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    if (sceneFBO)        glDeleteFramebuffers(1, &sceneFBO);
+    if (sceneColorTex)   glDeleteTextures(1, &sceneColorTex);
+    if (sceneDepthRBO)   glDeleteRenderbuffers(1, &sceneDepthRBO);
+
+    if (volumetrics_fbo)        glDeleteFramebuffers(1, &volumetrics_fbo);
+    if (volumetrics_fbo_color)  glDeleteTextures(1, &volumetrics_fbo_color);
+    if (volumetrics_fbo_depth)  glDeleteRenderbuffers(1, &volumetrics_fbo_depth);
+
+    if (quadVBO) glDeleteBuffers(1, &quadVBO);
+    if (quadVAO) glDeleteVertexArrays(1, &quadVAO);
+
+    sceneFBO = 0; sceneColorTex = 0; sceneDepthRBO = 0;
+    volumetrics_fbo = 0; volumetrics_fbo_color = 0; volumetrics_fbo_depth = 0;
+    quadVBO = 0; quadVAO = 0;
+
+    // clear rendercommand queues
+    for (auto& q : queues) q.clear();
+}
+
 void Renderer::init_quad() {
     if (quadVAO) return; // already done
 

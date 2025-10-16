@@ -9,22 +9,19 @@ Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path)
     glfwGetFramebufferSize(window, &initial_width, &initial_height); 
     glViewport(0, 0, initial_width, initial_height);
 
-    pending_width = initial_width;
+    pending_width = initial_width; 
     pending_height = initial_height;
 
     renderer.init_renderer(initial_width, initial_height);
-
     float aspect_ratio = static_cast<float>(initial_width) / initial_height;
     renderer.set_projection_matrix(aspect_ratio, 70.f, 1.f, 256.f);
 
     space = new Space(resources);
 
-    float last_time = glfwGetTime();
-
-    std::cout << resources.get_full_path("res://models/bunny.obj") << std::endl;
+    last_time = (float) glfwGetTime();
 }
 
-bool Application::Application::init_glfw(const AppConfig& cfg) {
+bool Application::init_glfw(const AppConfig& cfg) {
     int initial_width = cfg.initial_width;
     int initial_height = cfg.initial_height;
     
@@ -124,7 +121,7 @@ void Application::mouse_button_callback(GLFWwindow* window, int button, int acti
 }
 
 void Application::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    fov -= (float)yoffset;
+    fov -= (float) yoffset;
     renderer.set_fov(fov);
 }
 
@@ -224,7 +221,9 @@ void Application::framebuffer_resize_callback(GLFWwindow* window, int width, int
 }
 
 int Application::run() {
-    while (!glfwWindowShouldClose(window))
+    running = true;
+    // while (!glfwWindowShouldClose(window))
+    while (running)
     {
         glfwPollEvents();
 
@@ -259,14 +258,28 @@ int Application::run() {
         glfwSwapBuffers(window);
 
         glfwPollEvents();
+
+        if (glfwWindowShouldClose(window)) {
+            stop();
+        }
     }
     return shutdown();
 }
 
+void Application::stop() {
+    running = false;
+}
+
 int Application::shutdown() {
+    delete space;
+
+    renderer.destroy();
+    
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }

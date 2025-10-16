@@ -8,7 +8,9 @@
 
 int main(void)
 {
-    AppConfig config{600, 400, ASSET_PATH};
+    {
+    AppConfig config{1920, 1080, ASSET_PATH};
     Application application(config);
     return application.run();
+    }
 }

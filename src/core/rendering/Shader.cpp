@@ -16,7 +16,7 @@ Shader::Shader(const std::string& filepath) : _file_path(filepath), _rendering_i
 }
 
 Shader::~Shader() {
-    GLCall(glDeleteProgram(_rendering_id));
+    glDeleteProgram(_rendering_id);
 }
 
 ShaderProgramSource Shader::parse_shader(const std::string& filepath) {
@@ -195,7 +195,7 @@ int Shader::get_uniform_location(const std::string& name) {
         return uniform_location_cache[name];
     }
 
-    GLCall(int location = glGetUniformLocation(_rendering_id, name.c_str()));
+    int location = glGetUniformLocation(_rendering_id, name.c_str());
     if (location == -1) {
         std::cout << "Warning: uniform '" << name << "' doesn't exist!" << std::endl;
     }

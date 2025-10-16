@@ -20,6 +20,9 @@ class Renderer
 {    
 public: 
     void init_renderer(int width, int height);
+    void destroy();
+
+
     void resize(int width, int height);
     void begin_frame(const glm::vec4& clearColor = {0,0,0,1});
     void submit(RenderPass pass, const RenderCommand& cmd);
