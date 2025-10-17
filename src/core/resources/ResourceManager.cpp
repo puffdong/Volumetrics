@@ -1,5 +1,13 @@
 #include "ResourceManager.hpp"
+#include <optional>
+#include <filesystem>
+#include <string>
+#include <memory>
 #include <iostream>
+
+#include "core/rendering/Shader.hpp"
+#include "core/rendering/Model.hpp"
+#include "core/rendering/Texture.hpp"
 
 ResourceManager::ResourceManager(const std::string& assets_root_path, const std::string& assets_handle)
 : root_path(assets_root_path), asset_handle(assets_handle)

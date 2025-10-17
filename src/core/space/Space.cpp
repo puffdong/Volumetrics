@@ -1,7 +1,14 @@
 #include "Space.hpp"
 #include <iostream>
 #include <string>
+#include "core/Base.hpp"
+#include "core/space/Object.hpp"
 #include "core/ui/ui_dumptruck.hpp"
+#include "core/Line.hpp"
+#include "feature/Sun.hpp"
+#include "feature/Skybox.hpp"
+#include "feature/raymarcher/raymarcher.hpp"
+#include "feature/water/WaterSurface.hpp"
 
 Space::Space(ResourceManager& resources) : resources(resources)
 {	

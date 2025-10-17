@@ -1,4 +1,5 @@
 #include "Object.hpp"
+#include "core/rendering/Texture.hpp"
 #include "core/space/Space.hpp"
 #include <iostream>
 

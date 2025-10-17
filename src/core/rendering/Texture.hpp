@@ -15,11 +15,11 @@ public:
 	Texture(const std::string& path);
 	~Texture();
 
-	void Bind(unsigned int slot = 0) const;
-	void Unbind() const;
+	void bind(unsigned int slot = 0) const;
+	void unbind() const;
 
 	int get_id();
 
-	inline int GetWidth() const { return m_Width; }
-	inline int GetHeight() const { return m_Height; }
+	inline int get_width() const { return m_Width; }
+	inline int get_height() const { return m_Height; }
 };

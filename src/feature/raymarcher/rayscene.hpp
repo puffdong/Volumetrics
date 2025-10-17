@@ -1,7 +1,8 @@
 #pragma once
 #include "glm/glm.hpp"
-#include "core/rendering/Shader.hpp"
 #include <vector>
+
+class Shader;
 
 struct RaySphere {
     glm::vec3 pos;

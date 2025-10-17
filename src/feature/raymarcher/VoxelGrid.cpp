@@ -1,4 +1,5 @@
 #include "VoxelGrid.hpp"
+#include <iostream>
 #include "core/space/Space.hpp"
 
 VoxelGrid::VoxelGrid(int w, int h, int d, 

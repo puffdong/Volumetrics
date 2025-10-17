@@ -1,20 +1,10 @@
 #pragma once
 // std libs
-#include <optional>
-#include <filesystem>  
-#include <vector>
-#include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <memory> // unique ptr yuh
 
 // Core
-#include "core/rendering/Shader.hpp"
-#include "core/rendering/Model.hpp"
-#include "core/rendering/Texture.hpp"
 #include "core/UUID.hpp"
-
-// todo, make Resource<type> thing someday, would be cool to do
 
 using ResourceID = UUID<Resource>;
 
@@ -28,15 +18,20 @@ struct Resource {
 
 class ResourceManager {    
 private:
+    // internal resource representations
+    struct ShaderResource; // frwd decls
+    struct TextureResource; 
+    struct ModelResource;
+
     std::string root_path;
     std::string asset_handle;
 
     // std::unordered_set<ResourceID> active_resource_ids;
     std::unordered_map<ResourceID, Resource, uuid_hash<Resource>> resource_map;
     std::unordered_map<ResourceID, std::unique_ptr<Shader>, uuid_hash<Resource>> shader_map;
-
-    int number_of_resources = 0;
     std::unordered_set<int> resource_id_set;
+    int number_of_resources = 0;
+
 
 public:
     ResourceManager(const std::string& assets_root_path, const std::string& assets_handle = "res://");

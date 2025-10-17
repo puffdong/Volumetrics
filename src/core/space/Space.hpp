@@ -5,22 +5,16 @@
 
 #include "glm/glm.hpp"
 
+#include "core/utils/ButtonMap.hpp"
 #include "core/resources/ResourceManager.hpp"
 #include "core/rendering/Renderer.hpp"
 
-#include "core/Base.hpp"
-#include "core/space/Object.hpp"
+#include "core/UUID.hpp"
 
 #include "core/Camera.hpp"
-#include "core/Line.hpp"
-
 #include "feature/Sun.hpp"
-#include "feature/Skybox.hpp"
-#include "feature/raymarcher/raymarcher.hpp"
-#include "feature/water/WaterSurface.hpp"
 
-#include "core/utils/ButtonMap.hpp"
-#include "core/UUID.hpp"
+class Raymarcher; // fwd decl
 
 class Space {
 private:
@@ -30,10 +24,10 @@ private:
 	std::vector<std::unique_ptr<Base>> objects;
 	
 	Camera* camera;
+	Sun* sun;
 	
 	float time = 0.0;
 
-	Sun* sun; // keeping track of this whilst still keeping it within the objects list would be cool? 
 
 	Raymarcher* raymarcher;
 

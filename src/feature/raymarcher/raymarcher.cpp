@@ -29,9 +29,9 @@ void Raymarcher::init(ResourceManager& resources, Space* space) {
     GLCall(GLuint textureID3D = perlinTexture3D.getTextureID());
     perlin3d = textureID3D;
 
-    _ray_scene = new RayScene(glm::vec3(0.0, 0.0, 0.0));
-    sphere1 = _ray_scene->add_sphere(glm::vec3(-5.0f, -3.0f, -10.0f), 15.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
-    sphere2 = _ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
+    // _ray_scene = new RayScene(glm::vec3(0.0, 0.0, 0.0));
+    // sphere1 = _ray_scene->add_sphere(glm::vec3(-5.0f, -3.0f, -10.0f), 15.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
+    // sphere2 = _ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
 }
 
 void Raymarcher::tick(float delta) {

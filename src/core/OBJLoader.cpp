@@ -38,18 +38,18 @@ void ModelObject::loadThroughTiny(const std::string& filepath) {
 
     if (!reader.ParseFromFile(filepath, reader_config)) {
         if (!reader.Error().empty()) {
-            std::cout << "TinyObjReader: " << reader.Error();
+            std::cout << "TinyObjReader Error: " << reader.Error();
         }
         exit(1);
     }
 
-    if (!reader.Warning().empty()) {
-        std::cout << "TinyObjReader: " << reader.Warning();
-    }
+    // if (!reader.Warning().empty()) {
+    //     std::cout << "TinyObjReader Warning: " << reader.Warning();
+    // }
 
     auto& attrib = reader.GetAttrib();
     auto& shapes = reader.GetShapes();
-    auto& materials = reader.GetMaterials();
+    // auto& materials = reader.GetMaterials();
 
     struct TupleHasher {
         std::size_t operator()(const std::tuple<int, int, int>& tuple) const {

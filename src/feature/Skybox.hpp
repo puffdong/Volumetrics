@@ -1,10 +1,9 @@
 #pragma once
 #include "core/Base.hpp"
-#include "core/OBJLoader.hpp"
 #include "core/rendering/Texture.hpp"
-#include "core/Camera.hpp"
 
 class Space; //fwd decl
+class ModelObject;
 
 struct Skybox : public Base {
 	Resource r_shader;

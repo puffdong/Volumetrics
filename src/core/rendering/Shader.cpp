@@ -81,18 +81,18 @@ ShaderProgramSource Shader::parse_shader(const std::string& vertex_path, const s
     std::string line;
 
     std::ifstream vertex_stream(vertex_path);
-    std::stringstream vertex_source;
+    std::stringstream v_source;
     while (getline(vertex_stream, line)) {
-        vertex_source << line << '\n';
+        v_source << line << '\n';
     }
 
     std::ifstream fragment_stream(fragment_path);
-    std::stringstream fragment_source;
+    std::stringstream f_source;
     while (getline(fragment_stream, line)) {
-        fragment_source << line << '\n';
+        f_source << line << '\n';
     }
 
-    return {vertex_source.str(), fragment_source.str()};
+    return {.vertex_source{v_source.str()}, .fragment_source{f_source.str()}};
 }
 
 
@@ -148,7 +148,7 @@ unsigned int Shader::create_shader(ShaderProgramSource source) {
 }
 
 void Shader::bind() const {
-    GLCall(glUseProgram(_rendering_id));
+    glUseProgram(_rendering_id);
 }
 
 void Shader::unbind() const {
@@ -210,7 +210,7 @@ void Shader::hot_reload_if_changed() {
                 std::cout << "hot-reloaded shader: " << _shader_name << '\n';
             }
             else {
-                std::cout << "SHADER ERROR: hot-reloading " << _shader_name << " failed!";
+                std::cout << "!!!: hot-reloading " << _shader_name << " failed!";
             }
         }
     }
@@ -293,7 +293,7 @@ int Shader::get_uniform_location(const std::string& name) {
 
     int location = glGetUniformLocation(_rendering_id, name.c_str());
     if (location == -1) {
-        std::cout << "Warning: uniform '" << name << "' doesn't exist!" << std::endl;
+        std::cout << _shader_name << " doesn't have a '" << name << "' uniform!" << std::endl;
     }
     _uniform_location_cache[name] = location;
     return location;

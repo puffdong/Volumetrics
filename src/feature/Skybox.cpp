@@ -1,4 +1,5 @@
 #include "Skybox.hpp"
+#include "core/OBJLoader.hpp"
 #include "core/space/Space.hpp"
 #include "core/rendering/Renderer.hpp"
 
@@ -12,10 +13,10 @@ void Skybox::init(ResourceManager& resources, Space* space) {
 	model = new ModelObject(resources.get_full_path("res://models/skybox-full-tweaked.obj"));
 	texture = new Texture(resources.get_full_path("res://textures/skybox/cloud-landscape.tga"));
 
-	texture->Bind(0); // we gotta set up the parameters for this texture asap, so do it now and make it better later
+	texture->bind(0); // we gotta set up the parameters for this texture asap, so do it now and make it better later
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	texture->Unbind();
+	texture->unbind();
 
 }
 

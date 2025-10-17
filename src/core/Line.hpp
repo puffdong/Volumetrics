@@ -4,8 +4,6 @@
 #include <vector>
 #include <iostream>
 
-#include "../core/rendering/Shader.hpp"
-
 struct LinePrimitive {
     glm::vec3 start;
     glm::vec3 end;
