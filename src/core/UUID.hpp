@@ -39,3 +39,13 @@ struct uuid_hash {
         return std::hash<std::uint64_t>{}(id.value());
     }
 };
+
+namespace Res { 
+    struct Shader; 
+    struct Texture; 
+    struct Model; 
+}
+
+using ShaderID = UUID<Res::Shader>;
+using TextureID = UUID<Res::Texture>;
+using ModelID = UUID<Res::Model>;

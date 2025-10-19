@@ -2,16 +2,19 @@
 #include <glm/gtc/matrix_transform.hpp> // get that perspective thing
 #include "glm/glm.hpp"
 #include <vector>
-
 #include "RenderCommand.hpp"
 #include "Shader.hpp"
+
+// - - - Todo - - - //
+// get an actual pipe-line set up
+// look into touching up the rendercommands by adding uniform setting calls (just an idea :o)
+
 
 // Error handling
 // #define ASSERT(x) if (!(x)) __debugbreak();
 #define GLCall(x) GLClearError();\
     x;\
     GLLogCall(#x, __FILE__, __LINE__);
-    // ASSERT(GLLogCall(#x, __FILE__, __LINE__)) 
 
 void GLClearError();
 bool GLLogCall(const char* function, const char* file, int line);
@@ -52,7 +55,6 @@ private:
     glm::mat4 view;
 	bool changes_made = true;
 
-
     // work in progress
     GLuint sceneFBO = 0;
     GLuint sceneColorTex = 0;
@@ -73,7 +75,5 @@ private:
     GLuint quadVBO = 0;
 
     void init_framebuffer(int width, int height);
-
-    // Shader* test_shader;
 };
 

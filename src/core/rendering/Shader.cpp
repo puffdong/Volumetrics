@@ -37,8 +37,6 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
     ShaderFile v{vertex_path, std::filesystem::last_write_time(vertex_path), ShaderType::VERTEX};
     ShaderFile f{fragment_path, std::filesystem::last_write_time(fragment_path), ShaderType::FRAGMENT};
 
-    std::cout << "LAST WRITE TIME FRAGGIE INITITITIT: " << static_cast<long long>(std::filesystem::last_write_time(fragment_path).time_since_epoch().count()) << std::endl;
-
     _shader_files.push_back(v);
     _shader_files.push_back(f);
 
@@ -92,7 +90,7 @@ ShaderProgramSource Shader::parse_shader(const std::string& vertex_path, const s
         f_source << line << '\n';
     }
 
-    return {.vertex_source{v_source.str()}, .fragment_source{f_source.str()}};
+    return { .vertex_source{v_source.str()}, .fragment_source{f_source.str()} };
 }
 
 
@@ -186,10 +184,6 @@ void Shader::hot_reload_if_changed() {
         for (ShaderFile file : _shader_files) {
             fs::file_time_type now = fs::last_write_time(file.file_path);
             if (now != file.last_write_time) {
-                std::cout << "WE GOT A HIT!" << std::endl;
-                std::cout << file.file_path << std::endl;
-                std::cout << "now: ::: ::: ::: " << static_cast<long long>(now.time_since_epoch().count()) << std::endl;
-                std::cout << "last write time: " << static_cast<long long>(std::filesystem::last_write_time(file.file_path).time_since_epoch().count()) << std::endl;
                 changed = true; // ding ding!
 
             }
@@ -286,16 +280,16 @@ void Shader::set_uniform_block(const std::string& block_name, unsigned int bindi
     GLCall(glUniformBlockBinding(_rendering_id, get_uniform_block_index(block_name), binding_point));
 }
 
-int Shader::get_uniform_location(const std::string& name) {
-    if (_uniform_location_cache.find(name) != _uniform_location_cache.end()) {
-        return _uniform_location_cache[name];
+int Shader::get_uniform_location(const std::string& uniform_name) {
+    if (_uniform_location_cache.find(uniform_name) != _uniform_location_cache.end()) {
+        return _uniform_location_cache[uniform_name];
     }
 
-    int location = glGetUniformLocation(_rendering_id, name.c_str());
+    int location = glGetUniformLocation(_rendering_id, uniform_name.c_str());
     if (location == -1) {
-        std::cout << _shader_name << " doesn't have a '" << name << "' uniform!" << std::endl;
+        std::cout << "'" << uniform_name << "' in " << _shader_name << " doesn't exist!" << std::endl;
     }
-    _uniform_location_cache[name] = location;
+    _uniform_location_cache[uniform_name] = location;
     return location;
 }
 
@@ -306,7 +300,7 @@ int Shader::get_uniform_block_index(const std::string& block_name) {
 
     int block_index = glGetUniformBlockIndex(_rendering_id, block_name.c_str());
     if (block_index == GL_INVALID_INDEX) {
-        std::cout << "Block index for " << block_name << " doesn't exist!\n";
+        std::cout << "'" << block_name << "' block in " << _shader_name << " doesn't exist!" << std::endl;
     }
 
     _uniform_block_index_cache[block_name] = block_index;
