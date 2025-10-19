@@ -6,6 +6,7 @@
 #include <string>
 #include <filesystem>  
 #include <unordered_map>
+#include <span>
 
 // glm
 #include "glm/glm.hpp"
@@ -51,16 +52,16 @@ public:
 	void set_uniform_vec3(const std::string& name, glm::vec3 vec);
 	void set_uniform_vec4(const std::string& name, glm::vec4 vec);
 
-	void set_uniform_float_array(const std::string& name, std::vector<float> array);
-	void set_uniform_vec2_array(const std::string& name, std::vector<glm::vec2> array);
-	void set_uniform_vec3_array(const std::string& name, std::vector<glm::vec3> array);
-	void set_uniform_vec4_array(const std::string& name, std::vector<glm::vec4> array);
+	void set_uniform_float_array(const std::string& name, std::span<const float> array);
+	void set_uniform_vec2_array(const std::string& name, std::span<const glm::vec2> array);
+	void set_uniform_vec3_array(const std::string& name, std::span<const glm::vec3> array);
+	void set_uniform_vec4_array(const std::string& name, std::span<const glm::vec4> array);
 
 	void set_uniform_int(const std::string& name, int i);
 	void set_uniform_ivec2(const std::string& name, glm::ivec2 ivec);
 	void set_uniform_ivec3(const std::string& name, glm::ivec3 ivec);
 
-	void set_uniform_int_array(const std::string& name, std::vector<int> array);
+	void set_uniform_int_array(const std::string& name, std::span<const int> array);
 
 	void set_uniform_mat3(const std::string& name, const glm::mat3& matrix);
 	void set_uniform_mat4(const std::string& name, const glm::mat4& matrix);

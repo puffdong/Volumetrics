@@ -4,6 +4,8 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <span>
+
 
 #include "Renderer.hpp"
 
@@ -230,24 +232,24 @@ void Shader::set_uniform_vec4(const std::string& name, glm::vec4 vec)
     GLCall(glUniform4f(get_uniform_location(name), vec.x, vec.y, vec.z, vec.w));
 }
 
-void Shader::set_uniform_float_array(const std::string& name, std::vector<float> array)
+void Shader::set_uniform_float_array(const std::string& name, std::span<const float> array)
 {
     GLCall(glUniform1fv(get_uniform_location(name), (GLint)array.size(), &array[0]));
 }
 
-void Shader::set_uniform_vec2_array(const std::string& name, std::vector<glm::vec2> array)
+void Shader::set_uniform_vec2_array(const std::string& name, std::span<const glm::vec2> array)
 {
     GLCall(glUniform2fv(get_uniform_location(name), (GLint)array.size(), &array[0].x));
 }
 
-void Shader::set_uniform_vec3_array(const std::string& name, std::vector<glm::vec3> array)
+void Shader::set_uniform_vec3_array(const std::string& name, std::span<const glm::vec3> array)
 {
     GLCall(glUniform3fv(get_uniform_location(name), (GLint)array.size(), &array[0].x));
 }
 
-void Shader::set_uniform_vec4_array(const std::string& name, std::vector<glm::vec4> array)
+void Shader::set_uniform_vec4_array(const std::string& name, std::span<const glm::vec4> array)
 {
-    GLCall(glUniform3fv(get_uniform_location(name), (GLint)array.size(), &array[0].x));
+    GLCall(glUniform4fv(get_uniform_location(name), (GLint)array.size(), &array[0].x));
 }
 
 void Shader::set_uniform_int(const std::string& name, int i)
@@ -263,7 +265,7 @@ void Shader::set_uniform_ivec3(const std::string& name, glm::ivec3 ivec) {
     GLCall(glUniform3i(get_uniform_location(name), ivec.x, ivec.y, ivec.z));
 }
 
-void Shader::set_uniform_int_array(const std::string& name, std::vector<int> array)
+void Shader::set_uniform_int_array(const std::string& name, std::span<const int> array)
 {
     GLCall(glUniform1iv(get_uniform_location(name), (GLint)array.size(), &array[0]));
 }
