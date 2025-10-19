@@ -28,10 +28,6 @@ void Raymarcher::init(ResourceManager& resources, Space* space) {
     PerlinNoiseTexture perlinTexture3D(128, 128, 128);
     GLCall(GLuint textureID3D = perlinTexture3D.getTextureID());
     perlin3d = textureID3D;
-
-    // _ray_scene = new RayScene(glm::vec3(0.0, 0.0, 0.0));
-    // sphere1 = _ray_scene->add_sphere(glm::vec3(-5.0f, -3.0f, -10.0f), 15.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
-    // sphere2 = _ray_scene->add_sphere(glm::vec3(-10.0f, 0.0f, 0.0f), 3.0f, glm::vec4(1.0, 0.98, 0.92, 1.0));
 }
 
 void Raymarcher::tick(float delta) {
@@ -39,13 +35,6 @@ void Raymarcher::tick(float delta) {
     voxel_grid->tick(delta);
     sun_direction = _space->get_sun()->get_direction();
     ui::raymarcher_panel(*this, *voxel_grid);
-    
-
-    // sphere1->pos.x = 13 * sin(time * 0.1f);
-	// sphere1->pos.z = 13 * cos(time * 0.1f);
-
-	// sphere2->pos.x = 7 * sin(-time * 0.15f);
-	// sphere2->pos.z = 7 * cos(-time * 0.15f);
 }
 
 void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
@@ -88,7 +77,6 @@ void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
     }
 
 }
-
 
 void save_perlin() {
     PerlinNoiseTexture perlinTexture2D(512, 512, "/Users/puff/Developer/graphics/Volumetrics/testing/test.ppm");

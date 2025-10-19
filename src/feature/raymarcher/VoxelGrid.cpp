@@ -10,7 +10,7 @@ VoxelGrid::VoxelGrid(int w, int h, int d,
     num_voxels = h * w * d;
     voxels = std::vector<uint8_t>(num_voxels, static_cast<uint8_t>(init_value));
     
-    // edges
+    // setting the corners to true to visualize them!
     set_voxel_value(0, 0, 0, 1);
     set_voxel_value(w - 1, h - 1, d - 1, 1);
     set_voxel_value(0, h - 1, 0, 1);
@@ -20,28 +20,10 @@ VoxelGrid::VoxelGrid(int w, int h, int d,
     set_voxel_value(w - 1, 0, d - 1, 1);
     set_voxel_value(0, h - 1, d - 1, 1);
 
-    // lil cube
-    // for (int c1 = 0; c1 < 5; c1++) {
-    //     for (int c2 = 0; c2 < 5; c2++) {
-    //         for (int c3 = 0; c3 < 5; c3++) {
-    //             set_voxel_value(6 + c1, 6 + c2, 6 + c3, 1 + c1);
-    //         }
-    //     }
-    // }
     add_cube(glm::ivec3(5, 5, 5), 10, 2, 10, 1);
     add_cube(glm::ivec3(6, 6, 6), 8, 2, 8, 1);
     add_cube(glm::ivec3(7, 7, 7), 6, 2, 6, 1);
     add_cube(glm::ivec3(8, 8, 8), 4, 6, 4, 1);
-    // add_cube(glm::ivec3(9, 9, 9), 2, 4, 2, 1);
-    // add_cube(glm::ivec3(0, 0, 0), 10, 2, 10, 1);
-    // add_cube(glm::ivec3(0, 0, 0), 10, 2, 10, 1);
-    // for (int c1 = 0; c1 < 12; c1++) {
-    //     for (int c2 = 0; c2 < 2; c2++) {
-    //        for (int c3 = 0; c3 < 12; c3++) {
-    //            set_voxel_value(3 + c1, 4 + c2, 3 + c3, 5 + c1);
-    //        }
-    //     }
-    // }
 }
 
 void VoxelGrid::init(ResourceManager& resources, Space* space) {
