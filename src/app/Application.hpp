@@ -28,6 +28,7 @@ struct AppConfig {
     int initial_width;
     int initial_height;
     std::string assets_root_path;
+    std::string platform; // macOS, Windows
 };
 
 class Application {    

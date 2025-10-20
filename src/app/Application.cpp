@@ -6,7 +6,11 @@ Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path)
         std::cout << "glfw failed to initialize" << std::endl;
     }
     int initial_width, initial_height; // bit jank... I don't understand what macos' resolution scaling is doing
-    glfwGetFramebufferSize(window, &initial_width, &initial_height); 
+    if (cfg.platform == "Windows") {
+        glfwGetFramebufferSize(window, &initial_width, &initial_height);
+    } else {
+        glfwGetWindowSize(window, &initial_width, &initial_height);
+    }
     glViewport(0, 0, initial_width, initial_height);
 
     pending_width = initial_width; 
@@ -32,6 +36,10 @@ bool Application::init_glfw(const AppConfig& cfg) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
+    if (cfg.platform == "macOS") {
+        glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+    }
+
 
     window = glfwCreateWindow(initial_width, initial_height, "volumetrics", NULL, NULL);
     if (!window)
