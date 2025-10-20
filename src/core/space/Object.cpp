@@ -23,7 +23,7 @@ void Object::init(ResourceManager& resources, Space* space) {
         _texture = nullptr;
     }
     auto shader_path = r_shader.asset_path;
-    r_shader = resources.load_shader(shader_path);
+    r_shader = resources.load_shader(shader_path, shader_path.substr(0, shader_path.find_last_of('.'))+".fs");
 }
 
 void Object::tick(float delta) {

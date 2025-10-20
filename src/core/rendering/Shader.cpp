@@ -17,11 +17,13 @@ Shader::Shader(const std::string& file_path)
 
     ShaderProgramSource source = parse_shader(file_path);
     _rendering_id = create_shader(source);
+    if (_rendering_id == 0) {
+        std::cout << "Shader could not be created: " << _shader_name << std::endl; 
+    }
+
     std::filesystem::file_time_type last_write_time = std::filesystem::last_write_time(file_path);
     
     _shader_files.push_back({file_path, last_write_time, ShaderType::NONE}); 
-
-    std::cout << _shader_name << " successfully compiled!" << std::endl;
 }
 
 Shader::Shader(const std::string& vertex_path, const std::string& fragment_path) 
@@ -30,19 +32,17 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
     _shader_name = std::filesystem::path(vertex_path).stem().string(); // vertex path is king, might make more robust later, we'll see
     if (_shader_name.empty()) _shader_name = "file not found ;_;";
 
-    std::cout << "Vertex path: " << vertex_path << std::endl;
-    std::cout << "Fragment path: " << fragment_path << std::endl;
-
     ShaderProgramSource source = parse_shader(vertex_path, fragment_path);
     _rendering_id = create_shader(source);
+    if (_rendering_id == 0) {
+        std::cout << "Shader could not be created: " << _shader_name << std::endl; 
+    }
 
     ShaderFile v{vertex_path, std::filesystem::last_write_time(vertex_path), ShaderType::VERTEX};
     ShaderFile f{fragment_path, std::filesystem::last_write_time(fragment_path), ShaderType::FRAGMENT};
 
     _shader_files.push_back(v);
     _shader_files.push_back(f);
-
-    std::cout << _shader_name << " successfully compiled! Yay!" << std::endl;
 }
 
 Shader::~Shader() {
