@@ -32,35 +32,23 @@ void Raymarcher::init(ResourceManager& resources, Space* space) {
 
 void Raymarcher::tick(float delta) {
     time += delta;
+    ui::raymarcher_panel(*this, raymarch_settings, *voxel_grid);
     voxel_grid->tick(delta);
-    sun_direction = _space->get_sun()->get_direction();
-    ui::raymarcher_panel(*this, *voxel_grid);
 }
 
 void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
     voxel_grid->enqueue(renderer, resources);
     
-    glm::mat4 proj = renderer.get_proj();
-    glm::mat4 view = renderer.get_view();
-    glm::mat4 inverted_proj_view = glm::inverse(proj * view);
+
 
     if (auto shader = resources.get_shader(r_shader.id)) {
 
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->set_uniform_float("u_time", time);
-        (*shader)->set_uniform_mat4("u_invprojview", inverted_proj_view);
-        (*shader)->set_uniform_float("u_near_plane", renderer.get_near());
-        (*shader)->set_uniform_float("u_far_plane", renderer.get_far());
-        (*shader)->set_uniform_vec3("u_camera_pos", _space->get_camera()->get_position());
-        (*shader)->set_uniform_vec3("u_sun_dir", sun_direction);
-        // _ray_scene->upload_primitives_to_gpu((*shader));
+        upload_uniforms(renderer, *shader);
 
         TextureBinding bind{ perlin3d, GL_TEXTURE_3D, 0, "u_noise_texture" };
 
-        (*shader)->set_uniform_ivec3("u_grid_dim", voxel_grid->get_grid_dim());
-        (*shader)->set_uniform_vec3("u_grid_origin", voxel_grid->get_position());
-        (*shader)->set_uniform_float("u_voxel_size", voxel_grid->get_cell_size());
         TextureBinding bind2{ voxel_grid->get_voxel_texture_id(), GL_TEXTURE_3D, 1, "u_voxels" };
 
         RenderCommand cmd{};
@@ -76,6 +64,39 @@ void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
         std::cout << "raymarch shader is fucked" << std::endl;
     }
 
+}
+
+void Raymarcher::upload_uniforms(Renderer& renderer, Shader* shader) {
+        glm::mat4 proj = renderer.get_proj();
+        glm::mat4 view = renderer.get_view();
+        glm::mat4 inverted_proj_view = glm::inverse(proj * view);
+
+        // standard uniforms
+        shader->set_uniform_mat4("u_invprojview", inverted_proj_view);
+        shader->set_uniform_float("u_near_plane", renderer.get_near());
+        shader->set_uniform_float("u_far_plane", renderer.get_far());
+        shader->set_uniform_vec3("u_camera_pos", _space->get_camera()->get_position());
+        shader->set_uniform_vec3("u_sun_dir", _space->get_sun()->get_direction());
+        shader->set_uniform_vec3("u_sun_color", _space->get_sun()->get_color());
+        shader->set_uniform_float("u_time", time);
+
+        // voxel grid params
+        shader->set_uniform_ivec3("u_grid_dim", voxel_grid->get_grid_dim());
+        shader->set_uniform_vec3("u_grid_origin", voxel_grid->get_position());
+        shader->set_uniform_float("u_cell_size", voxel_grid->get_cell_size());
+
+        // raymarch parame
+        shader->set_uniform_int("u_max_steps", raymarch_settings.max_steps);
+        shader->set_uniform_float("u_step_size", raymarch_settings.step_size);
+        shader->set_uniform_int("u_max_light_steps", raymarch_settings.max_light_steps);
+        shader->set_uniform_float("u_hit_step_size", raymarch_settings.hit_step_size);
+        shader->set_uniform_float("u_light_step_size", raymarch_settings.light_step_size);
+        shader->set_uniform_float("u_max_distance", raymarch_settings.max_distance);
+        shader->set_uniform_float("u_min_distance", raymarch_settings.min_distance);
+        shader->set_uniform_vec3("u_base_color", raymarch_settings.base_color);
+        shader->set_uniform_float("u_absorption_coefficient", raymarch_settings.absorption_coefficient);
+        shader->set_uniform_float("u_scattering_coefficient", raymarch_settings.scattering_coefficient);
+        shader->set_uniform_float("u_extincion_coefficient", raymarch_settings.extincion_coefficient);
 }
 
 void save_perlin() {

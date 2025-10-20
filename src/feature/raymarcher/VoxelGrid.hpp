@@ -24,6 +24,8 @@ private:
 	ModelObject* cube;
 
 	GLuint voxel_tex = 0;
+
+	bool changed = false;
 	
 public:
 	VoxelGrid(int w, int h, int d, uint8_t init_value = 0, float cell_size = 1,
@@ -41,7 +43,9 @@ public:
 	
 	uint8_t get_voxel_value(int x, int y, int z);
 	void set_voxel_value(int x, int y, int z, uint8_t value);
-	void set_cell_size(float size) { cell_size = size; };
+	void set_cell_size(float size) { cell_size = size; changed = true; };
+	void set_position(const glm::vec3& p) override { position = p; changed = true; };
+
 
 	void update_voxel_data();
 	void bind_voxel_texture(GLint unit);
@@ -61,6 +65,7 @@ private:
 	GLuint instanceVBO;
 
 	void init_instance_buffer();
+	void re_init_instance_buffer();
 	void create_voxel_texture();
 	void delete_instance_buffer();
 };

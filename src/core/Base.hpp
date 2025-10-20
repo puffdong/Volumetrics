@@ -43,7 +43,7 @@ public:
     glm::vec3 get_scale()    const { return scale; };
     bool is_visible()        const { return _visible; };
     bool is_active()         const { return _active; };
-    void set_position(const glm::vec3& p) { position = p; };
+    virtual void set_position(const glm::vec3& p) { position = p; };
     void set_rotation(const glm::vec3& r) { rotation = r; };
     void set_scale(const glm::vec3& s) { scale = s; };
     void set_visibility(const bool v) { _visible = v; };

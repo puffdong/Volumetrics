@@ -28,7 +28,7 @@ VoxelGrid::VoxelGrid(int w, int h, int d,
 
 void VoxelGrid::init(ResourceManager& resources, Space* space) {
     Base::init(resources, space);
-    r_shader = resources.load_shader("res://shaders/VoxelShaders/VoxelDebug.shader");
+    r_shader = resources.load_shader("res:://shaders/VoxelShaders/VoxelDebug.vs", "res:://shaders/VoxelShaders/VoxelDebug.fs");
     cube = new ModelObject(resources.get_full_path("res://models/VoxelModels/defaultCube.obj"));
 
     init_instance_buffer();
@@ -36,10 +36,15 @@ void VoxelGrid::init(ResourceManager& resources, Space* space) {
 }
 
 void VoxelGrid::tick(float delta) {
-
+    if (changed) {
+        re_init_instance_buffer();
+        changed = false;
+    }
 }
 
 void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
+    if (!_visible) return;
+
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
@@ -145,7 +150,10 @@ void VoxelGrid::update_voxel_data() {
     glBindTexture(GL_TEXTURE_3D, 0);
 }
 
-
+void VoxelGrid::re_init_instance_buffer() {
+    delete_instance_buffer();
+    init_instance_buffer();
+}
 
 VoxelGrid::~VoxelGrid() {
     delete cube;

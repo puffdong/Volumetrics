@@ -34,9 +34,9 @@ void Space::init_space() {
 	// THIS IS STINKY; EWWW
 	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/WorldObject.shader", "res://models/teapot.obj", "");
 	base_ground->init(resources, this);
-	ModelObject* ground_model = new ModelObject(256, 256, 50, 50);
+	ModelObject* ground_model = new ModelObject(256, 256, 50, 50); // kinda hacky but eh it works!
 	base_ground->swap_model(ground_model);
-	objects.push_back(std::move(base_ground));
+	// objects.push_back(std::move(base_ground));
 	// THIS IS STINKY; BLEEEH
 }
 

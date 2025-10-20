@@ -1,7 +1,7 @@
 // I just need a quick and dirty way to facilitate imgui stuff for debug purposes
 // so, heed my dumptruck, it is dirty, it is quick, and I am probably going to
 // regret this later on. future self will love my past self
-#pragma /* frickin */ once
+#pragma once
 
 #include "imgui.h"
 #include "feature/raymarcher/raymarcher.hpp"
@@ -69,44 +69,88 @@ namespace ui {
         ImGui::PopID();
     }
 
-    static void raymarcher_panel(Raymarcher& marcher, VoxelGrid& grid)
+    static void raymarch_settings(Raymarcher& marcher, RaymarchSettings& ray_settings) {
+        (void)marcher; // unused for now
+
+        // Reset all to struct defaults
+        if (ImGui::SmallButton("Reset to defaults##raymarch_settings")) {
+            ray_settings = RaymarchSettings{}; // leverage default member initializers
+        }
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Reset all sliders to RaymarchSettings defaults");
+        ImGui::Separator();
+
+        
+        // --- Marching ---
+        ImGui::SliderInt("Max steps", &ray_settings.max_steps, 1, 1024);
+        ImGui::SliderFloat("Step size", &ray_settings.step_size, 0.001f, 5.0f, "%.4f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Hit step size", &ray_settings.hit_step_size, 0.00001f, 1.0f, "%.5f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Max distance", &ray_settings.max_distance, 0.01f, 4096.0f, "%.2f",
+                        ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Min distance (epsilon)", &ray_settings.min_distance, 1e-6f, 1e-1f, "%.6f",
+                        ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
+
+        ImGui::Separator();
+
+        // --- Lighting / Shadow March ---
+        ImGui::SliderInt("Max light steps", &ray_settings.max_light_steps, 0, 256);
+        ImGui::SliderFloat("Light step size", &ray_settings.light_step_size, 0.001f, 5.0f, "%.4f", ImGuiSliderFlags_AlwaysClamp);
+
+        ImGui::Separator();
+
+        // --- Medium Coefficients ---
+        ImGui::SliderFloat("Absorption coefficient", &ray_settings.absorption_coefficient, 0.0f, 5.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Scattering coefficient", &ray_settings.scattering_coefficient, 0.0f, 5.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Extinction coefficient", &ray_settings.extincion_coefficient, 0.0f, 5.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+
+        ImGui::Text("Base color (RGB)");
+        ImGui::SliderFloat("R##base_color", &ray_settings.base_color.x, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("G##base_color", &ray_settings.base_color.y, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("B##base_color", &ray_settings.base_color.z, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+    }
+
+    static void voxel_grid_settings(VoxelGrid& grid) {
+        {
+            bool visible = grid.is_visible();
+            if (ImGui::Checkbox("Show voxel grid", &visible)) {
+                grid.set_visibility(visible);
+            }
+        }
+        // Cell size slider (clamped 0.1f..50.0f)
+        {
+            float cell_size = grid.get_cell_size();
+            if (ImGui::SliderFloat("Cell size", &cell_size, 0.1f, 10.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+                grid.set_cell_size(cell_size);
+            }
+        }
+
+        // Position sliders (X, Y, Z)
+        {
+            glm::vec3 p = grid.get_position();
+            float x = p.x, y = p.y, z = p.z;
+
+            bool changed = false;
+            changed |= ImGui::SliderFloat("X##grid_pos", &x, -50.0f, 50.0f, "%.3f");
+            changed |= ImGui::SliderFloat("Y##grid_pos", &y, -50.0f, 50.0f, "%.3f");
+            changed |= ImGui::SliderFloat("Z##grid_pos", &z, -50.0f, 50.0f, "%.3f");
+
+            if (changed) {
+                grid.set_position(glm::vec3{x, y, z});
+            }
+        }
+    }
+
+
+    static void raymarcher_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid)
     {
-        ImGui::PushID(&grid);
+        ImGui::PushID(&marcher);
 
         if (ImGui::Begin("Raymarcher")) {
-
-            if (ImGui::CollapsingHeader("Voxel Grid", ImGuiTreeNodeFlags_DefaultOpen)) {
-
-                {
-                    glm::vec3 p = grid.get_position();
-                    float pos[3] = { p.x, p.y, p.z };
-                    if (ImGui::InputFloat3("Grid position", pos, "%.3f")) {
-                        grid.set_position(glm::vec3{ pos[0], pos[1], pos[2] });
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::SmallButton("Reset##grid_pos")) {
-                        grid.set_position(glm::vec3{0.0f, 0.0f, 0.0f});
-                    }
-                }
-
-                {
-                    float cell_size = grid.get_cell_size();
-                    if (ImGui::DragFloat("Cell size", &cell_size, 0.01f, 0.0001f, 1000.0f, "%.4f",
-                                         ImGuiSliderFlags_AlwaysClamp)) {
-                        if (cell_size < 0.0001f) cell_size = 0.0001f;
-                        grid.set_cell_size(cell_size);
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::SmallButton("Reset##cell_size")) {
-                        grid.set_cell_size(1.0f);
-                    }
-                    if (ImGui::IsItemHovered())
-                        ImGui::SetTooltip("voxel size bruddah");
-                }
+            if (ImGui::CollapsingHeader("Raymarch settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                raymarch_settings(marcher, ray_settings);
             }
-
-            if (ImGui::CollapsingHeader("Marcher", 0)) {
-                ImGui::TextDisabled("soon brother, soon");
+            if (ImGui::CollapsingHeader("Voxel grid settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                voxel_grid_settings(grid);
             }
         }
 
