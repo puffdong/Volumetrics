@@ -12,7 +12,6 @@ Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path)
         glfwGetWindowSize(window, &initial_width, &initial_height);
     }
     glViewport(0, 0, initial_width, initial_height);
-
     pending_width = initial_width; 
     pending_height = initial_height;
 
@@ -102,7 +101,7 @@ bool Application::init_glfw(const AppConfig& cfg) {
 
 void Application::mouse_callback(GLFWwindow*, double xpos, double ypos)
 {
-    if (mouse_active) {
+    if (camera_control_mouse_active) {
         if (first_mouse) {
             last_x = (float) xpos;
             last_y = (float) ypos;
@@ -116,13 +115,16 @@ void Application::mouse_callback(GLFWwindow*, double xpos, double ypos)
 
         space->get_camera()->process_mouse(xoffset, yoffset);
     }
+
+    mouse_pos_x = xpos;
+    mouse_pos_y = ypos;
 }
 
 void Application::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide cursor and control it
-        mouse_active = true;
+        camera_control_mouse_active = true;
         first_mouse = true;
     }
 
@@ -138,7 +140,7 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            mouse_active = false;
+            camera_control_mouse_active = false;
         }
         else {
             glfwSetWindowShouldClose(window, true);
@@ -147,74 +149,80 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
     if (action == GLFW_PRESS) {
         switch (key) {
         case GLFW_KEY_W:
-            bm.W = true;
+            button_map.W = true;
             break;
         case GLFW_KEY_A:
-            bm.A = true;
+            button_map.A = true;
             break;
         case GLFW_KEY_S:
-            bm.S = true;
+            button_map.S = true;
             break;
         case GLFW_KEY_D:
-            bm.D = true;
+            button_map.D = true;
             break;
         case GLFW_KEY_SPACE:
-            bm.Space = true;
+            button_map.Space = true;
             break;
         case GLFW_KEY_UP:
-            bm.Up = true;
+            button_map.Up = true;
             break;
         case GLFW_KEY_DOWN:
-            bm.Down = true;
+            button_map.Down = true;
             break;
         case GLFW_KEY_LEFT:
-            bm.Left = true;
+            button_map.Left = true;
             break;
         case GLFW_KEY_RIGHT:
-            bm.Right = true;
+            button_map.Right = true;
             break;
         case GLFW_KEY_LEFT_CONTROL:
-            bm.LeftCtrl = true;
+            button_map.LeftCtrl = true;
             break;
         case GLFW_KEY_LEFT_SHIFT: 
-            bm.LeftShift = true;
+            button_map.LeftShift = true;
+            break;
+        case GLFW_MOUSE_BUTTON_LEFT:
+            button_map.MouseLeft = true;
             break;
         }
     }
     else if (action == GLFW_RELEASE) {
         switch (key) {
         case GLFW_KEY_W:
-            bm.W = false;
+            button_map.W = false;
             break;
         case GLFW_KEY_A:
-            bm.A = false;
+            button_map.A = false;
             break;
         case GLFW_KEY_S:
-            bm.S = false;
+            button_map.S = false;
             break;
         case GLFW_KEY_D:
-            bm.D = false;
+            button_map.D = false;
             break;
         case GLFW_KEY_SPACE:
-            bm.Space = false;
+            button_map.Space = false;
             break;
         case GLFW_KEY_UP:
-            bm.Up = false;
+            button_map.Up = false;
             break;
         case GLFW_KEY_DOWN:
-            bm.Down = false;
+            button_map.Down = false;
             break;
         case GLFW_KEY_LEFT:
-            bm.Left = false;
+            button_map.Left = false;
             break;
         case GLFW_KEY_RIGHT:
-            bm.Right = false;
+            button_map.Right = false;
             break;
         case GLFW_KEY_LEFT_CONTROL:
-            bm.LeftCtrl = false;
+            button_map.LeftCtrl = false;
             break;
         case GLFW_KEY_LEFT_SHIFT: 
-            bm.LeftShift = false;
+            button_map.LeftShift = false;
+            break;
+        case GLFW_MOUSE_BUTTON_LEFT:
+            button_map.MouseLeft = true;
             break;
         }
     }
@@ -246,12 +254,20 @@ int Application::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        renderer.begin_frame({0.1f, 0.1f, 0.2f, 1.0f});
+        renderer.begin_frame();
+
+        button_map.MousePosX = mouse_pos_x; // needed a quick an dirty way to get mouse pointer pos through.
+        button_map.MousePosY = mouse_pos_y;
+        if (camera_control_mouse_active) {
+            button_map.MousePointerActive = false;
+        } else {
+            button_map.MousePointerActive = true;
+        }
 
         float current_time = glfwGetTime();
         float delta_time = current_time - last_time;
         last_time = current_time;
-        space->tick(delta_time, bm);
+        space->tick(delta_time, button_map);
         space->enqueue_renderables(renderer);
 
         renderer.execute_pipeline();

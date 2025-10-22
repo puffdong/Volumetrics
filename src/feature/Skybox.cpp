@@ -30,7 +30,7 @@ void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
 		TextureBinding tex{};
 		tex.id = texture->get_id();
 		tex.target = GL_TEXTURE_2D;
-		tex.unit = 0;
+		tex.unit = 5;
 		tex.uniform_name = "u_Texture";
 
 		RenderCommand cmd{};

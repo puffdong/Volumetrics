@@ -56,6 +56,7 @@ void Space::process_init_queue() {
 void Space::tick(float delta, ButtonMap bm)
 {
 	time += delta;
+	this_frames_button_map = bm;
 
 	process_init_queue();
 

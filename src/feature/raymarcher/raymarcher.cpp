@@ -39,17 +39,16 @@ void Raymarcher::tick(float delta) {
 void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
     voxel_grid->enqueue(renderer, resources);
     
-
+    if (!_visible) return;
 
     if (auto shader = resources.get_shader(r_shader.id)) {
-
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
         upload_uniforms(renderer, *shader);
 
-        TextureBinding bind{ perlin3d, GL_TEXTURE_3D, 0, "u_noise_texture" };
+        TextureBinding bind{ perlin3d, GL_TEXTURE_3D, 5, "u_noise_texture" };
 
-        TextureBinding bind2{ voxel_grid->get_voxel_texture_id(), GL_TEXTURE_3D, 1, "u_voxels" };
+        TextureBinding bind2{ voxel_grid->get_voxel_texture_id(), GL_TEXTURE_3D, 6, "u_voxels" };
 
         RenderCommand cmd{};
         cmd.draw_type = DrawType::Framebuffer;

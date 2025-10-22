@@ -47,6 +47,4 @@ void main()
 
     vec4 world_pos = instance_matrix * vec4(a_pos, 1.0);
     gl_Position = u_proj * u_view * world_pos;
-
-    // gl_Position = u_proj * view_pos;
 }

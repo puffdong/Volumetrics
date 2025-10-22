@@ -1,4 +1,10 @@
 #pragma once
+// - - - Todo - - - //
+// Look into Event Systems (signs of sloppy code from the buttonmap stuff is starting to show)
+// Move GLFW window stuff into its own class. 
+// Make Application actually work more like Application code (right now space is where I essentially do everything)
+
+
 // OpenGL
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -41,7 +47,7 @@ private:
     Space* space;
     Renderer renderer;
     ResourceManager resources;
-    ButtonMap bm;
+    ButtonMap button_map;
 
     bool running;
 
@@ -54,7 +60,8 @@ private:
     int shutdown();
 
     // callback functions and respective variables
-    bool mouse_active = true;
+    double mouse_pos_x; double mouse_pos_y;
+    bool camera_control_mouse_active = true;
     bool  first_mouse = true;
     float last_x = 800.0f;
     float last_y = 450.0f;

@@ -57,7 +57,7 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
         GLuint vao = cube->getVAO();             
         unsigned int index_count = cube->getIndexCount(); 
 
-        TextureBinding bind{ voxel_tex, GL_TEXTURE_3D, 0, "u_voxels" };
+        TextureBinding bind{ voxel_tex, GL_TEXTURE_3D, 5, "u_voxels" };
 
         RenderCommand cmd{};
         cmd.vao        = vao;

@@ -27,7 +27,7 @@ private:
 	Sun* sun;
 	
 	float time = 0.0;
-
+	ButtonMap this_frames_button_map;
 
 	Raymarcher* raymarcher;
 
@@ -39,7 +39,8 @@ public:
 	void enqueue_renderables(Renderer& renderer);
 	
 	Camera* get_camera() const { return camera; };
-	Sun* get_sun() const { return sun; }
+	Sun* get_sun() const { return sun; };
+	const ButtonMap& get_button_map() const { return this_frames_button_map; };
 	
 private:
 	void init_space();

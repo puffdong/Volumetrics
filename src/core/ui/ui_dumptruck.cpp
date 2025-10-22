@@ -63,7 +63,12 @@ namespace ui {
     }
 
     void raymarch_settings(Raymarcher& marcher, RaymarchSettings& ray_settings) {
-        (void)marcher; // unused for now
+        {
+            bool visible = marcher.is_visible();
+            if (ImGui::Checkbox("Toggle Raymarching (on/off)", &visible)) {
+                marcher.set_visibility(visible);
+            }
+        }
 
         // Reset all to struct defaults
         if (ImGui::SmallButton("Reset to defaults##raymarch_settings")) {
