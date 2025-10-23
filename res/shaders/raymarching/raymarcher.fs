@@ -1,6 +1,7 @@
 #version 330 core
-layout(location = 0) out vec4 color;
+layout(location = 0) out vec4 o_color;
 
+in vec2 v_uv;
 in vec3 v_origin;
 in vec3 v_ray;
 
@@ -154,5 +155,11 @@ void main() {
     vec3 ray_direction = normalize(v_ray);
     vec4 result = do_raymarch(v_origin, ray_direction);
 
-    color = result;
+    // VISUALIZE RAY ORIGIN
+    // o_color = vec4(normalize(v_origin), 1.0);
+
+    // VISUALIZE RAY DIRECTION
+    // o_color = vec4(normalize(ray_direction), 1.0);
+    
+    o_color = result;
 }

@@ -51,7 +51,7 @@ void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
         TextureBinding bind2{ voxel_grid->get_voxel_texture_id(), GL_TEXTURE_3D, 6, "u_voxels" };
 
         RenderCommand cmd{};
-        cmd.draw_type = DrawType::Framebuffer;
+        cmd.draw_type = DrawType::FullscreenQuad;
         cmd.shader    = (*shader);
         cmd.state.depth_write = false;
         cmd.textures.push_back(bind);

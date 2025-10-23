@@ -276,20 +276,20 @@ void Renderer::set_fov(float fov) {
 
 
 
-glm::ivec2 Renderer::get_viewport_size() {
+glm::vec2 Renderer::get_viewport_size() {
     return glm::ivec2(viewport_width, viewport_height);
 }
 
-glm::ivec2 Renderer::get_framebuffer_size(RenderPass pass) {
+glm::vec2 Renderer::get_framebuffer_size(RenderPass pass) {
     switch (pass) {
         case RenderPass::Skypass:
-            return glm::ivec2(r_width, r_height);
+            return glm::vec2(r_width, r_height);
         case RenderPass::Forward:
-            return glm::ivec2(r_width, r_height);
+            return glm::vec2(r_width, r_height);
         case RenderPass::Volumetrics:
-            return glm::ivec2(v_width, v_height);
+            return glm::vec2(v_width, v_height);
         case RenderPass::UI:
-            return glm::ivec2(c_width, c_height);
+            return glm::vec2(c_width, c_height);
     }
 }
 
@@ -410,8 +410,8 @@ void Renderer::execute_pipeline() {
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     // 4b) Make scene color + depth available to UI shaders (by convention)
-    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // scene color for UI
-    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture); // scene depth for UI
+    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // in here, both opaque and volumetrics are combined :)
+    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture); // scene depth
 
     flush(RenderPass::UI);
 
@@ -493,7 +493,7 @@ void Renderer::execute_command(const RenderCommand& c)
         glDrawElementsInstanced(c.primitive, c.count, GL_UNSIGNED_INT, 0, c.instance_count);
         break;
 
-    case DrawType::Framebuffer:
+    case DrawType::FullscreenQuad:
         glBindVertexArray(quad_vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         break;

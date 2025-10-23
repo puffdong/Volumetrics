@@ -2,16 +2,22 @@
 in vec2 v_uv;
 out vec4 o_color;
 
-uniform sampler2D u_src_color;    // scene (ping-pong source), bound to TU0
-uniform sampler2D u_volum_color;  // volumetrics color, bound to TU1
-uniform sampler2D u_scene_depth;  // kept for later (TU2) – unused for now
+// Inputs
+uniform sampler2D u_src_color;
+uniform sampler2D u_volum_color;
+// uniform sampler2D u_scene_depth;
+
+// Controls
+uniform int   u_volum_is_premultiplied = 1;
+uniform float u_volum_opacity_mul      = 1.0;
 
 void main() {
-    vec3 scene = texture(u_src_color,   v_uv).rgb;
-    vec3 volum = texture(u_volum_color, v_uv).rgb;
+    vec3 scene_rgb = texture(u_src_color,   v_uv).rgb;
 
-    // Simple additive combine for v0; clamp to LDR range
-    vec3 combined = clamp(scene + volum, 0.0, 1.0);
+    vec4 volum_rgba = texture(u_volum_color, v_uv);
+    float a = volum_rgba.a;
+    vec3 out_rgb = volum_rgba.rgb + (1.0 - a) * scene_rgb;
 
-    o_color = vec4(combined, 1.0);
+    // out_rgb = clamp(out_rgb, 0.0, 1.0); // hdr no clamp, otherwise yes clamp
+    o_color = vec4(out_rgb, 1.0);
 }

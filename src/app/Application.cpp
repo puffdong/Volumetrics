@@ -128,11 +128,29 @@ void Application::mouse_button_callback(GLFWwindow* window, int button, int acti
         first_mouse = true;
     }
 
+    if (action == GLFW_PRESS) {
+        if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+            button_map.MouseRight = true;
+        }
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            button_map.MouseLeft = true;
+        }
+    } else if (action == GLFW_RELEASE) {
+        if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+            button_map.MouseRight = false;
+        }
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            button_map.MouseLeft = false;
+        }
+    }
+
 }
 
 void Application::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    fov -= (float) yoffset;
-    renderer.set_fov(fov);
+    if (camera_control_mouse_active) {
+        fov -= (float) yoffset; // we only want to set it when controlling the camera!
+        renderer.set_fov(fov);
+    }
 }
 
 void Application::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -181,9 +199,7 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
         case GLFW_KEY_LEFT_SHIFT: 
             button_map.LeftShift = true;
             break;
-        case GLFW_MOUSE_BUTTON_LEFT:
-            button_map.MouseLeft = true;
-            break;
+
         }
     }
     else if (action == GLFW_RELEASE) {
@@ -220,9 +236,6 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
             break;
         case GLFW_KEY_LEFT_SHIFT: 
             button_map.LeftShift = false;
-            break;
-        case GLFW_MOUSE_BUTTON_LEFT:
-            button_map.MouseLeft = true;
             break;
         }
     }

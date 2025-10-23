@@ -36,8 +36,8 @@ public:
     void set_fov(float fov);
     void set_view(glm::mat4 v) { view = v; };
     
-    glm::ivec2 get_viewport_size();
-    glm::ivec2 get_framebuffer_size(RenderPass pass);
+    glm::vec2 get_viewport_size();
+    glm::vec2 get_framebuffer_size(RenderPass pass);
 
     inline glm::mat4 get_proj() const { return proj; };
     inline glm::mat4 get_view() const { return view; }

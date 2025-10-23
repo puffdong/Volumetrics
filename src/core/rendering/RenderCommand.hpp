@@ -2,7 +2,7 @@
 #include "Shader.hpp"
 #include "glm/glm.hpp"
 
-enum class DrawType { Arrays, Elements, ArraysInstanced, ElementsInstanced, Framebuffer };
+enum class DrawType { Arrays, Elements, ArraysInstanced, ElementsInstanced, FullscreenQuad };
 
 enum class RenderPass { Skypass, Forward, Volumetrics, UI };
 

@@ -5,6 +5,9 @@
 #include "core/space/Object.hpp"
 #include "core/ui/ui_dumptruck.hpp"
 #include "core/Line.hpp"
+
+// feature imports :)
+#include "feature/glass/Glass.hpp"
 #include "feature/Sun.hpp"
 #include "feature/Skybox.hpp"
 #include "feature/raymarcher/raymarcher.hpp"
@@ -30,6 +33,7 @@ void Space::init_space() {
 	uninitialized_objects.push_back(std::make_unique<Raymarcher>());
 	// uninitialized_objects.push_back(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
 	uninitialized_objects.push_back(std::make_unique<Skybox>());
+	uninitialized_objects.push_back(std::make_unique<Glass>());
 
 	// THIS IS STINKY; EWWW
 	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_ground.vs", "res://models/teapot.obj", "");

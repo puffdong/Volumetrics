@@ -8,6 +8,10 @@ struct GlassPane {
 };
 
 class Glass : public Base {
+private:
+    Resource r_shader;
+    std::vector<GlassPane> glass_panes;
+
 public: 
     Glass();
 
@@ -16,7 +20,5 @@ public:
     void enqueue(Renderer& renderer, ResourceManager& resources) override;
 
 private:
-    Resource r_shader;
-
-    std::vector<GlassPane> glass_panes;
+    
 };
