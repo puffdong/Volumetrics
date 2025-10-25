@@ -32,7 +32,6 @@ struct RenderCommand
     GLsizei count            = 0;                // vertices or indices
     GLsizei instance_count    = 1;               // >1 ⇒ instanced
     Shader* shader           = nullptr;          
-    glm::mat4 model          = glm::mat4(1.0f);  
     std::vector<TextureBinding> textures; // feel like this is wonky
     RenderState state;
 };

@@ -24,11 +24,11 @@ void WaterSurface::enqueue(Renderer& renderer, ResourceManager& resources) {
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->bind();
         (*shader)->set_uniform_int("u_Texture", 8);
+        (*shader)->set_uniform_mat4("u_mvp", mvp);
         RenderCommand cmd{};
         cmd.vao        = model->getVAO();
         cmd.draw_type   = DrawType::Elements;
         cmd.count      = model->getIndexCount();
-        cmd.model      = mvp; // swap this tbh, doesn't even make any semantic sense, the mvp is different from modelmtrx
         cmd.shader     = (*shader);
         cmd.state.depth_test   = true;
         cmd.state.depth_write  = true;

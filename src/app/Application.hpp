@@ -45,8 +45,8 @@ public:
 private:
     GLFWwindow* window;
     Space* space;
-    Renderer renderer;
     ResourceManager resources;
+    Renderer renderer {resources}; // this feels illegal, highly illegal
     ButtonMap button_map;
 
     bool running;

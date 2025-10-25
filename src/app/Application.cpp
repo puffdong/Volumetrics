@@ -5,13 +5,13 @@ Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path)
     if (!success) {
         std::cout << "glfw failed to initialize" << std::endl;
     }
-    int initial_width, initial_height; // bit jank... I don't understand what macos' resolution scaling is doing
-    if (cfg.platform == "Windows") {
-        glfwGetFramebufferSize(window, &initial_width, &initial_height);
+    int initial_width, initial_height; 
+    if (cfg.platform == "Windows") { // bit jank... I don't understand what macos' resolution scaling is doing
+        glfwGetFramebufferSize(window, &initial_width, &initial_height); // hypothesis: macos returns 2x framebuffer when on "retina display"
     } else {
-        glfwGetWindowSize(window, &initial_width, &initial_height);
-    }
-    glViewport(0, 0, initial_width, initial_height);
+        glfwGetWindowSize(window, &initial_width, &initial_height); // continued hypothesis: hack solution of getting window size yields the actual precieved size. 
+    }   // my mac is too sluggish to handle all the stuff in this project, can't have it 2x itself into oblivion
+
     pending_width = initial_width; 
     pending_height = initial_height;
 
@@ -54,7 +54,7 @@ bool Application::init_glfw(const AppConfig& cfg) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // disabled for now, its causing issues eh eh
 
     // the callback logic is jank, but if it ain't broke don't fix... prolly gon regret this
     glfwSetWindowUserPointer(window, this); // to get glfwGetWindowUserPointer to work
@@ -242,7 +242,7 @@ void Application::key_callback(GLFWwindow* window, int key, int scancode, int ac
 }
 
 void Application::framebuffer_resize_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, width, height); // This needs to be here, having it later causes graphical glitches for 1 frame.
     pending_width = width;
     pending_height = height;
     resize_dirty = true;
@@ -251,7 +251,6 @@ void Application::framebuffer_resize_callback(GLFWwindow* window, int width, int
 
 int Application::run() {
     running = true;
-    // while (!glfwWindowShouldClose(window))
     while (running)
     {
         glfwPollEvents();
@@ -311,7 +310,7 @@ int Application::shutdown() {
     std::cout << "Shutting down..."; 
     delete space;
 
-    renderer.destroy();
+    renderer.destroy_renderer();
     
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

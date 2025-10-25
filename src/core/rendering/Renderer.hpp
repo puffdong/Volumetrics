@@ -2,10 +2,13 @@
 #include <glm/gtc/matrix_transform.hpp> // get that perspective thing
 #include "glm/glm.hpp"
 #include <vector>
+#include "core/resources/ResourceManager.hpp"
 #include "RenderCommand.hpp"
-#include "Shader.hpp"
+
+#include "core/rendering/Shader.hpp"
 
 // - - - Todo - - - //
+// this shader is very much hard coded, its getting unweildly :o
 // get an actual pipe-line set up
 // look into touching up the rendercommands by adding uniform setting calls (just an idea :o)
 
@@ -18,18 +21,39 @@
 void GLClearError();
 bool GLLogCall(const char* function, const char* file, int line);
 
-class Renderer
-{
+class Renderer {
+private:
+    ResourceManager& resources;
+    Shader* composite_shader;
+    Shader* copy_present_shader;
+
+    RenderState current {};
+
+    int viewport_width;
+    int viewport_height;
+
+    float fov = 70.f;
+	float near = 1.0f;
+	float far = 256.0f;
+	float aspect_ratio = 16.f / 9.0f;
+	glm::mat4 proj;
+    glm::mat4 view;
+	bool changes_made = true;
+
+    unsigned int default_vao; // wasn't there a good reason for having a default vao or am I just imagining it?
+
 public: 
-    
+    Renderer(ResourceManager& resources);
+
     void init_renderer(int width, int height);
     void resize(int width, int height);
+    void destroy_renderer();
+
     void begin_frame();
     void submit(RenderPass pass, const RenderCommand& cmd);
     void execute_pipeline();
     void flush(RenderPass pass);
     
-    void destroy();
 
     // getters n' setters
     void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 1.0, float far_plane = 256);
@@ -46,29 +70,17 @@ public:
     inline float get_far() const { return far; };
 
 private:
-    RenderState current {};
+    void init_quad();
+    unsigned int quad_vao = 0;
+    unsigned int quad_vbo = 0;
 
-    int viewport_width;
-    int viewport_height;
+    void init_framebuffers(int width, int height);
 
-    float fov = 70.f;
-	float near = 1.0f;
-	float far = 256.0f;
-	float aspect_ratio = 16.f / 9.0f;
-	glm::mat4 proj;
-    glm::mat4 view;
-	bool changes_made = true;
-    
     std::vector<RenderCommand> queues[int(RenderPass::UI)+1];
     void apply_state(RenderState s);
     void execute_command(const RenderCommand& cmd);
-    
-    void init_quad();
-    GLuint quad_vao = 0;
-    GLuint quad_vbo = 0;
-    
-    void init_framebuffers(int width, int height);
 
+    
     // Passes: Skypass, Forward
     void create_render_framebuffer(int width, int height); // prefix r_
     int r_width; int r_height;
@@ -89,8 +101,5 @@ private:
     unsigned int c_fbo = 0;
     unsigned int c_color_texture = 0;
     unsigned int c_depth_texture = 0;
-
-    Shader* composite_shader = nullptr;
-    Shader* copy_present_shader = nullptr;
 };
 

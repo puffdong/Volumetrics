@@ -87,12 +87,12 @@ void Sun::enqueue(Renderer& renderer, ResourceManager& resources) {
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->bind();
         (*shader)->set_uniform_vec3("sun_dir", this->dir); 
+        (*shader)->set_uniform_mat4("u_mvp", mvp);
 
         RenderCommand cmd{};
         cmd.vao        = VAO;
         cmd.draw_type   = DrawType::Elements;
         cmd.count      = index_count;
-        cmd.model      = mvp; 
         cmd.shader     = (*shader);
         cmd.state.depth_test  = false;
         cmd.state.depth_write = false;

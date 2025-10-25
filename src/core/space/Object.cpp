@@ -50,7 +50,6 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
         cmd.vao = _model->getVAO();;
         cmd.draw_type = DrawType::Elements;
         cmd.count          = _model->getIndexCount();
-        cmd.model          = model;
         cmd.shader         = (*shader);
 
         renderer.submit(RenderPass::Forward, cmd);

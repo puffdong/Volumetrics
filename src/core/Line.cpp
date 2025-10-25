@@ -77,7 +77,6 @@ void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
         cmd.count          = 2;
         cmd.instance_count  = num_lines;
         cmd.shader         = (*shader);
-        cmd.model          = glm::mat4(1.0f);
 
         renderer.submit(RenderPass::Forward, cmd);
     } else {

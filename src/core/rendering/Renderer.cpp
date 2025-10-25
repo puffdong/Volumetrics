@@ -12,31 +12,32 @@ bool GLLogCall(const char* function, const char* file, int line) {
     }
     return true;
 }
-
-std::string get_full_path(const std::string& asset_path) {
-    return std::string("/Users/puff/Developer/graphics/Volumetrics/res/") + std::string(asset_path.substr(std::string("res://").size(), asset_path.size()));
-}
+ 
+Renderer::Renderer(ResourceManager& resources) : resources(resources) {}
 
 void Renderer::init_renderer(int width, int height)
 {  
-    GLCall(glDepthFunc(GL_LESS));
-    GLCall(glEnable(GL_BLEND));
-    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    GLCall(glEnable(GL_DEPTH_TEST));
-    GLCall(glEnable(GL_CULL_FACE));
-    GLCall(glCullFace(GL_BACK));
-    GLCall(glFrontFace(GL_CCW));
+    viewport_width = width;
+    viewport_height = height;
 
-    GLuint globalVao = 0;
-    GLCall(glGenVertexArrays(1, &globalVao));
-    GLCall(glBindVertexArray(globalVao));
+    glDepthFunc(GL_LESS);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
+    default_vao = 0;
+    GLCall(glGenVertexArrays(1, &default_vao)); // keep these GL calls, if the gl context is wonky we know it early
+    GLCall(glBindVertexArray(default_vao));
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glDisable(GL_LINE_SMOOTH);
     glDepthMask(GL_TRUE);
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); // pick one and stick to it
+    glFrontFace(GL_CCW); // pick one and stick to it, CCW: counter clock wise
 
     current.depth_test      = false;
     current.depth_write     = true;
@@ -44,13 +45,21 @@ void Renderer::init_renderer(int width, int height)
     current.cull_front_back = GL_BACK;
     current.line_smooth     = false;
     
+    // init shaders, and set the uniforms that stay static during run-time
+    composite_shader = new Shader(resources.get_full_path("res://shaders/pipeline/composite.vs"), resources.get_full_path("res://shaders/pipeline/composite.fs"));
+    composite_shader->bind();
+    composite_shader->set_uniform_int("u_src_color",   0);
+    composite_shader->set_uniform_int("u_volum_color", 1);
+    composite_shader->set_uniform_int("u_scene_depth", 2); // kept for later depth-aware composite
+
+
+    copy_present_shader = new Shader(resources.get_full_path("res://shaders/pipeline/copy_present.vs"), resources.get_full_path("res://shaders/pipeline/copy_present.fs"));
+    copy_present_shader->bind();
+    copy_present_shader->set_uniform_int("u_src_color", 0);
+    copy_present_shader->set_uniform_int("u_depth_texture", 2);
+
     init_quad();
-    viewport_width = width;
-    viewport_height = height;
     init_framebuffers(width, height);
-    composite_shader = new Shader(get_full_path("res://shaders/pipeline/composite.vs"), get_full_path("res://shaders/pipeline/composite.fs"));
-    copy_present_shader = new Shader(get_full_path("res://shaders/pipeline/copy_present.vs"), get_full_path("res://shaders/pipeline/copy_present.fs"));
-    
     glViewport(0,0, width, height);
 }
 
@@ -59,10 +68,10 @@ void Renderer::init_framebuffers(int width, int height)
     create_render_framebuffer(width, height);
     create_volumetric_framebuffer(width, height);
     create_composite_framebuffer(width, height);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // default framebuffer
 }
 
-void Renderer::destroy() {
+void Renderer::destroy_renderer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -281,7 +290,7 @@ glm::vec2 Renderer::get_viewport_size() {
 }
 
 glm::vec2 Renderer::get_framebuffer_size(RenderPass pass) {
-    switch (pass) {
+    switch (pass) { // This is shitty
         case RenderPass::Skypass:
             return glm::vec2(r_width, r_height);
         case RenderPass::Forward:
@@ -371,9 +380,7 @@ void Renderer::execute_pipeline() {
     // Bind composite program and set sampler uniforms to the *unit indices*
     composite_shader->hot_reload_if_changed();
     composite_shader->bind();
-    composite_shader->set_uniform_int("u_src_color",   0);
-    composite_shader->set_uniform_int("u_volum_color", 1);
-    composite_shader->set_uniform_int("u_scene_depth", 2); // kept for later depth-aware composite
+
     // Optional (for later when we use depth): composite_shader->set_uniform_float("u_near", near); composite_shader->set_uniform_float("u_far",  far);
 
     glBindVertexArray(quad_vao);
@@ -393,18 +400,17 @@ void Renderer::execute_pipeline() {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     // Detach depth attachment while we *sample* the depth texture
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);  // 4th argument == 0 (ie, we detached depth tex)
 
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
 
     // 4a) Base copy src_color → dst_color
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, src_color);
+    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // in here, both opaque and volumetrics are combined :)
+    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture);
 
     copy_present_shader->hot_reload_if_changed();
     copy_present_shader->bind();
-    copy_present_shader->set_uniform_int("u_src_color", 0);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -463,7 +469,6 @@ void Renderer::execute_command(const RenderCommand& c)
     apply_state(c.state);
 
     c.shader->bind();
-    c.shader->set_uniform_mat4("model", c.model);
 
     for (const auto& t : c.textures) {
         glActiveTexture(GL_TEXTURE0 + t.unit);

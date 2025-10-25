@@ -24,20 +24,22 @@ void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
 {
 	if (auto shader = resources.get_shader(r_shader.id)) {
 		auto camera = _space->get_camera();
-		glm::mat4 modelTrans = glm::scale(glm::translate(glm::mat4(1.f), camera->get_position()), glm::vec3(5.f, 5.f, 5.f));
-		glm::mat4 mvp = renderer.get_proj() * camera->get_view_matrix() * modelTrans;
+		glm::mat4 model_matrix = glm::scale(glm::translate(glm::mat4(1.f), camera->get_position()), glm::vec3(5.f, 5.f, 5.f));
+		glm::mat4 mvp = renderer.get_proj() * renderer.get_view() * model_matrix;
+
+		(*shader)->bind();
+		(*shader)->set_uniform_mat4("u_mvp", mvp);
 		
 		TextureBinding tex{};
 		tex.id = texture->get_id();
 		tex.target = GL_TEXTURE_2D;
 		tex.unit = 5;
-		tex.uniform_name = "u_Texture";
+		tex.uniform_name = "u_texture";
 
 		RenderCommand cmd{};
 		cmd.vao        = model->getVAO();
 		cmd.draw_type   = DrawType::Elements;
 		cmd.count      = model->getIndexCount();
-		cmd.model      = mvp;
 		cmd.shader     = (*shader);
 		cmd.state.depth_test  = false;
 		cmd.state.depth_write = false;
@@ -46,8 +48,7 @@ void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
 
 		renderer.submit(RenderPass::Skypass, cmd);
 		
-		(*shader)->bind();
-		(*shader)->set_uniform_mat4("u_MVP", renderer.get_proj() * renderer.get_view());
+
 		
 	}
 
