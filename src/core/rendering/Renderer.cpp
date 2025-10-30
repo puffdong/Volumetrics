@@ -89,7 +89,7 @@ void Renderer::init_quad() {
     float verts[] = {
         //   pos   // uv
         -1.f, -1.f, 0.f, 0.f,
-            3.f, -1.f, 2.f, 0.f,  // single-triangle trick
+        3.f, -1.f, 2.f, 0.f,  // single-triangle trick
         -1.f,  3.f, 0.f, 2.f
     };
     glGenVertexArrays(1, &quad_vao);
@@ -266,7 +266,7 @@ void Renderer::resize(int width, int height) {
 }
 
 void Renderer::set_projection_matrix(float new_aspect_ratio, float new_fov, float near_plane, float far_plane) {
-    if (aspect_ratio <= 0) {
+    if (new_aspect_ratio <= 0) {
 		aspect_ratio = 16.f / 9.f; // a bit of sanity checking
 	} else {
 		aspect_ratio = new_aspect_ratio;
@@ -286,19 +286,19 @@ void Renderer::set_fov(float fov) {
 
 
 glm::vec2 Renderer::get_viewport_size() {
-    return glm::ivec2(viewport_width, viewport_height);
+    return glm::vec2(viewport_width, viewport_height);
 }
 
 glm::vec2 Renderer::get_framebuffer_size(RenderPass pass) {
     switch (pass) { // This is shitty
         case RenderPass::Skypass:
-            return glm::vec2(r_width, r_height);
         case RenderPass::Forward:
+        case RenderPass::UI:
             return glm::vec2(r_width, r_height);
         case RenderPass::Volumetrics:
             return glm::vec2(v_width, v_height);
-        case RenderPass::UI:
-            return glm::vec2(c_width, c_height);
+        default:
+            return glm::vec2(viewport_width, viewport_height);
     }
 }
 
