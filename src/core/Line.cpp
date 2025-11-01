@@ -56,7 +56,11 @@ void Line::init(ResourceManager& resources, Space* space) {
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(LinePrimitive), (void*)offsetof(LinePrimitive, end));
     glVertexAttribDivisor(2, 1); 
 
-    glBindVertexArray(0);
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(LinePrimitive), (void*)offsetof(LinePrimitive, color));
+    glVertexAttribDivisor(3, 1);
+
+    glBindVertexArray(0); // unbind it
 }
 
 void Line::tick(float delta) {
@@ -69,6 +73,11 @@ void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
         (*shader)->bind();
         (*shader)->set_uniform_mat4("projection", renderer.get_proj());
         (*shader)->set_uniform_mat4("view", renderer.get_view());
+        (*shader)->set_uniform_int("u_depth_texture", 2);
+        (*shader)->set_uniform_vec2("u_resolution", renderer.get_framebuffer_size(RenderPass::UI));
+        (*shader)->set_uniform_float("u_far", renderer.get_far());
+        (*shader)->set_uniform_float("u_near", renderer.get_near());
+        
 
         RenderCommand cmd{};
         cmd.vao            = VAO;
@@ -77,8 +86,11 @@ void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
         cmd.count          = 2;
         cmd.instance_count  = num_lines;
         cmd.shader         = (*shader);
+        cmd.state.depth_write = false;
+        cmd.state.depth_test = false;
+        cmd.state.line_smooth = true;
 
-        renderer.submit(RenderPass::Forward, cmd);
+        renderer.submit(RenderPass::UI, cmd);
     } else {
         std::cout << "Shader for resource ID " << r_shader.id.value() << " not found!" << "\n";
         return;

@@ -34,7 +34,7 @@ private:
 
 public:
 	Space(ResourceManager& resources);
-
+	
 	void tick(float delta, ButtonMap bm);
 	void enqueue_renderables(Renderer& renderer);
 	

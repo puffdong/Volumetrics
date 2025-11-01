@@ -50,7 +50,7 @@ void Renderer::init_renderer(int width, int height)
     composite_shader->bind();
     composite_shader->set_uniform_int("u_src_color",   0);
     composite_shader->set_uniform_int("u_volum_color", 1);
-    composite_shader->set_uniform_int("u_scene_depth", 2); // kept for later depth-aware composite
+    composite_shader->set_uniform_int("u_depth_texture", 2); // kept for later depth-aware composite
 
 
     copy_present_shader = new Shader(resources.get_full_path("res://shaders/pipeline/copy_present.vs"), resources.get_full_path("res://shaders/pipeline/copy_present.fs"));
@@ -438,7 +438,6 @@ void Renderer::execute_pipeline() {
     glBindTexture(GL_TEXTURE_2D, src_color);
 
     copy_present_shader->bind();
-    copy_present_shader->set_uniform_int("u_src_color", 0);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);

@@ -50,7 +50,7 @@ void Glass::enqueue(Renderer& renderer, ResourceManager& resources) {
         shader->set_uniform_vec2("u_glass_pane_position", glass_panes[0].position);
         shader->set_uniform_float("u_glass_radius", 15.0); // 5 pixels
         shader->set_uniform_int("u_src_color", 0); // get it access to the u_src_color framebuffer texture!
-        shader->set_uniform_int("u_depth_texture", 0); // get it access to the u_src_color framebuffer texture!
+        shader->set_uniform_int("u_depth_texture", 2);
 
         RenderCommand cmd{};
         cmd.draw_type = DrawType::FullscreenQuad;

@@ -5,7 +5,6 @@ out vec4 o_color;
 // Inputs
 uniform sampler2D u_src_color;
 uniform sampler2D u_volum_color;
-// uniform sampler2D u_scene_depth;
 
 // Controls
 uniform int   u_volum_is_premultiplied = 1;

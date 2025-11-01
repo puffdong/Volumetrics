@@ -76,10 +76,12 @@ void main() {
     }
 
     o_color = circle_sdf_color;
+    // o_color = texture(u_src_color, v_uv);
+
 }
     // float depth_sample = texture(u_depth_texture, v_uv).r;
     // vec4 depth_whatever_color = vec4(gl_FragCoord.x, gl_FragCoord.y, depth_sample, 1.0);
-    // o_color = texture(u_src_color, v_uv);
+    o_color = texture(u_src_color, v_uv);
     // vec4 src_color = texture(u_src_color, gl_FragCoord.xy / u_resolution);
     // vec4 src_color = texture(u_src_color, v_uv);
     // o_color = mix(src_color, circle_sdf_color, 1.0);
