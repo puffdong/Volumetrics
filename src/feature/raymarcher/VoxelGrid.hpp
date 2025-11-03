@@ -17,6 +17,7 @@ private:
 	int depth;
 
 	int num_voxels;
+	int num_occupied_voxels;
 	float cell_size;
 	std::vector<uint8_t> voxels;
 
@@ -55,8 +56,8 @@ public:
 	float get_cell_size() const { return cell_size; };
 
 
-	glm::mat4 get_model_matrix(int x, int y, int z);
-	glm::vec3 get_voxel_world_pos(int x, int y, int z);
+	glm::mat4 get_model_matrix(int x, int y, int z); // width, height, depth
+	glm::vec3 get_voxel_world_pos(int x, int y, int z); // origin is at (0, 0, 0)
 
 	void add_cube(glm::ivec3 position, int width, int height, int depth, uint8_t value);
 	
@@ -64,6 +65,7 @@ public:
 private:
 	GLuint instanceVBO;
 
+	void turn_on_corner_visualization();
 	void init_instance_buffer();
 	void re_init_instance_buffer();
 	void create_voxel_texture();

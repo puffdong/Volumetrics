@@ -5,20 +5,12 @@
 VoxelGrid::VoxelGrid(int w, int h, int d, 
                      uint8_t init_value, float cell_size,
 			         glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent)
-    : width(w), height(h), depth(d), cell_size(cell_size), Base(pos, rot, scale, parent) 
+    : width(w), height(h), depth(d), cell_size(cell_size), num_occupied_voxels(0), Base(pos, rot, scale, parent) 
 {   
     num_voxels = h * w * d;
     voxels = std::vector<uint8_t>(num_voxels, static_cast<uint8_t>(init_value));
     
-    // setting the corners to true to visualize them!
-    set_voxel_value(0, 0, 0, 1);
-    set_voxel_value(w - 1, h - 1, d - 1, 1);
-    set_voxel_value(0, h - 1, 0, 1);
-    set_voxel_value(0, 0, d - 1, 1);
-    set_voxel_value(w - 1, 0, 0, 1);
-    set_voxel_value(w - 1, h - 1, 0, 1);
-    set_voxel_value(w - 1, 0, d - 1, 1);
-    set_voxel_value(0, h - 1, d - 1, 1);
+    turn_on_corner_visualization();
 
     add_cube(glm::ivec3(5, 5, 5), 10, 2, 10, 1);
     add_cube(glm::ivec3(6, 6, 6), 8, 2, 8, 1);
@@ -64,7 +56,7 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
         cmd.draw_type   = DrawType::ElementsInstanced;
         cmd.primitive = GL_TRIANGLES;
         cmd.count      = index_count;
-        cmd.instance_count = num_voxels;
+        cmd.instance_count = num_occupied_voxels;
         cmd.shader     = (*shader);
         cmd.state.depth_test = true;
         cmd.state.depth_write = true;
@@ -77,16 +69,23 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
 }
 
 void VoxelGrid::init_instance_buffer() {
+    num_occupied_voxels = 0; // reset this, we are recounting them!
+
     std::vector<glm::mat4> instance_model_matrices;
     instance_model_matrices.reserve(num_voxels);
 
-    for (int current_h = 0; current_h < height; current_h++) {
-        for (int current_d = 0; current_d < depth; current_d++) {
-            for (int current_w = 0; current_w < width; current_w++) {
-                instance_model_matrices.push_back(get_model_matrix(current_h, current_d, current_w));
+    for (int w = 0; w < width; w++) {
+        for (int h = 0; h < height; h++) {
+            for (int d = 0; d < depth; d++) {
+                if (get_voxel_value(w, h, d) != 0u) {
+                    instance_model_matrices.push_back(get_model_matrix(w, h, d));
+                    num_occupied_voxels += 1;
+                }
             }
         }
     }
+
+    std::cout << instance_model_matrices.size() << " <----- THE SIZE " << std::endl;
 
     GLuint vao = cube->getVAO();
     glBindVertexArray(vao);
@@ -177,6 +176,17 @@ void VoxelGrid::set_voxel_value(int x, int y, int z, uint8_t value) {
     }
 }
 
+void VoxelGrid::turn_on_corner_visualization() {
+    set_voxel_value(0, 0, 0, 1); // setting the corners to true to visualize them! 
+    set_voxel_value(width - 1, height - 1, depth - 1, 1);
+    set_voxel_value(0, height - 1, 0, 1);
+    set_voxel_value(0, 0, depth - 1, 1);
+    set_voxel_value(width - 1, 0, 0, 1);
+    set_voxel_value(width - 1, height - 1, 0, 1);
+    set_voxel_value(width - 1, 0, depth - 1, 1);
+    set_voxel_value(0, height - 1, depth - 1, 1);
+}
+
 glm::vec3 VoxelGrid::get_voxel_world_pos(int x, int y, int z) {
     glm::vec3 local_pos = glm::vec3(x, y, z) * cell_size;
     return position + local_pos; 
@@ -194,7 +204,7 @@ void VoxelGrid::add_cube(glm::ivec3 position, int width, int height, int depth, 
     for (int w = 0; w < width; w++) {
         for (int h = 0; h < height; h++) {
            for (int d = 0; d < depth; d++) {
-               set_voxel_value(position.x + w, position.y + h, position.y + d, value);
+               set_voxel_value(position.x + w, position.y + h, position.z + d, value);
            }
         }
     }
