@@ -71,47 +71,33 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
 void VoxelGrid::init_instance_buffer() {
     num_occupied_voxels = 0; // reset this, we are recounting them!
 
-    std::vector<glm::mat4> instance_model_matrices;
-    instance_model_matrices.reserve(num_voxels);
+    std::vector<glm::ivec3> instance_grid_indexes;
 
     for (int w = 0; w < width; w++) {
         for (int h = 0; h < height; h++) {
             for (int d = 0; d < depth; d++) {
                 if (get_voxel_value(w, h, d) != 0u) {
-                    instance_model_matrices.push_back(get_model_matrix(w, h, d));
+                    instance_grid_indexes.push_back(glm::ivec3(w, h, d));
                     num_occupied_voxels += 1;
                 }
             }
         }
     }
 
-    std::cout << instance_model_matrices.size() << " <----- THE SIZE " << std::endl;
+    std::cout << instance_grid_indexes.size() << " <--- VOXEL GRID INSTANCE COUNT!" << std::endl;
 
     GLuint vao = cube->getVAO();
     glBindVertexArray(vao);
 
     glGenBuffers(1, &instanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, instance_model_matrices.size() * sizeof(glm::mat4), instance_model_matrices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, instance_grid_indexes.size() * sizeof(glm::ivec3), instance_grid_indexes.data(), GL_STATIC_DRAW);
 
-    GLsizei vec4Size = sizeof(glm::vec4);
-    GLsizei mat4Size = sizeof(glm::mat4);
+    GLsizei ivec3_size = sizeof(glm::ivec3);
 
-    glEnableVertexAttribArray(3); // First 
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, mat4Size, (void*)0);
-    glVertexAttribDivisor(3, 1);
-
-    glEnableVertexAttribArray(4); // Second
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, mat4Size, (void*)(1 * vec4Size));
-    glVertexAttribDivisor(4, 1);
-
-    glEnableVertexAttribArray(5); // Third
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, mat4Size, (void*)(2 * vec4Size));
-    glVertexAttribDivisor(5, 1);
-
-    glEnableVertexAttribArray(6); // Fourth
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, mat4Size, (void*)(3 * vec4Size));
-    glVertexAttribDivisor(6, 1);
+    glEnableVertexAttribArray(3); // pos 3! because the cube got its own lil pool of info already :)
+    glVertexAttribIPointer(3, 3, GL_INT, ivec3_size, (void*) 0);
+    glVertexAttribDivisor(3, 1); 
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -174,6 +160,7 @@ void VoxelGrid::set_voxel_value(int x, int y, int z, uint8_t value) {
     if (index >= 0 && index < num_voxels) {
         voxels[index] = static_cast<uint8_t>(value); // making sure its a byte :o u can never be too sure, or?
     }
+    changed = true;
 }
 
 void VoxelGrid::turn_on_corner_visualization() {
@@ -190,14 +177,6 @@ void VoxelGrid::turn_on_corner_visualization() {
 glm::vec3 VoxelGrid::get_voxel_world_pos(int x, int y, int z) {
     glm::vec3 local_pos = glm::vec3(x, y, z) * cell_size;
     return position + local_pos; 
-}
-
-glm::mat4 VoxelGrid::get_model_matrix(int x, int y, int z) {
-    glm::vec3 voxel_world_pos = get_voxel_world_pos(x, y, z);
-    glm::mat4 m = glm::mat4(1.0f);
-    m = glm::translate(m, voxel_world_pos);
-    m = glm::scale(m, glm::vec3(cell_size * 0.5f)); 
-    return glm::scale(glm::translate(glm::mat4(1.f), voxel_world_pos), glm::vec3(this->cell_size * 0.5f));
 }
 
 void VoxelGrid::add_cube(glm::ivec3 position, int width, int height, int depth, uint8_t value) {

@@ -56,12 +56,11 @@ public:
 	float get_cell_size() const { return cell_size; };
 
 
-	glm::mat4 get_model_matrix(int x, int y, int z); // width, height, depth
 	glm::vec3 get_voxel_world_pos(int x, int y, int z); // origin is at (0, 0, 0)
-
+	
 	void add_cube(glm::ivec3 position, int width, int height, int depth, uint8_t value);
 	
-
+	
 private:
 	GLuint instanceVBO;
 
