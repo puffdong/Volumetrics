@@ -41,7 +41,7 @@ void main()
 
     vec4 color = v_color;
 
-    if (frag_depth > scene_depth + 0.00001) {
+    if (frag_depth > scene_depth + 0.001) {
     float gray = dot(color.rgb, LUMA);
     color.rgb = mix(color.rgb, vec3(gray), 0.7);
     color.a *= 0.6;

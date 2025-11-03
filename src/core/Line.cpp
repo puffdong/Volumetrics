@@ -87,7 +87,7 @@ void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
         cmd.instance_count  = num_lines;
         cmd.shader         = (*shader);
         cmd.state.depth_write = false;
-        cmd.state.depth_test = false;
+        cmd.state.depth_test = true;
         cmd.state.line_smooth = true;
 
         renderer.submit(RenderPass::UI, cmd);

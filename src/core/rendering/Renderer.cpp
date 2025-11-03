@@ -354,8 +354,7 @@ void Renderer::execute_pipeline() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Volumetric shaders will pull depth on whatever units they expect; we just make it handy on TU2 as convention.
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, r_depth_texture);
+    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture);
 
     flush(RenderPass::Volumetrics);
 
@@ -386,40 +385,46 @@ void Renderer::execute_pipeline() {
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    // Swap: composited scene now in dst_color → becomes new src
-    { GLuint t = src_color; src_color = dst_color; dst_color = t; }
+    
 
-    // Re-attach depth for any later geometry-type passes (kept consistent)
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, r_depth_texture, 0);
+    // flush(RenderPass::UI);
+    for (const auto& cmd : queues[int(RenderPass::UI)]) {
+        { GLuint t = src_color; src_color = dst_color; dst_color = t; } // ping pong
 
-    // --- 4) UI OVER SCENE (BEFORE present) -----------------------------------
-    glBindFramebuffer(GL_FRAMEBUFFER, r_fbo);
-    glViewport(0, 0, r_width, r_height);
+        // Re-attach depth for any later geometry-type passes (kept consistent)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, r_depth_texture, 0);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst_color, 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        // --- 4) UI OVER SCENE (BEFORE present) -----------------------------------
+        glBindFramebuffer(GL_FRAMEBUFFER, r_fbo);
+        glViewport(0, 0, r_width, r_height);
 
-    // Detach depth attachment while we *sample* the depth texture
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);  // 4th argument == 0 (ie, we detached depth tex)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst_color, 0);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
+        // Detach depth attachment while we *sample* the depth texture
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);  // 4th argument == 0 (ie, we detached depth tex)
 
-    // 4a) Base copy src_color → dst_color
-    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // in here, both opaque and volumetrics are combined :)
-    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture);
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
 
-    copy_present_shader->hot_reload_if_changed();
-    copy_present_shader->bind();
+        // 4a) Base copy src_color → dst_color
+        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // in here, both opaque and volumetrics are combined :)
+        glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture);
 
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+        copy_present_shader->hot_reload_if_changed();
+        copy_present_shader->bind();
 
-    // 4b) Make scene color + depth available to UI shaders (by convention)
-    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // in here, both opaque and volumetrics are combined :)
-    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture); // scene depth
+        glBindVertexArray(quad_vao);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    flush(RenderPass::UI);
+        // 4b) Make scene color + depth available to UI shaders (by convention)
+        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // in here, both opaque and volumetrics are combined :)
+        glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture); // scene depth
+
+
+        execute_command(cmd);
+        
+    }
 
     // 4c) Swap so UI-composited image becomes the new src
     { GLuint t = src_color; src_color = dst_color; dst_color = t; }
