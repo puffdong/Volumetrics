@@ -14,22 +14,29 @@
 #include "core/Camera.hpp"
 #include "feature/Sun.hpp"
 
+#include "core/space/Light.hpp"
+
 class Raymarcher; // fwd decl
 
 class Space {
 private:
 	ResourceManager& resources;
 	
+	// base objects
 	std::vector<std::unique_ptr<Base>> uninitialized_objects;
 	std::vector<std::unique_ptr<Base>> objects;
+
+	// lights
+	std::vector<Light> lights;
 	
+	// various doohickeys
 	Camera* camera;
 	Sun* sun;
+	Raymarcher* raymarcher;
 	
 	float time = 0.0;
 	ButtonMap this_frames_button_map;
 
-	Raymarcher* raymarcher;
 
 
 public:

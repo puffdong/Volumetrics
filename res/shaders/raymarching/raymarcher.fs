@@ -5,6 +5,21 @@ in vec2 v_uv;
 in vec3 v_origin;
 in vec3 v_ray;
 
+// #define MAX_LIGHTS 16
+
+struct Light {
+    vec4 position_radius; // position, radius
+    vec4 color_intensity; // color, intensity
+    vec4 misc;              // volumetric_intensity, type (0 = point, 1 = directional), padding padding
+};
+
+layout(std140) uniform LightBlock {
+    // Light u_lights[MAX_LIGHTS];
+    Light u_lights[16];
+};
+
+uniform int u_light_count;
+
 uniform float time;
 uniform vec3 u_sun_dir;
 uniform vec3 u_sun_color;
@@ -92,6 +107,16 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
 
     bool hit_something = false;
 
+    // Light point_light = u_lights[0]; // trial run, lets go
+
+    // Unpack the light data once
+    // vec3  light_pos         = point_light.position_radius.xyz;
+    // float light_radius      = point_light.position_radius.w;
+    // vec3  light_color       = vec3(0.0, 1.0, 0.0);
+    // float light_intensity   = point_light.color_intensity.w;
+    // float light_volumetric  = point_light.misc.x;
+    // float light_type        = point_light.misc.y; // 0 = point, 1 = directional (unused for now)
+
     for (int i = 0; i < u_max_steps; ++i) {
         
         vec3 sample_pos = ray_origin + ray_direction * distance_traveled;
@@ -103,7 +128,10 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
                 distance_traveled -= u_step_size; // take a step back and then increase step size later on to fill in the gaps
             }
             // cool calcs below
-            float cos_theta = dot(ray_direction, vec3(0.0, 1.0, 0.0));
+            vec3 wi = normalize(-u_sun_dir);
+            vec3 wo = normalize(-ray_direction);
+            float cos_theta = dot(wi, wo);
+            
             float phase = rayleigh(cos_theta);
 
             float sample_density = sample_density(sample_pos);
@@ -112,19 +140,28 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
             thickness += sample_density * u_hit_step_size;
             alpha = exp(-thickness * collected_density * u_extincion_coefficient);
 
-            vec3 light_pos = sample_pos;
+            vec3 light_sample_pos = sample_pos;
             float light = 0.0f;
+            vec3 light_result_color = vec3(0.0);
+
             light += sample_density * 1.0;
             for (int j = 0; j < u_max_light_steps; ++j) {
-                light_pos = light_pos + normalize(u_sun_dir) * u_light_step_size;
-                uint w = get_voxel(light_pos);
+                light_sample_pos = light_sample_pos + normalize(u_sun_dir) * u_light_step_size;
+                uint w = get_voxel(light_sample_pos);
                 if (w != 0u) {
                     light += sample_density;
                 }
+                // light_sample_pos = light_sample_pos + normalize(point_light.position_radius.xyz - light_sample_pos) * u_light_step_size;    
+                // uint w = get_voxel(light_sample_pos);
+                // if (w != 0u) {
+                //     light += sample_density;
+                //     light_result_color += light_color * light;
+                // }
             }
 
             vec3 light_attenuation = exp(-(light / vec3(1.0) * u_extincion_coefficient * 1.0));
             col += vec3(1.0) * light_attenuation * alpha * phase * u_scattering_coefficient * 1.0 * sample_density;
+            // col += vec3(1.0) * light_result_color * light_attenuation * alpha * phase * u_scattering_coefficient * 1.0 * sample_density;
 
             if (collected_density >= 1.0) {
                 collected_density = 1.0;

@@ -45,6 +45,18 @@ void Space::init_space() {
 	base_ground->swap_model(ground_model);
 	objects.push_back(std::move(base_ground));
 	// THIS IS STINKY; BLEEEH
+
+	// light stuff
+	Light l{};
+	l.position = glm::vec3(0.0f, 10.0f, 0.0);
+	l.radius = 10.f;
+	l.color = glm::vec3(1.0f);
+	l.intensity = 1.0f;
+	l.direction = glm::vec3(0.0f, -1.0f, 0.0f);
+	l.volumetric_intensity = 1.0f;
+	l.type = LightType::Point;
+
+	lights.push_back(l);
 }
 
 void Space::process_init_queue() {
@@ -75,15 +87,14 @@ void Space::tick(float delta, ButtonMap bm)
 		// std::string title = std::to_string(o->get_id());
 		// ui::transform_window(*o, title.c_str());
 	}
-
-
 }
 
 void Space::enqueue_renderables(Renderer& renderer) {
 	glm::mat4 view_matrix = camera->get_view_matrix();
 	glm::vec3 cam_pos = camera->get_position();
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
-	
+	renderer.submit_lighting_data(lights);
+
 	for (auto& o : objects) {
 		o->enqueue(renderer, resources);
 	}

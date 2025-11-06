@@ -46,23 +46,23 @@ void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
         (*shader)->bind();
         upload_uniforms(renderer, *shader);
 
-        TextureBinding bind{ perlin3d, GL_TEXTURE_3D, 5, "u_noise_texture" };
+        TextureBinding perlin_noise{ perlin3d, GL_TEXTURE_3D, 5, "u_noise_texture" };
 
-        TextureBinding bind2{ voxel_grid->get_voxel_texture_id(), GL_TEXTURE_3D, 6, "u_voxels" };
+        TextureBinding voxel_tex{ voxel_grid->get_voxel_texture_id(), GL_TEXTURE_3D, 6, "u_voxels" };
 
         RenderCommand cmd{};
         cmd.draw_type = DrawType::FullscreenQuad;
         cmd.shader    = (*shader);
         cmd.state.depth_write = false;
-        cmd.textures.push_back(bind);
-        cmd.textures.push_back(bind2);
+        cmd.textures.push_back(perlin_noise);
+        cmd.textures.push_back(voxel_tex);
+        cmd.attach_lights = true;
 
         renderer.submit(RenderPass::Volumetrics, cmd);
 
     } else {
         std::cout << "raymarch shader is fucked" << std::endl;
     }
-
 }
 
 void Raymarcher::upload_uniforms(Renderer& renderer, Shader* shader) {

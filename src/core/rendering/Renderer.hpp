@@ -4,6 +4,7 @@
 #include <vector>
 #include "core/resources/ResourceManager.hpp"
 #include "RenderCommand.hpp"
+#include "core/space/LightManager.hpp"
 
 #include "core/rendering/Shader.hpp"
 
@@ -24,6 +25,7 @@ bool GLLogCall(const char* function, const char* file, int line);
 class Renderer {
 private:
     ResourceManager& resources;
+    LightManager light_manager;
     Shader* composite_shader;
     Shader* copy_present_shader;
 
@@ -51,6 +53,7 @@ public:
 
     void begin_frame();
     void submit(RenderPass pass, const RenderCommand& cmd);
+    void submit_lighting_data(std::vector<Light> lights); // this sucks because we are copying crap
     void execute_pipeline();
     void flush(RenderPass pass);
     
@@ -80,7 +83,9 @@ private:
     void apply_state(RenderState s);
     void execute_command(const RenderCommand& cmd);
 
-    
+    // lighting stuff
+    std::vector<Light> current_frame_light_list;
+
     // Passes: Skypass, Forward
     void create_render_framebuffer(int width, int height); // prefix r_
     int r_width; int r_height;

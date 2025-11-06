@@ -58,6 +58,7 @@ void Renderer::init_renderer(int width, int height)
     copy_present_shader->set_uniform_int("u_src_color", 0);
     copy_present_shader->set_uniform_int("u_depth_texture", 2);
 
+    light_manager.init();
     init_quad();
     init_framebuffers(width, height);
     glViewport(0,0, width, height);
@@ -312,6 +313,10 @@ void Renderer::submit(RenderPass pass, const RenderCommand& cmd)
     queues[int(pass)].push_back(cmd);
 }
 
+void Renderer::submit_lighting_data(std::vector<Light> lights) { // I ADMIT, THIS IS NOT NICE, BUT WE HACKING AND THEN WE SLASHING
+    current_frame_light_list = lights; // THAT IS HOW I ROLL, WE GLUE STUFF TOGETHER THEN WE ARCHITECHT IT LATER WHEN I FIGURE OUT THE DETAILS
+}
+
 void Renderer::flush(RenderPass pass)
 {
     for (const auto& cmd : queues[int(pass)])
@@ -384,8 +389,6 @@ void Renderer::execute_pipeline() {
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    
 
     // flush(RenderPass::UI);
     for (const auto& cmd : queues[int(RenderPass::UI)]) {
@@ -472,12 +475,20 @@ void Renderer::execute_command(const RenderCommand& c)
 {
     apply_state(c.state);
 
-    c.shader->bind();
+    unsigned int program_id = c.shader->get_renderer_id();
+    glUseProgram(program_id);
 
     for (const auto& t : c.textures) {
         glActiveTexture(GL_TEXTURE0 + t.unit);
         glBindTexture(t.target, t.id);
         if (t.uniform_name) c.shader->set_uniform_int(t.uniform_name, t.unit);
+    }
+
+    if (c.attach_lights) { // attach light info if desired
+        light_manager.upload(current_frame_light_list);
+        light_manager.bind(0);
+        c.shader->set_uniform_block("LightBlock", 0);
+        c.shader->set_uniform_int("u_light_count", light_manager.get_light_count());
     }
 
     switch (c.draw_type)

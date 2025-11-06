@@ -29,6 +29,7 @@
 #include "core/resources/ResourceManager.hpp"
 #include "core/ui/ui_dumptruck.hpp"
 #include "core/utils/ButtonMap.hpp"
+#include "core/space/LightManager.hpp"
 
 struct AppConfig {
     int initial_width;

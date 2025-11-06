@@ -34,4 +34,5 @@ struct RenderCommand
     Shader* shader           = nullptr;          
     std::vector<TextureBinding> textures; // feel like this is wonky
     RenderState state;
+    bool attach_lights = false; // classes that want a piece of the light info just set this to true :)
 };
