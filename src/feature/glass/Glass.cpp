@@ -41,6 +41,10 @@ void Glass::enqueue(Renderer& renderer, ResourceManager& resources) {
         if (bm.MousePointerActive && bm.MouseLeft) {
             mouse = glm::vec3(bm.MousePosX, bm.MousePosY, 1.0);
             // std::cout << "yes -> " << mouse.x << ", " << mouse.y << ", " << mouse.z << std::endl;
+
+            glm::vec3 hmm = glm::vec3(bm.MousePosX / renderer.get_framebuffer_size(RenderPass::UI).x, bm.MousePosY / renderer.get_framebuffer_size(RenderPass::UI).y, 1.0);
+            // std::cout << "yes -> " << hmm.x << ", " << hmm.y << ", " << hmm.z << std::endl;
+            
         } else {
             mouse = glm::vec3(bm.MousePosX, bm.MousePosY, 0.0);
         }

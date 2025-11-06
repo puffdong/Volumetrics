@@ -8,22 +8,32 @@ out vec2 v_texcoord;
 
 uniform mat4 u_mvp;
 
+uniform mat4 u_view;
+uniform mat4 u_proj;
+
+out vec3 v_dir;
+
 void main()
 {
+	mat4 view = mat4(mat3(u_view));
+
+	vec4 pos = u_proj * view * vec4(a_pos, 1.0);
+
 	v_texcoord = a_texcoord;
-	gl_Position = u_mvp * vec4(a_pos, 1.0f);
+	gl_Position = pos;
+	v_dir = a_pos;
 }
 
 #shader fragment
 #version 330 core
 
-layout(location = 0) out vec4 color;
+layout(location = 0) out vec4 o_color;
 
-in vec2 v_texcoord;
+in vec3 v_dir;
 
-uniform sampler2D u_texture;
+uniform samplerCube u_texture;
 
 void main()
 {
-	color = texture(u_texture, v_texcoord);
+	o_color = texture(u_texture, normalize(v_dir));
 }

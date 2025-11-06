@@ -56,7 +56,7 @@ public:
     
 
     // getters n' setters
-    void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 1.0, float far_plane = 256);
+    void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 1.0, float far_plane = 512);
     void set_fov(float fov);
     void set_view(glm::mat4 v) { view = v; };
     

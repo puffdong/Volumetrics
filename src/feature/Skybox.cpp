@@ -9,15 +9,47 @@ Skybox::Skybox() : Base()
 void Skybox::init(ResourceManager& resources, Space* space) {
 	Base::init(resources, space);
 	r_shader = resources.load_shader("res://shaders/Skybox.shader");
-
 	model = new ModelObject(resources.get_full_path("res://models/skybox-full-tweaked.obj"));
-	texture = new Texture(resources.get_full_path("res://textures/skybox/cloud-landscape.tga"));
 
-	texture->bind(0); // we gotta set up the parameters for this texture asap, so do it now and make it better later
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	texture->unbind();
+	TextureData top;
+	LoadTGATextureData(resources.get_full_path("res://textures/skybox/top.tga").c_str(), &top);
+	TextureData bottom;
+	LoadTGATextureData(resources.get_full_path("res://textures/skybox/bottom.tga").c_str(), &bottom);
+	TextureData middle;
+	LoadTGATextureData(resources.get_full_path("res://textures/skybox/middle.tga").c_str(), &middle);
+	TextureData leftmost;
+	LoadTGATextureData(resources.get_full_path("res://textures/skybox/leftmost.tga").c_str(), &leftmost);
+	TextureData rightmost;
+	LoadTGATextureData(resources.get_full_path("res://textures/skybox/rightmost.tga").c_str(), &rightmost);
+	TextureData rightofmiddle;
+	LoadTGATextureData(resources.get_full_path("res://textures/skybox/rightofmiddle.tga").c_str(), &rightofmiddle);
+	
+	TextureData faces[6] = { rightofmiddle, leftmost, bottom, top, middle, rightmost };
 
+	glGenTextures(1, &skybox_tex);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_tex);
+
+	for (int i = 0; i < 6; ++i) {
+		// faces[0..5] = your 6 images
+		auto& img = faces[i];
+		glTexImage2D(
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0,
+			GL_RGBA,
+			img.width, img.height,
+			0,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			img.imageData
+		);
+	}
+
+	// filtering / wrapping
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
 void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
@@ -28,11 +60,13 @@ void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
 		glm::mat4 mvp = renderer.get_proj() * renderer.get_view() * model_matrix;
 
 		(*shader)->bind();
+		(*shader)->set_uniform_mat4("u_proj", renderer.get_proj());
+		(*shader)->set_uniform_mat4("u_view", renderer.get_view());
 		(*shader)->set_uniform_mat4("u_mvp", mvp);
 		
 		TextureBinding tex{};
-		tex.id = texture->get_id();
-		tex.target = GL_TEXTURE_2D;
+		tex.id = skybox_tex;
+		tex.target = GL_TEXTURE_CUBE_MAP;
 		tex.unit = 5;
 		tex.uniform_name = "u_texture";
 

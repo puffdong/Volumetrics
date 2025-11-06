@@ -10,6 +10,8 @@ struct Skybox : public Base {
 	ModelObject* model;
 	Texture* texture;
 
+	GLuint skybox_tex;
+
 	Skybox();
 	
 	void init(ResourceManager& resources, Space* space) override;
