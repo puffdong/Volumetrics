@@ -17,7 +17,7 @@ Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path)
 
     renderer.init_renderer(initial_width, initial_height);
     float aspect_ratio = static_cast<float>(initial_width) / initial_height;
-    renderer.set_projection_matrix(aspect_ratio, 70.f, 1.f, 512.f);
+    renderer.set_projection_matrix(aspect_ratio, 70.f, 0.1f, 512.f);
 
     space = new Space(resources);
 

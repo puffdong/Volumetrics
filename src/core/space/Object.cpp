@@ -42,8 +42,9 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
         (*shader)->set_uniform_vec3("u_sun_color", glm::vec3(1.0, 1.0, 1.0));
         // (*shader)->SetUniform3f("", _space->get_sun()->get_color())
         (*shader)->set_uniform_mat4("u_mvp", proj * view * model);
-        (*shader)->set_uniform_mat4("u_model_matrix", model);
-        (*shader)->set_uniform_mat4("u_view_matrix", view);
+        (*shader)->set_uniform_mat4("u_proj", renderer.get_proj());
+        (*shader)->set_uniform_mat4("u_model", model);
+        (*shader)->set_uniform_mat4("u_view", view);
 
         // STILL GOTTA HANDLE TEXTURE STUFF BUT IDC RIGHT NOW, WE MOVING FAST AND SWIFT, OUT WITH OLD, IN WITH NEW
         RenderCommand cmd{};
@@ -51,6 +52,7 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
         cmd.draw_type = DrawType::Elements;
         cmd.count          = _model->getIndexCount();
         cmd.shader         = (*shader);
+        cmd.attach_lights = true;
 
         renderer.submit(RenderPass::Forward, cmd);
     } else {

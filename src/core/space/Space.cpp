@@ -32,16 +32,16 @@ void Space::init_space() {
 	uninitialized_objects.push_back(std::make_unique<Line>(std::move(lines)));
 
 
-	uninitialized_objects.push_back(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/world_object.vs", "res://models/teapot.obj", ""));
+	uninitialized_objects.push_back(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_ground.vs", "res://models/teapot.obj", ""));
 	uninitialized_objects.push_back(std::make_unique<Raymarcher>());
 	// uninitialized_objects.push_back(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
 	uninitialized_objects.push_back(std::make_unique<Skybox>());
-	uninitialized_objects.push_back(std::make_unique<Glass>());
+	// uninitialized_objects.push_back(std::make_unique<Glass>());
 
 	// THIS IS STINKY; EWWW
 	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_ground.vs", "res://models/teapot.obj", "");
 	base_ground->init(resources, this);
-	ModelObject* ground_model = new ModelObject(256, 256, 50, 50); // kinda hacky but eh it works!
+	ModelObject* ground_model = new ModelObject(350, 350, 50, 50); // kinda hacky but eh it works!
 	base_ground->swap_model(ground_model);
 	objects.push_back(std::move(base_ground));
 	// THIS IS STINKY; BLEEEH
@@ -50,7 +50,7 @@ void Space::init_space() {
 	Light l{};
 	l.position = glm::vec3(0.0f, 10.0f, 0.0);
 	l.radius = 10.f;
-	l.color = glm::vec3(1.0f);
+	l.color = glm::vec3(1.0f, 0.8515625, 0.4765625);
 	l.intensity = 1.0f;
 	l.direction = glm::vec3(0.0f, -1.0f, 0.0f);
 	l.volumetric_intensity = 1.0f;

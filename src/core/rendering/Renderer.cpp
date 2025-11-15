@@ -276,7 +276,7 @@ void Renderer::set_projection_matrix(float new_aspect_ratio, float new_fov, floa
     far = far_plane;
 
     fov = new_fov;
-    proj = glm::perspective(glm::radians(fov), aspect_ratio, near, far);
+    proj = glm::perspective(glm::radians(fov), aspect_ratio, 0.1f, far);
 	changes_made = true;
 }
 
@@ -487,7 +487,7 @@ void Renderer::execute_command(const RenderCommand& c)
     if (c.attach_lights) { // attach light info if desired
         light_manager.upload(current_frame_light_list);
         light_manager.bind(0);
-        c.shader->set_uniform_block("LightBlock", 0);
+        c.shader->set_uniform_block("b_light_block", 0);
         c.shader->set_uniform_int("u_light_count", light_manager.get_light_count());
     }
 

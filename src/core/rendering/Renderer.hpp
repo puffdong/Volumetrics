@@ -34,9 +34,9 @@ private:
     int viewport_width;
     int viewport_height;
 
-    float fov = 70.f;
-	float near = 1.0f;
-	float far = 256.0f;
+    float fov = 75.f;
+	float near = 0.1f;
+	float far = 512.0f;
 	float aspect_ratio = 16.f / 9.0f;
 	glm::mat4 proj;
     glm::mat4 view;
@@ -59,7 +59,7 @@ public:
     
 
     // getters n' setters
-    void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 1.0, float far_plane = 512);
+    void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 0.1, float far_plane = 512.0f);
     void set_fov(float fov);
     void set_view(glm::mat4 v) { view = v; };
     

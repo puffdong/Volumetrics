@@ -34,22 +34,15 @@ void Glass::enqueue(Renderer& renderer, ResourceManager& resources) {
         shader->set_uniform_float("u_far", renderer.get_far());
         shader->set_uniform_float("u_near", renderer.get_near());
         shader->set_uniform_vec2("u_resolution", renderer.get_framebuffer_size(RenderPass::UI));
-        
-        // std::cout << renderer.get_framebuffer_size(RenderPass::UI).x << " <- x   y -> " << renderer.get_framebuffer_size(RenderPass::UI).y << std::endl;
 
         glm::vec3 mouse;
         if (bm.MousePointerActive && bm.MouseLeft) {
             mouse = glm::vec3(bm.MousePosX, bm.MousePosY, 1.0);
-            // std::cout << "yes -> " << mouse.x << ", " << mouse.y << ", " << mouse.z << std::endl;
-
             glm::vec3 hmm = glm::vec3(bm.MousePosX / renderer.get_framebuffer_size(RenderPass::UI).x, bm.MousePosY / renderer.get_framebuffer_size(RenderPass::UI).y, 1.0);
-            // std::cout << "yes -> " << hmm.x << ", " << hmm.y << ", " << hmm.z << std::endl;
-            
         } else {
             mouse = glm::vec3(bm.MousePosX, bm.MousePosY, 0.0);
         }
         
-
         shader->set_uniform_vec3("u_mouse_pos", mouse);
         shader->set_uniform_vec2("u_glass_pane_position", glass_panes[0].position);
         shader->set_uniform_float("u_glass_radius", 15.0); // 5 pixels

@@ -13,7 +13,7 @@ struct Light {
     vec4 misc;              // volumetric_intensity, type (0 = point, 1 = directional), padding padding
 };
 
-layout(std140) uniform LightBlock {
+layout(std140) uniform b_light_block {
     // Light u_lights[MAX_LIGHTS];
     Light u_lights[16];
 };

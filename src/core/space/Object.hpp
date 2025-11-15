@@ -6,6 +6,8 @@
 
 class Space; // fwd decl
 
+// My plan for this class is to just have some sort of way of neatly loading models into the world. 
+// I'll try and keep it light-weight
 class Object : public Base {
 private:
     Resource r_shader;

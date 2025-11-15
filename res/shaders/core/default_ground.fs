@@ -2,9 +2,21 @@
 
 layout(location = 0) out vec4 color;
 
+struct Light {
+    vec4 position_radius; // position, radius
+    vec4 color_intensity; // color, intensity
+    vec4 misc;            // volumetric_intensity, type (0 = point, 1 = directional), padding padding
+};
+
+layout(std140) uniform b_light_block {
+    // Light u_lights[MAX_LIGHTS];
+    Light u_lights[16];
+};
+
 in vec3 v_pos;
 in vec3 v_normal;
 in vec2 v_tex_coord;
+in vec3 v_frag_pos;
 
 uniform mat4 u_model_matrix;
 uniform mat4 u_world_matrix;
@@ -22,33 +34,35 @@ uniform vec3 u_camera_pos;
 
 const float diffuse_strength = 0.9;
 const float specular_strength = 0.4;
-const int   shininess = 32;
+const float shininess = 64.0;
 const float texture_scale = 1.0;
 
 void main()
 {
-	vec3 surface_pos = vec3(u_world_matrix * u_model_matrix * vec4(v_pos, 1.0));
-	mat3 normal_matrix = transpose(inverse(mat3(u_world_matrix * u_model_matrix)));
-	vec3 norm = normal_matrix * v_normal;
-	norm = normalize(norm);
+	Light point_light = u_lights[0];
+    
+	vec3  light_pos         = point_light.position_radius.xyz;
+    float light_radius      = point_light.position_radius.w;
+    vec3  light_color       = point_light.color_intensity.xyz;
+    float light_intensity   = point_light.color_intensity.w;
+    float light_volumetric  = point_light.misc.x;
+    float light_type        = point_light.misc.y; // 0 = point, 1 = directional (unused for now)
 
-	vec3 result_color = vec3(0.0, 0.0, 0.0);
+	vec3 norm = normalize(v_normal);
+	vec3 light_dir = normalize(light_pos - v_frag_pos);
 
-	vec3 light_dir = vec3(0.0, 1.0, 0.0);
-	light_dir = normalize(mat3(u_world_matrix) * u_sun_dir);
-	vec3 light_color = vec3(0.9, 0.9, 0.9);
-	vec3 view_dir = normalize(-surface_pos);
+	vec3 view_dir = normalize(u_camera_pos - v_frag_pos);
+	vec3 halfway_dir = normalize(light_dir + view_dir);
 
-	// Diffuse lighting
-	float shade = max(dot(norm, light_dir), 0.0);
-	result_color = result_color + light_color * shade * diffuse_strength;
+	float spec = pow(max(dot(norm, halfway_dir), 0.0), shininess);
+	vec3 specular = light_color * spec;
 
-	// Specular lighting
-	vec3 reflect_dir = reflect(-light_dir, norm);  
-	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), float(shininess));
-	result_color = result_color + light_color * spec * specular_strength ;
 
-	// color = texture(u_texture1, v_tex_coord * textureScale) * vec4(result_color, 1.0);
-	//color = texture(u_Texture, v_texCoord * 100) * vec4(result_color, 1.0);
-	color = vec4(result_color, 1.0);
+	float diff = max(dot(norm, light_dir), 0.0);
+	vec3 diffuse = diff * light_color;
+
+	vec3 ambient = vec3(0.2, 0.2, 0.2);
+	vec3 result = (ambient + diffuse + specular) * vec3(0.9, 0.9, 0.9);
+
+	color = vec4(result, 1.0);
 }

@@ -17,8 +17,5 @@ public:
 
     void init(ResourceManager& resources, Space* space) override;
     void tick(float delta) override;
-    void enqueue(Renderer& renderer, ResourceManager& resources) override;
-
-private:
-    
+    void enqueue(Renderer& renderer, ResourceManager& resources) override;  
 };
