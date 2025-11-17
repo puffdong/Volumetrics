@@ -9,6 +9,7 @@
 #include "core/rendering/Texture.hpp"
 
 #include "core/resources/adapters/ShaderAdapter.hpp"
+#include "core/resources/adapters/ModelAdapter.hpp"
 
 // internal resource representations
 // struct TextureResource {
@@ -96,4 +97,24 @@ std::optional<Res::Shader> ResourceManager::new_load_shader(const std::string& v
     }
     
     return std::nullopt;
+}
+
+Res::Model ResourceManager::load_model(const std::string& asset_path) {
+    const std::string file_path = get_full_path(asset_path);
+    
+    ModelResource model;
+    model.id = UUID<Res::Model>();
+    model.name = std::filesystem::path(file_path).filename().string();
+    model.asset_path = asset_path;
+    model.file_path = file_path;
+    model.last_changed = std::filesystem::last_write_time(file_path);
+    
+    model.gpu_data = ModelAdapter::load_obj(file_path);
+
+    Res::Model r_model;
+    r_model.id = model.id;
+    r_model.name = model.name;
+    r_model.asset_path = model.asset_path;
+
+    return r_model;
 }
