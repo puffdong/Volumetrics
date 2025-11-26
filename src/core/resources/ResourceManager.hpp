@@ -53,6 +53,7 @@ struct ModelResource {
     std::string asset_path;
     std::string file_path;
     std::filesystem::file_time_type last_changed;
+    
 
     ModelGpuData gpu_data;
 };
@@ -99,6 +100,8 @@ public:
     std::optional<Res::Shader> new_load_shader(const std::string& vertex_asset_path, const std::string& fragment_asset_path);
 
     Res::Model load_model(const std::string& asset_path);
+    Res::Model upload_model(ModelGpuData data); // Models generated externally can give ownership to ResourceManager through this
+    ModelGpuData get_model_gpu_data(const ModelID res_id);
 
     
 private:

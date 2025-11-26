@@ -11,7 +11,7 @@ class Space; // fwd decl
 class Object : public Base {
 private:
     Resource r_shader;
-    Resource r_model;
+    Res::Model r_model;
     Resource r_texture;
 
     // for now before we rework it, I just want to get stuff being a Base thing
@@ -31,5 +31,5 @@ public:
     void tick(float delta) override;
     void enqueue(Renderer& renderer, ResourceManager& resources) override;
 
-    void swap_model(ModelObject* model); // shitty but I need it for a quick thing
+    void set_model(Res::Model res);
 };

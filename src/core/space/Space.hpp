@@ -22,9 +22,7 @@ class Space {
 private:
 	ResourceManager& resources;
 	
-	// base objects
-	std::vector<std::unique_ptr<Base>> uninitialized_objects;
-	std::vector<std::unique_ptr<Base>> objects;
+	std::vector<std::unique_ptr<Base>> base_objects;
 
 	// lights
 	std::vector<Light> lights;
@@ -37,7 +35,11 @@ private:
 	float time = 0.0;
 	ButtonMap this_frames_button_map;
 
-
+	// placeholder for create_object feature
+	UUID<Base> id_1;
+	UUID<Base> id_2;
+	UUID<Base> id_3;
+	UUID<Base> id_4;
 
 public:
 	Space(ResourceManager& resources);
@@ -48,9 +50,17 @@ public:
 	Camera* get_camera() const { return camera; };
 	Sun* get_sun() const { return sun; };
 	const ButtonMap& get_button_map() const { return this_frames_button_map; };
+	float get_time() const { return time; };
+
 	
+	UUID<Base> create_object(glm::vec3 position);
+	UUID<Base> add_base_entity(std::unique_ptr<Base> base);
+	Base* get_base_entity(const UUID<Base>& id);
+	// UUID<Base> add_child_to_object(UUID<Base> parent); // todo for later
+	
+	void cast_ray();
+
 private:
-	void init_space();
-	void process_init_queue();
+	void init_space(); // currently where we kind of create the one and only "scene";
 	
 };

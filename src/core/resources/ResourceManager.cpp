@@ -11,20 +11,6 @@
 #include "core/resources/adapters/ShaderAdapter.hpp"
 #include "core/resources/adapters/ModelAdapter.hpp"
 
-// internal resource representations
-// struct TextureResource {
-//     ResourceID id;
-//     unsigned int gl_id;
-//     int width, height, depth;
-// };
-
-// struct ModelResource {
-//     ResourceID id;
-//     unsigned int gl_id;
-// };
-
-// shader resource specification!
-
 ResourceManager::ResourceManager(const std::string& assets_root_path, const std::string& assets_handle)
 : root_path(assets_root_path), asset_handle(assets_handle)
 {
@@ -116,5 +102,31 @@ Res::Model ResourceManager::load_model(const std::string& asset_path) {
     r_model.name = model.name;
     r_model.asset_path = model.asset_path;
 
+    model_map[r_model.id] = std::move(model);
+
     return r_model;
+}
+
+Res::Model ResourceManager::upload_model(ModelGpuData data) {
+    ModelResource model_res;
+    model_res.id = UUID<Res::Model>();
+    model_res.name = data.name;
+    model_res.asset_path = "gen://create_flat_ground()";
+    model_res.file_path = "gen://create_flat_ground()";
+
+    model_res.gpu_data = std::move(data);
+
+    Res::Model r_model;
+    r_model.id = model_res.id;
+    r_model.name = model_res.name;
+    r_model.asset_path = model_res.asset_path;
+
+    model_map[r_model.id] = std::move(model_res);
+
+    return r_model;
+
+}
+
+ModelGpuData ResourceManager::get_model_gpu_data(const ModelID res_id) {
+    return model_map[res_id].gpu_data;
 }

@@ -1,16 +1,14 @@
 #include "Line.hpp"
 #include <iostream>
 
-Line::Line(const glm::vec3& start, const glm::vec3& end,
-           const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sc)
-  : Base(pos, rot, sc) {
-    line_primitives.reserve(2);
-    line_primitives.push_back({start, end});
+Line::Line(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color)
+  : Base() {
+    line_primitives.push_back({start, end, color});
     num_lines = 1;
 }
 
-Line::Line(std::vector<LinePrimitive> lines, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sc)
-  : Base(pos, rot, sc) {
+Line::Line(std::vector<LinePrimitive> lines)
+  : Base() {
     for (int i = 0; i < lines.size(); i++) {
         line_primitives.push_back(lines[i]);
     }

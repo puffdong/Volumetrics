@@ -6,6 +6,8 @@
 #include "core/ui/ui_dumptruck.hpp"
 #include "core/Line.hpp"
 
+#include "core/utils/ModelGenerator.hpp"
+
 // feature imports :)
 #include "feature/glass/Glass.hpp"
 #include "feature/Sun.hpp"
@@ -29,22 +31,26 @@ void Space::init_space() {
 										{glm::vec3(0.f, 256.0f, 0.0f), glm::vec3(0.0f, -256.0f, 0.0f), glm::vec4(0.196f, 0.754f, 0.196f, 1.0f)}, // Y : G (forest green)
 										{glm::vec3(0.f, 0.0f, 256.0f), glm::vec3(0.0f, 0.0f, -256.0f), glm::vec4(0.118f, 0.565f, 1.0f, 1.0f)}};  // Z : B (dodger blue)
 	
-	uninitialized_objects.push_back(std::make_unique<Line>(std::move(lines)));
-
-
-	uninitialized_objects.push_back(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_ground.vs", "res://models/teapot.obj", ""));
-	uninitialized_objects.push_back(std::make_unique<Raymarcher>());
-	// uninitialized_objects.push_back(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
-	uninitialized_objects.push_back(std::make_unique<Skybox>());
-	// uninitialized_objects.push_back(std::make_unique<Glass>());
+	add_base_entity(std::make_unique<Line>(std::move(lines)));
+	add_base_entity(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_shader.vs", "res://models/teapot.obj", ""));
+	add_base_entity(std::make_unique<Raymarcher>());
+	// add_base_entity(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
+	add_base_entity(std::make_unique<Skybox>());
+	// add_base_entity(std::make_unique<Glass>());
 
 	// THIS IS STINKY; EWWW
-	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_ground.vs", "res://models/teapot.obj", "");
+	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_shader.vs");
 	base_ground->init(resources, this);
-	ModelObject* ground_model = new ModelObject(350, 350, 50, 50); // kinda hacky but eh it works!
-	base_ground->swap_model(ground_model);
-	objects.push_back(std::move(base_ground));
+	ModelGpuData ground_model_2 = ModelGenerator::create_flat_ground(350, 350, 50, 50);
+	Res::Model r_ground_model = resources.upload_model(std::move(ground_model_2));
+	base_ground->set_model(std::move(r_ground_model));
+	base_objects.push_back(std::move(base_ground));
 	// THIS IS STINKY; BLEEEH
+
+	id_1 = create_object(glm::vec3(-20.0f, 4.0f, 0.0f));
+	id_2 = create_object(glm::vec3(-25.0f, 4.0f, 0.0f));
+	id_3 = create_object(glm::vec3(-30.0f, 4.0f, 0.0f));
+	id_4 = create_object(glm::vec3(-35.0f, 4.0f, 0.0f));
 
 	// light stuff
 	Light l{};
@@ -59,31 +65,16 @@ void Space::init_space() {
 	lights.push_back(l);
 }
 
-void Space::process_init_queue() {
-	for (auto& obj : uninitialized_objects) {
-        obj->init(resources, this);
-		std::cout << "Initialized object. UUID: " << obj->get_id() << std::endl;
-    }   
-
-    objects.insert(objects.end(),
-                   std::make_move_iterator(uninitialized_objects.begin()),
-                   std::make_move_iterator(uninitialized_objects.end()));
-
-    uninitialized_objects.clear();
-}
-
 void Space::tick(float delta, ButtonMap bm)
 {
 	time += delta;
 	this_frames_button_map = bm;
 
-	process_init_queue();
-
 	camera->tick(delta, bm);
 	sun->tick(delta);
 
-	for (auto& o : objects) {
-		o->tick(delta);
+	for (auto& b : base_objects) {
+		b->tick(delta);
 		// std::string title = std::to_string(o->get_id());
 		// ui::transform_window(*o, title.c_str());
 	}
@@ -95,13 +86,45 @@ void Space::enqueue_renderables(Renderer& renderer) {
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
 	renderer.submit_lighting_data(lights);
 
-	for (auto& o : objects) {
-		o->enqueue(renderer, resources);
+	for (auto& b : base_objects) {
+		b->enqueue(renderer, resources);
 	}
 	
 	sun->enqueue(renderer, resources); // skybox prio is just a coincidence because it sun enqueues after skybox does it. gotta get some prio thing into the renderer tbh tbh tbh 
 }
 
+UUID<Base> Space::create_object(glm::vec3 position) {
+	auto new_object = std::make_unique<Object>(position, glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_shader.vs");
+	new_object->init(resources, this);
+	auto id = new_object->get_id();
+	base_objects.push_back(std::move(new_object));
 
+	return id;
+}
+
+UUID<Base> Space::add_base_entity(std::unique_ptr<Base> base) {
+	auto id = base->get_id();
+	base->init(resources, this); 
+	base_objects.push_back(std::move(base));
+	return id;
+}
+
+Base* Space::get_base_entity(const UUID<Base>& id) {
+    for (auto& b : base_objects) {
+        if (b->get_id() == id) {
+            return b.get();
+        }
+    }
+    return nullptr;
+}
+
+void Space::cast_ray() {
+	glm::vec3 view_dir = camera->get_front();
+	
+	glm::vec3 start = camera->get_position();
+	glm::vec3 end = start + view_dir * 25.0f;
+
+	add_base_entity(std::make_unique<Line>(start, end, glm::vec4(1.0f)));
+}
 
 

@@ -16,5 +16,5 @@ struct ModelGpuData {
     glm::vec3 aabb_min = glm::vec3(0.0f);
     glm::vec3 aabb_max = glm::vec3(0.0f);
     
-    std::string name;
+    std::string name = "";
 };

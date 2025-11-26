@@ -21,16 +21,9 @@ private:
     unsigned int VAO, VBO, instanceVBO;
 
 public:
-    Line(const glm::vec3& start,
-         const glm::vec3& end,
-         const glm::vec3& pos = glm::vec3(0.0f),
-         const glm::vec3& rot = glm::vec3(0.0f),
-         const glm::vec3& sc  = glm::vec3(1.0f));
+    Line(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color);
 
-    Line(std::vector<LinePrimitive> lines,
-         const glm::vec3& pos = glm::vec3(0.0f),
-         const glm::vec3& rot = glm::vec3(0.0f),
-         const glm::vec3& sc  = glm::vec3(1.0f));
+    Line(std::vector<LinePrimitive> lines);
 
     ~Line() override;
 

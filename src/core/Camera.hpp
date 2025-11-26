@@ -8,7 +8,7 @@ class Camera
 {
 public:
     glm::vec3 position;
-    glm::vec3 front;       // Direction camera is facing
+    glm::vec3 front; // Direction camera is facing
     glm::vec3 up;
     glm::vec3 right;
     glm::vec3 worldUp;
@@ -28,6 +28,7 @@ public:
     glm::mat4 get_view_matrix();
     glm::vec3 get_position();
     glm::vec3 get_right();
+    glm::vec3 get_front() const { return front; };
     void process_mouse(float xOffset, float yOffset, bool constrainPitch = true);
 
     void tick(float deltaTime, const ButtonMap& bm);

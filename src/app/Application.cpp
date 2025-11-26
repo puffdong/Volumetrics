@@ -122,10 +122,14 @@ void Application::mouse_callback(GLFWwindow*, double xpos, double ypos)
 
 void Application::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+    if ((button == GLFW_MOUSE_BUTTON_RIGHT) && (action == GLFW_PRESS) && (camera_control_mouse_active == false)) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide cursor and control it
         camera_control_mouse_active = true;
         first_mouse = true;
+    }
+
+    if ((button == GLFW_MOUSE_BUTTON_RIGHT) && (action == GLFW_PRESS) && (camera_control_mouse_active == true)) {
+        space->cast_ray();
     }
 
     if (action == GLFW_PRESS) {

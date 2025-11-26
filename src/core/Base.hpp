@@ -11,7 +11,7 @@ class Space; // forward declaration
 
 class Base {
 protected:
-    UUID<Base> _id; // 0 : uninitialized, any other, its in the scene
+    UUID<Base> _id;
     Space* _space;
     Base* _parent = nullptr; // if nullptr, it is the de facto base for this lil branch
     std::unordered_map<UUID<Base>, Base*, uuid_hash<Base>> _children;
