@@ -73,6 +73,8 @@ void Space::tick(float delta, ButtonMap bm)
 	camera->tick(delta, bm);
 	sun->tick(delta);
 
+	lights[0].position = glm::vec3(15.0f * sin(time * 0.12), 10.f, 15.0f * cos(time * 0.12));
+
 	for (auto& b : base_objects) {
 		b->tick(delta);
 		// std::string title = std::to_string(o->get_id());

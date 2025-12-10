@@ -23,6 +23,7 @@ void Raymarcher::init(ResourceManager& resources, Space* space) {
                                glm::vec3(1.f), // scale
                                (Base*) this);
     voxel_grid->init(resources, space);
+    voxel_grid->set_visibility(false);
     _children[voxel_grid->get_id()] = voxel_grid;
 
     PerlinNoiseTexture perlinTexture3D(128, 128, 128);

@@ -8,12 +8,12 @@
 class Space;
 
 struct RaymarchSettings {
-    int max_steps = 56;
-    float step_size = 0.5f; 
-    float hit_step_size = 0.2f;
+    int max_steps = 256;
+    float step_size = 0.3f; 
+    float hit_step_size = 0.15f;
     int max_light_steps = 16;
-    float light_step_size = 0.75f;
-    float max_distance = 256.f;
+    float light_step_size = 0.6f;
+    float max_distance = 512.f;
     float min_distance = 0.000001f;
 
     glm::vec3 base_color = glm::vec3(0.05f, 0.05f, 0.05f);
