@@ -14,10 +14,6 @@ private:
     Res::Model r_model;
     Resource r_texture;
 
-    // for now before we rework it, I just want to get stuff being a Base thing
-    ModelObject* _model;
-	Texture* _texture;
-
 public:
     Object(glm::vec3 pos = glm::vec3(0.f),
            glm::vec3 rot = glm::vec3(0.f),

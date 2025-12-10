@@ -107,15 +107,15 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
 
     bool hit_something = false;
 
-    // Light point_light = u_lights[0]; // trial run, lets go
+    Light point_light = u_lights[0]; // trial run, lets go
 
     // Unpack the light data once
-    // vec3  light_pos         = point_light.position_radius.xyz;
-    // float light_radius      = point_light.position_radius.w;
-    // vec3  light_color       = vec3(0.0, 1.0, 0.0);
-    // float light_intensity   = point_light.color_intensity.w;
-    // float light_volumetric  = point_light.misc.x;
-    // float light_type        = point_light.misc.y; // 0 = point, 1 = directional (unused for now)
+    vec3  light_pos         = point_light.position_radius.xyz;
+    float light_radius      = point_light.position_radius.w;
+    vec3  light_color       = point_light.color_intensity.xyz;
+    float light_intensity   = point_light.color_intensity.w;
+    float light_volumetric  = point_light.misc.x;
+    float light_type        = point_light.misc.y; // 0 = point, 1 = directional (unused for now)
 
     for (int i = 0; i < u_max_steps; ++i) {
         

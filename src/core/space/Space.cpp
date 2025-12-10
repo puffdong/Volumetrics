@@ -57,9 +57,9 @@ void Space::init_space() {
 	l.position = glm::vec3(0.0f, 10.0f, 0.0);
 	l.radius = 10.f;
 	l.color = glm::vec3(1.0f, 0.8515625, 0.4765625);
-	l.intensity = 1.0f;
+	l.intensity = 500.0f;
 	l.direction = glm::vec3(0.0f, -1.0f, 0.0f);
-	l.volumetric_intensity = 1.0f;
+	l.volumetric_intensity = 500.0f;
 	l.type = LightType::Point;
 
 	lights.push_back(l);
@@ -80,6 +80,9 @@ void Space::tick(float delta, ButtonMap bm)
 		// std::string title = std::to_string(o->get_id());
 		// ui::transform_window(*o, title.c_str());
 	}
+
+	// quick and dirty way to get the light stuff editable during run-time
+	// ui_dumptruck stuff here
 }
 
 void Space::enqueue_renderables(Renderer& renderer) {
@@ -130,3 +133,4 @@ void Space::cast_ray() {
 }
 
 
+// void Space::add_light_object()

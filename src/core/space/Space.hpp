@@ -59,6 +59,7 @@ public:
 	// UUID<Base> add_child_to_object(UUID<Base> parent); // todo for later
 	
 	void cast_ray();
+	// UUID<Light> add_light(glm::vec3 pos, );
 
 private:
 	void init_space(); // currently where we kind of create the one and only "scene";

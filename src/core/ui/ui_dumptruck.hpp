@@ -25,4 +25,6 @@ namespace ui {
     void voxel_grid_settings(VoxelGrid& grid);
 
     void raymarcher_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid);
+
+    // void light_panel();
 }
