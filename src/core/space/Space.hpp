@@ -17,15 +17,13 @@
 #include "core/space/Light.hpp"
 
 class Raymarcher; // fwd decl
+class Object;
 
 class Space {
 private:
 	ResourceManager& resources;
 	
 	std::vector<std::unique_ptr<Base>> base_objects;
-
-	// lights
-	std::vector<Light> lights;
 	
 	// various doohickeys
 	Camera* camera;
@@ -40,6 +38,14 @@ private:
 	UUID<Base> id_2;
 	UUID<Base> id_3;
 	UUID<Base> id_4;
+
+	Light light1;
+	Light light2;
+	Light light3;
+	Object* light_sphere1; 
+	Object* light_sphere2; 
+	Object* light_sphere3; 
+
 
 public:
 	Space(ResourceManager& resources);

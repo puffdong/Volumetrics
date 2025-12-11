@@ -150,6 +150,9 @@ namespace ui {
             if (ImGui::CollapsingHeader("Voxel grid settings", ImGuiTreeNodeFlags_DefaultOpen)) {
                 voxel_grid_settings(grid);
             }
+            if (ImGui::CollapsingHeader("Light Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                
+            }
         }
 
         ImGui::End();

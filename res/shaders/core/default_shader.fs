@@ -26,6 +26,7 @@ uniform sampler2D u_texture1;
 uniform vec3 u_sun_dir;
 uniform vec3 u_sun_color;
 uniform vec3 u_camera_pos;
+uniform int u_light_count;
 
 // uniform float textureScale;
 // uniform float specularStrength;
@@ -39,30 +40,38 @@ const float texture_scale = 1.0;
 
 void main()
 {
-	Light point_light = u_lights[0];
-    
-	vec3  light_pos         = point_light.position_radius.xyz;
-    float light_radius      = point_light.position_radius.w;
-    vec3  light_color       = point_light.color_intensity.xyz;
-    float light_intensity   = point_light.color_intensity.w;
-    float light_volumetric  = point_light.misc.x;
-    float light_type        = point_light.misc.y; // 0 = point, 1 = directional (unused for now)
+    vec3 norm     = normalize(v_normal);
+    vec3 view_dir = normalize(u_camera_pos - v_frag_pos);
 
-	vec3 norm = normalize(v_normal);
-	vec3 light_dir = normalize(light_pos - v_frag_pos);
+    vec3 total_diffuse  = vec3(0.0);
+    vec3 total_specular = vec3(0.0);
 
-	vec3 view_dir = normalize(u_camera_pos - v_frag_pos);
-	vec3 halfway_dir = normalize(light_dir + view_dir);
+    for (int i = 0; i < u_light_count; ++i)
+    {
+        Light point_light = u_lights[i];
+        
+        vec3  light_pos         = point_light.position_radius.xyz;
+        float light_radius      = point_light.position_radius.w;
+        vec3  light_color       = point_light.color_intensity.xyz;
+        float light_intensity   = point_light.color_intensity.w;
+        float light_volumetric  = point_light.misc.x;
+        float light_type        = point_light.misc.y; // 0 = point, 1 = directional (unused for now)
 
-	float spec = pow(max(dot(norm, halfway_dir), 0.0), shininess);
-	vec3 specular = light_color * spec;
+        vec3 light_dir   = normalize(light_pos - v_frag_pos);
+        vec3 halfway_dir = normalize(light_dir + view_dir);
 
+        float spec = pow(max(dot(norm, halfway_dir), 0.0), shininess);
+        vec3 specular = light_color * spec;
 
-	float diff = max(dot(norm, light_dir), 0.0);
-	vec3 diffuse = diff * light_color;
+        float diff = max(dot(norm, light_dir), 0.0);
+        vec3 diffuse = diff * light_color;
 
-	vec3 ambient = vec3(0.2, 0.2, 0.2);
-	vec3 result = (ambient + diffuse + specular) * vec3(0.9, 0.9, 0.9);
+        total_diffuse  += diffuse;
+        total_specular += specular;
+    }
 
-	color = vec4(result, 1.0);
+    vec3 ambient = vec3(0.2, 0.2, 0.2);
+    vec3 result  = (ambient + total_diffuse + total_specular) * vec3(0.9, 0.9, 0.9);
+
+    color = vec4(result, 1.0);
 }

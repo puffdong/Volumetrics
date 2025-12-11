@@ -39,8 +39,6 @@ void Object::tick(float delta) {
 }
 
 void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
-
-
     if (auto shader = resources.get_shader(r_shader.id)) {
         glm::mat4 proj = renderer.get_proj();
         glm::mat4 view = renderer.get_view();
@@ -74,7 +72,6 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
     if (draw_collision) {
         collision_lines->enqueue(renderer, resources);
     }
-    
 }
 
 void Object::set_model(Res::Model res) {
