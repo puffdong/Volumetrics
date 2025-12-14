@@ -47,10 +47,11 @@ void Space::init_space() {
 	base_objects.push_back(std::move(base_ground));
 	// THIS IS STINKY; BLEEEH
 
-	id_1 = create_object(glm::vec3(-20.0f, 4.0f, 0.0f));
-	id_2 = create_object(glm::vec3(-25.0f, 4.0f, 0.0f));
-	id_3 = create_object(glm::vec3(-30.0f, 4.0f, 0.0f));
-	id_4 = create_object(glm::vec3(-35.0f, 4.0f, 0.0f));
+	std::string sphere_path = "res://models/sphere.obj";
+	id_1 = create_object(glm::vec3(7.0f, -1.0f, -8.0f), glm::vec3(0.0f), glm::vec3(5.0f), sphere_path);
+	id_2 = create_object(glm::vec3(-18.0f, 5.0f, 28.0f), glm::vec3(0.0f), glm::vec3(3.5f), sphere_path);
+	id_3 = create_object(glm::vec3(35.0f, 2.0f, 14.0f), glm::vec3(0.0f), glm::vec3(2.0f), sphere_path);
+	id_4 = create_object(glm::vec3(17.0f, 3.5f, -2.0f), glm::vec3(0.0f), glm::vec3(7.0f), sphere_path);
 
 	// light stuff
 	light1.position = glm::vec3(0.0f, 10.0f, 0.0);
@@ -120,8 +121,8 @@ void Space::enqueue_renderables(Renderer& renderer) {
 	sun->enqueue(renderer, resources); // skybox prio is just a coincidence because it sun enqueues after skybox does it. gotta get some prio thing into the renderer tbh tbh tbh 
 }
 
-UUID<Base> Space::create_object(glm::vec3 position) {
-	auto new_object = std::make_unique<Object>(position, glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_shader.vs");
+UUID<Base> Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset) {
+	auto new_object = std::make_unique<Object>(position, rotation, scale, nullptr, "res://shaders/core/default_shader.vs", model_asset);
 	new_object->init(resources, this);
 	auto id = new_object->get_id();
 	base_objects.push_back(std::move(new_object));

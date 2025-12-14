@@ -59,7 +59,13 @@ public:
 	float get_time() const { return time; };
 
 	
-	UUID<Base> create_object(glm::vec3 position);
+	UUID<Base> create_object(glm::vec3 position = glm::vec3(0.0f), 
+							 glm::vec3 rotation = glm::vec3(0.0f), 
+							 glm::vec3 scale = glm::vec3(1.0f), 
+							 const std::string& model_asset = "");
+
+
+
 	UUID<Base> add_base_entity(std::unique_ptr<Base> base);
 	Base* get_base_entity(const UUID<Base>& id);
 	// UUID<Base> add_child_to_object(UUID<Base> parent); // todo for later

@@ -56,6 +56,6 @@ void LightManager::upload(const std::vector<Light>& lights) {
     _current_count = static_cast<int>(gpu_lights.size());
 }
 
-void LightManager::bind(unsigned int binding_point) const {
+void LightManager::bind(unsigned int binding_point) const { // same thinking as a texture
     glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, _ubo);
 }
