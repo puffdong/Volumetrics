@@ -14,7 +14,7 @@
 #define PI 3.14159265358979323846f
 
 namespace ui {
-    void stats_overlay(Camera* camera);
+    void stats_overlay(Camera* camera, Renderer& renderer);
     inline float to_deg(float r) { return r * (180.0f / 3.1415926535f); }
     inline float to_rad(float d) { return d * (3.1415926535f / 180.0f); } 
 

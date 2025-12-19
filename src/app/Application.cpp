@@ -287,7 +287,7 @@ int Application::run() {
         renderer.execute_pipeline();
 
         // ui 
-        ui::stats_overlay(space->get_camera());
+        ui::stats_overlay(space->get_camera(), renderer);
 
         // Imgui again
         ImGui::Render();

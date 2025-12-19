@@ -279,7 +279,10 @@ void Shader::set_uniform_mat4(const std::string& name, const glm::mat4& matrix) 
 }
 
 void Shader::set_uniform_block(const std::string& block_name, unsigned int binding_point) {
-    GLCall(glUniformBlockBinding(_rendering_id, get_uniform_block_index(block_name), binding_point));
+    glUniformBlockBinding(_rendering_id, get_uniform_block_index(block_name), binding_point);
+    while (GLenum error = glGetError()) {
+        std::cout << "[OpenGL Error] (" << error << ") <- prolly some block error in -> " << _shader_name << std::endl;
+    }
 }
 
 int Shader::get_uniform_location(const std::string& uniform_name) {

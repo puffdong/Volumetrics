@@ -10,24 +10,27 @@
 
 namespace ui {
     
-    void stats_overlay(Camera* camera) {
+    void stats_overlay(Camera* camera, Renderer& renderer) {
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                                  ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
                                  ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
         ImGui::SetNextWindowBgAlpha(0.35f);
         ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Always);
         if (ImGui::Begin("##overlay", nullptr, flags)) {
-            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+            ImGui::Text("FPS: %.1f FOV: %.1f", ImGui::GetIO().Framerate, renderer.get_fov());
+            glm::vec2 viewport_size = renderer.get_viewport_size();
+            ImGui::Text("Resolution: %d x %d", (int)viewport_size.x, (int)viewport_size.y);
             ImGui::Separator();
-            ImGui::Text("c_pos: %.1f, %.1f, %.1f",
+            ImGui::Text("pos: %.1f, %.1f, %.1f",
                 camera->position.x,
                 camera->position.y,
                 camera->position.z);
             ImGui::Separator();
-            ImGui::Text("c_dir: %.1f, %.1f, %.1f",
+            ImGui::Text("dir: %.1f, %.1f, %.1f",
                 camera->front.x,
                 camera->front.y,
                 camera->front.z);
+            
         }
         ImGui::End();
     }

@@ -55,11 +55,11 @@ void Space::init_space() {
 
 	// light stuff
 	light1.position = glm::vec3(0.0f, 10.0f, 0.0);
-	light1.radius = 10.f;
+	light1.radius = 200.f;
 	light1.color = glm::vec3(1.0f, 0.3f, 0.2f);
-	light1.intensity = 500.0f;
+	light1.intensity = 25.0f;
 	light1.direction = glm::vec3(0.0f, -1.0f, 0.0f);
-	light1.volumetric_intensity = 500.0f;
+	light1.volumetric_intensity = 1.0f;
 	light1.type = LightType::Point;
 
 	light2 = light1;
