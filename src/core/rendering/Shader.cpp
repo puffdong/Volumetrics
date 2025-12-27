@@ -1,12 +1,9 @@
- #include "Shader.hpp"
-
+#include "Shader.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <span>
-
-
 #include "Renderer.hpp"
 
 Shader::Shader(const std::string& file_path) 

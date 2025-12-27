@@ -79,8 +79,6 @@ private:
     std::unordered_set<int> resource_id_set;
     int number_of_resources = 0;
 
-    // revamping it
-    std::unordered_map<ShaderID, ShaderResource, uuid_hash<Res::Shader>> new_shader_map;
     std::unordered_map<ModelID, ModelResource, uuid_hash<Res::Model>> model_map;
 
 
@@ -91,19 +89,12 @@ public:
     Resource load_shader(const std::string& shader_asset_path);
     Resource load_shader(const std::string& vertex_asset_path, const std::string& fragment_asset_path);
     
-    // I am going to abstract this thing below later but need it for now heh
-    // The plan is to not even have "shaders" be a thing and any uniform and such is going to just be 
-    // abstracted away blah blah, we working on it yuh yuh
     std::optional<Shader*> get_shader(UUID<Resource> resource_id);
     
-    // new loaders
-    std::optional<Res::Shader> new_load_shader(const std::string& vertex_asset_path, const std::string& fragment_asset_path);
-
     Res::Model load_model(const std::string& asset_path);
-    Res::Model upload_model(ModelGpuData data); // Models generated externally can give ownership to ResourceManager through this
+    Res::Model upload_model(ModelGpuData data);
     ModelGpuData get_model_gpu_data(const ModelID res_id);
 
-    
 private:
     ResourceID generate_new_id();
 

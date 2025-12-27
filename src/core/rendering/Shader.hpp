@@ -1,14 +1,9 @@
 #pragma once
-// OpenGL
 #include <GL/glew.h>
-
-// std
 #include <string>
 #include <filesystem>  
 #include <unordered_map>
 #include <span>
-
-// glm
 #include "glm/glm.hpp"
 
 enum class ShaderType {

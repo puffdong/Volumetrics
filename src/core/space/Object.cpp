@@ -24,14 +24,16 @@ void Object::init(ResourceManager& resources, Space* space) {
 
     // object now loaded, now we construct the lines from the aabb
     init_collision_bounds_debug(resources, space);
-    // not used for now 
+
+    auto shader_path = r_shader.asset_path;
+    r_shader = resources.load_shader(shader_path, shader_path.substr(0, shader_path.find_last_of('.'))+".fs");
+
+        // not used for now 
     // if (r_texture.asset_path != "") { 
     //     _texture = new Texture(resources.get_full_path(r_texture.asset_path));
     // } else {
     //     _texture = nullptr;
     // }
-    auto shader_path = r_shader.asset_path;
-    r_shader = resources.load_shader(shader_path, shader_path.substr(0, shader_path.find_last_of('.'))+".fs");
 }
 
 void Object::tick(float delta) {
