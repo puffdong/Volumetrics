@@ -31,13 +31,13 @@ void Space::init_space() {
 	{glm::vec3(0.f, 0.0f, 256.0f), glm::vec3(0.0f, 0.0f, -256.0f), glm::vec4(0.118f, 0.565f, 1.0f, 1.0f)}};  // Z : B (dodger blue)
 	
 	add_base_entity(std::make_unique<Line>(std::move(lines)));
-	add_base_entity(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_shader.vs", "res://models/teapot.obj", ""));
+	add_base_entity(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs", "res://models/teapot.obj", ""));
 	add_base_entity(std::make_unique<Raymarcher>());
 	add_base_entity(std::make_unique<Skybox>());
 	add_base_entity(std::make_unique<Glass>());
 
 	// THIS IS STINKY; EWWW
-	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_shader.vs");
+	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs");
 	base_ground->init(resources, this);
 	ModelGpuData ground_model_2 = ModelGenerator::create_flat_ground(350, 350, 50, 50);
 	Res::Model r_ground_model = resources.upload_model(std::move(ground_model_2));
@@ -66,9 +66,9 @@ void Space::init_space() {
 	light3.color = glm::vec3(0.31f, 0.78f, 0.48f);
 
 							   								 //invert the scale to invert the normals x) now its lit up! 
-	light_sphere1 = new Object(light1.position, glm::vec3(0.0f), glm::vec3(-0.4f), nullptr, "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
-	light_sphere2 = new Object(light2.position, glm::vec3(0.0f), glm::vec3(-0.4f), nullptr, "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
-	light_sphere3 = new Object(light3.position, glm::vec3(0.0f), glm::vec3(-0.4f), nullptr, "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
+	light_sphere1 = new Object(light1.position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
+	light_sphere2 = new Object(light2.position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
+	light_sphere3 = new Object(light3.position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
 	light_sphere1->init(resources, this);
 	light_sphere2->init(resources, this);
 	light_sphere3->init(resources, this);
@@ -120,7 +120,7 @@ void Space::enqueue_renderables() {
 }
 
 UUID<Base> Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset) {
-	auto new_object = std::make_unique<Object>(position, rotation, scale, nullptr, "res://shaders/core/default_shader.vs", model_asset);
+	auto new_object = std::make_unique<Object>(position, rotation, scale, "res://shaders/core/default_shader.vs", model_asset);
 	new_object->init(resources, this);
 	auto id = new_object->get_id();
 	base_objects.push_back(std::move(new_object));

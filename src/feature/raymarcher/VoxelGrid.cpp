@@ -4,8 +4,8 @@
 
 VoxelGrid::VoxelGrid(int w, int h, int d, 
                      uint8_t init_value, float cell_size,
-			         glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent)
-    : width(w), height(h), depth(d), cell_size(cell_size), num_occupied_voxels(0), Base(pos, rot, scale, parent) 
+			         glm::vec3 pos, glm::vec3 rot, glm::vec3 scale)
+    : width(w), height(h), depth(d), cell_size(cell_size), num_occupied_voxels(0), Base(pos, rot, scale) 
 {   
     num_voxels = h * w * d;
     voxels = std::vector<uint8_t>(num_voxels, static_cast<uint8_t>(init_value));
@@ -46,7 +46,7 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
         (*shader)->set_uniform_vec3("u_grid_origin", position);
         (*shader)->set_uniform_float("u_voxel_size", cell_size);
 
-        GLuint vao = cube->getVAO();             
+        GLuint vao = cube->get_vao();             
         unsigned int index_count = cube->getIndexCount(); 
 
         TextureBinding bind{ voxel_tex, GL_TEXTURE_3D, 5, "u_voxels" };
@@ -86,7 +86,7 @@ void VoxelGrid::init_instance_buffer() {
 
     std::cout << instance_grid_indexes.size() << " <--- VOXEL GRID INSTANCE COUNT!" << std::endl;
 
-    GLuint vao = cube->getVAO();
+    GLuint vao = cube->get_vao();
     glBindVertexArray(vao);
 
     glGenBuffers(1, &instanceVBO);

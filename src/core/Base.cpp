@@ -2,9 +2,9 @@
 #include "core/space/Space.hpp"
 #include <iostream>
 
-Base::Base(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent)
-: position(pos), rotation(rot), scale(scale), _parent(parent) {
-    _id = UUID<Base>{}; // generate id yuh
+Base::Base(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale)
+: position(pos), rotation(rot), scale(scale) {
+    _id = UUID<Base>{};
 }
 
 Base::~Base() {}

@@ -12,7 +12,7 @@ Sun::Sun(glm::vec3 direction, glm::vec4 color)
 
 void Sun::init(ResourceManager& resources, Space* space) {
     Base::init(resources, space);
-    r_shader = resources.load_shader("res://shaders/sun.shader");
+    r_shader = resources.load_shader("res://shaders/sun.vs", "res://shaders/sun.fs");
     init_billboard_model();
 }
 

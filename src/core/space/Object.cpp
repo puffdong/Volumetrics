@@ -3,11 +3,11 @@
 #include "core/space/Space.hpp"
 #include <iostream>
 
-Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, Base* parent,
+Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale,
            const std::string& shader_path, 
            const std::string& model_path, 
            const std::string& texture_path) 
-           : Base(pos, rot, scale, parent) 
+           : Base(pos, rot, scale) 
            {
             r_shader.asset_path = shader_path;
             r_model.asset_path = model_path;

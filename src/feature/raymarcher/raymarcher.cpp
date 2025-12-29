@@ -1,7 +1,6 @@
 #include "raymarcher.hpp"
 #include <iostream>
 #include "core/space/Space.hpp"
-#include "core/rendering/Renderer.hpp"
 #include "core/utils/perlin_noise_generator.hpp"
 #include "core/ui/ui_dumptruck.hpp"
 
@@ -13,17 +12,11 @@ Raymarcher::Raymarcher() : Base()
 
 void Raymarcher::init(ResourceManager& resources, Space* space) {
     Base::init(resources, space);
-    std::cout << "raymarcher init" << std::endl;
     r_shader = resources.load_shader("res://shaders/raymarching/raymarcher.vs", "res://shaders/raymarching/raymarcher.fs");
 
-    voxel_grid = new VoxelGrid(30, 30, 30, 0, 1.5f, 
-                               glm::vec3(0.0, 0.0, 0.0), // pos
-                               glm::vec3(0.f), // rot
-                               glm::vec3(1.f), // scale
-                               (Base*) this);
+    voxel_grid = new VoxelGrid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.f), glm::vec3(1.f));
     voxel_grid->init(resources, space);
     voxel_grid->set_visibility(false);
-    _children[voxel_grid->get_id()] = voxel_grid;
 
     PerlinNoiseTexture perlinTexture3D(128, 128, 128);
     GLCall(GLuint textureID3D = perlinTexture3D.getTextureID());

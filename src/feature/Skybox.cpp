@@ -8,7 +8,7 @@ Skybox::Skybox() : Base()
 
 void Skybox::init(ResourceManager& resources, Space* space) {
 	Base::init(resources, space);
-	r_shader = resources.load_shader("res://shaders/Skybox.shader");
+	r_shader = resources.load_shader("res://shaders/skybox.vs", "res://shaders/skybox.fs");
 	model = new ModelObject(resources.get_full_path("res://models/skybox-full-tweaked.obj"));
 
 	TextureData top;
@@ -71,7 +71,7 @@ void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
 		tex.uniform_name = "u_texture";
 
 		RenderCommand cmd{};
-		cmd.vao        = model->getVAO();
+		cmd.vao        = model->get_vao();
 		cmd.draw_type   = DrawType::Elements;
 		cmd.count      = model->getIndexCount();
 		cmd.shader     = (*shader);

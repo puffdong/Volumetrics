@@ -1,10 +1,6 @@
 #pragma once
-#include <filesystem>
-#include <unordered_set>
 #include <unordered_map>
-#include <unordered_set>
 #include "core/UUID.hpp"
-
 #include "core/rendering/Model.hpp"
 
 namespace Res {
@@ -41,8 +37,6 @@ private:
 
     std::unordered_map<ResourceID, Resource, uuid_hash<Resource>> resource_map;
     std::unordered_map<ResourceID, std::unique_ptr<Shader>, uuid_hash<Resource>> shader_map;
-    std::unordered_set<int> resource_id_set;
-    int number_of_resources = 0;
 
     std::unordered_map<ModelID, ModelResource, uuid_hash<Res::Model>> model_map;
 
@@ -51,7 +45,6 @@ public:
     ResourceManager(const std::string& assets_root_path, const std::string& assets_handle = "res://");
     std::string get_full_path(const std::string& asset_path);
     
-    Resource load_shader(const std::string& shader_asset_path);
     Resource load_shader(const std::string& vertex_asset_path, const std::string& fragment_asset_path);
     
     std::optional<Shader*> get_shader(UUID<Resource> resource_id);

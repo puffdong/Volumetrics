@@ -1,7 +1,6 @@
 #include "ResourceManager.hpp"
 #include <optional>
 #include <string>
-#include <memory>
 #include <iostream>
 
 #include "core/rendering/Shader.hpp"
@@ -22,16 +21,6 @@ std::string ResourceManager::get_full_path(const std::string& asset_path) {
 
 ResourceID ResourceManager::generate_new_id() {
     return UUID<Resource>{};
-}
-
-Resource ResourceManager::load_shader(const std::string& shader_asset_path) {
-    ResourceID resource_id = generate_new_id();
-    shader_map[resource_id] = std::make_unique<Shader>(get_full_path(shader_asset_path));
-
-    Resource s_res = { resource_id, shader_asset_path, ResourceType::Shader };
-    resource_map[resource_id] = std::move(s_res); // keep resource thing in here
-
-    return s_res;
 }
 
 Resource ResourceManager::load_shader(const std::string& vertex_asset_path, const std::string& fragment_asset_path) {

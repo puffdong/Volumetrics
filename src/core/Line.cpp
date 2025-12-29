@@ -23,7 +23,7 @@ Line::~Line() {
 
 void Line::init(ResourceManager& resources, Space* space) {
     Base::init(resources, _space);
-    r_shader = resources.load_shader("res://shaders/Line.shader");
+    r_shader = resources.load_shader("res://shaders/line.vs", "res://shaders/line.fs");
     
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);

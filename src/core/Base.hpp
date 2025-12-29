@@ -13,8 +13,6 @@ class Base {
 protected:
     UUID<Base> _id;
     Space* _space;
-    Base* _parent = nullptr; // if nullptr, it is the de facto base for this lil branch
-    std::unordered_map<UUID<Base>, Base*, uuid_hash<Base>> _children;
 
     glm::vec3 position = glm::vec3(0.0f);
 	glm::vec3 rotation = glm::vec3(0.0f);
@@ -26,8 +24,7 @@ protected:
 public:
     Base(glm::vec3 pos = glm::vec3(0.f),
          glm::vec3 rot = glm::vec3(0.f),
-         glm::vec3 scale = glm::vec3(1.f), 
-         Base* parent = nullptr);
+         glm::vec3 scale = glm::vec3(1.f));
 
     virtual ~Base();
 
@@ -37,7 +34,7 @@ public:
 
     // getters n' setters
     UUID<Base> get_id() const { return _id; };
-    virtual glm::mat4 get_model_matrix() const; // the default behaviour is defined but should be overriden if needed
+    virtual glm::mat4 get_model_matrix() const;
     glm::vec3 get_position() const { return position; };
     glm::vec3 get_rotation() const { return rotation; };
     glm::vec3 get_scale()    const { return scale; };
@@ -48,5 +45,4 @@ public:
     void set_scale(const glm::vec3& s) { scale = s; };
     void set_visibility(const bool v) { _visible = v; };
     void set_active(const bool v) { _active = v; };
-    
 };

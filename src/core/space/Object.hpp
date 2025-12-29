@@ -13,7 +13,6 @@ public:
     Object(glm::vec3 pos = glm::vec3(0.f),
            glm::vec3 rot = glm::vec3(0.f),
            glm::vec3 scale = glm::vec3(1.f), 
-           Base* parent = nullptr,
            const std::string& shader_path = "",
            const std::string& model_path = "",
            const std::string& texture_path = "");

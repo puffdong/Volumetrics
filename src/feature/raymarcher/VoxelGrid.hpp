@@ -5,7 +5,6 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "core/Base.hpp"
-#include "core/resources/ResourceManager.hpp"
 #include "core/OBJLoader.hpp"
 
 class Space;
@@ -32,8 +31,7 @@ public:
 	VoxelGrid(int w, int h, int d, uint8_t init_value = 0, float cell_size = 1,
 			  glm::vec3 pos = glm::vec3(0.f),
 			  glm::vec3 rot = glm::vec3(0.f),
-			  glm::vec3 scale = glm::vec3(1.f), 
-			  Base* parent = nullptr);
+			  glm::vec3 scale = glm::vec3(1.f));
 	~VoxelGrid();
 
 	void init(ResourceManager& resources, Space* space) override;
@@ -54,7 +52,6 @@ public:
 
 	glm::ivec3 get_grid_dim() const { return glm::ivec3(width, height, depth); }; // width, height, depth
 	float get_cell_size() const { return cell_size; };
-
 
 	glm::vec3 get_voxel_world_pos(int x, int y, int z); // origin is at (0, 0, 0)
 	
