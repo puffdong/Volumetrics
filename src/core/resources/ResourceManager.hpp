@@ -7,57 +7,22 @@
 
 #include "core/rendering/Model.hpp"
 
-// - - - Todo - - - //
-// enable shader unloading 
-// setting uniforms (template version would be cool) 
-// re-implement uniform cache support 
-// hot-reloading 
-// couple the ResourceManager and Renderer a bit more tho (friend?!)
-
-// Outward Facing
 namespace Res {
-    struct Shader {
-        ShaderID id;
-        std::string name;
-        std::string vertex_asset_path;
-        std::string fragment_asset_path;
-    };
-
-    struct Texture {
-        TextureID id;
-    };
-
     struct Model {
         ModelID id;
         std::string name;
         std::string asset_path;
     };
-}
-
-// internal resource representations
-struct ShaderResource {
-    ShaderID id;
-    unsigned int rendering_id;
-    std::unordered_map<std::string, int> uniform_location_cache;
-	std::unordered_map<std::string, int> uniform_block_index_cache;
-   
-    std::string name;
-    std::string vertex_file_path;
-    std::string fragment_file_path;
-    std::filesystem::file_time_type shader_last_changed;
-};     
+}    
 
 struct ModelResource {
     ModelID id;
     std::string name;
     std::string asset_path;
     std::string file_path;
-    std::filesystem::file_time_type last_changed;
-    
 
     ModelGpuData gpu_data;
 };
-
 
 using ResourceID = UUID<Resource>;
 
@@ -97,7 +62,4 @@ public:
 
 private:
     ResourceID generate_new_id();
-
-
-
 };

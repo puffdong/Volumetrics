@@ -1,10 +1,4 @@
 #pragma once
-// - - - Todo - - - //
-// Look into Event Systems (signs of sloppy code from the buttonmap stuff is starting to show)
-// Move GLFW window stuff into its own class. 
-// Make Application actually work more like Application code (right now space is where I essentially do everything)
-
-
 // OpenGL
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -25,8 +19,8 @@
 
 // core
 #include "core/rendering/Renderer.hpp"
-#include "core/space/Space.hpp"
 #include "core/resources/ResourceManager.hpp"
+#include "core/space/Space.hpp"
 #include "core/ui/ui_dumptruck.hpp"
 #include "core/utils/ButtonMap.hpp"
 #include "core/space/LightManager.hpp"
@@ -53,14 +47,14 @@ private:
     bool running;
 
     float last_time;
-    float fov = 70.f; // this is kind of needed for the callback to work as expected, its rather "eh" so decouple in future <3
+    float fov = 70.f;
     
     bool init_glfw(const AppConfig& cfg);
     bool is_running() const { return running; };
     void stop();
     int shutdown();
 
-    // callback functions and respective variables
+    // callback func stuff
     double mouse_pos_x; double mouse_pos_y;
     bool camera_control_mouse_active = true;
     bool  first_mouse = true;

@@ -19,7 +19,7 @@ Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path)
     float aspect_ratio = static_cast<float>(initial_width) / initial_height;
     renderer.set_projection_matrix(aspect_ratio, 70.f, 0.1f, 512.f);
 
-    space = new Space(resources);
+    space = new Space(resources, renderer);
 
     last_time = (float) glfwGetTime();
 }
@@ -282,7 +282,7 @@ int Application::run() {
         float delta_time = current_time - last_time;
         last_time = current_time;
         space->tick(delta_time, button_map);
-        space->enqueue_renderables(renderer);
+        space->enqueue_renderables();
 
         renderer.execute_pipeline();
 

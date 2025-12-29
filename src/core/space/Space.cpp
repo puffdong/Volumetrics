@@ -1,6 +1,7 @@
 #include "Space.hpp"
 #include <iostream>
 #include <string>
+#include "core/rendering/Renderer.hpp"
 #include "core/Base.hpp"
 #include "core/space/Object.hpp"
 #include "core/ui/ui_dumptruck.hpp"
@@ -14,7 +15,7 @@
 #include "feature/Skybox.hpp"
 #include "feature/raymarcher/raymarcher.hpp"
 
-Space::Space(ResourceManager& resources) : resources(resources)
+Space::Space(ResourceManager& resources, Renderer& renderer) : resources(resources), renderer(renderer)
 {	
 	init_space();
 }
@@ -102,7 +103,7 @@ void Space::tick(float delta, ButtonMap bm)
 	// ui_dumptruck stuff here
 }
 
-void Space::enqueue_renderables(Renderer& renderer) {
+void Space::enqueue_renderables() {
 	glm::mat4 view_matrix = camera->get_view_matrix();
 	glm::vec3 cam_pos = camera->get_position();
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
@@ -115,7 +116,7 @@ void Space::enqueue_renderables(Renderer& renderer) {
 		b->enqueue(renderer, resources);
 	}
 	
-	sun->enqueue(renderer, resources); // skybox prio is just a coincidence because it sun enqueues after skybox does it. gotta get some prio thing into the renderer tbh tbh tbh 
+	sun->enqueue(renderer, resources);
 }
 
 UUID<Base> Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset) {
@@ -151,6 +152,3 @@ void Space::cast_ray() {
 
 	add_base_entity(std::make_unique<Line>(start, end, glm::vec4(1.0f)));
 }
-
-
-// void Space::add_light_object()

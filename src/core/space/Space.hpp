@@ -7,7 +7,6 @@
 
 #include "core/utils/ButtonMap.hpp"
 #include "core/resources/ResourceManager.hpp"
-#include "core/rendering/Renderer.hpp"
 
 #include "core/UUID.hpp"
 
@@ -22,6 +21,7 @@ class Object;
 class Space {
 private:
 	ResourceManager& resources;
+	Renderer& renderer;
 	
 	std::vector<std::unique_ptr<Base>> base_objects;
 	
@@ -48,10 +48,10 @@ private:
 
 
 public:
-	Space(ResourceManager& resources);
+	Space(ResourceManager& resources, Renderer& renderer);
 	
 	void tick(float delta, ButtonMap bm);
-	void enqueue_renderables(Renderer& renderer);
+	void enqueue_renderables();
 	
 	Camera* get_camera() const { return camera; };
 	Sun* get_sun() const { return sun; };
@@ -68,12 +68,10 @@ public:
 
 	UUID<Base> add_base_entity(std::unique_ptr<Base> base);
 	Base* get_base_entity(const UUID<Base>& id);
-	// UUID<Base> add_child_to_object(UUID<Base> parent); // todo for later
 	
 	void cast_ray();
-	// UUID<Light> add_light(glm::vec3 pos, );
 
 private:
-	void init_space(); // currently where we kind of create the one and only "scene";
+	void init_space();
 	
 };

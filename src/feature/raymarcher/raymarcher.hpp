@@ -41,5 +41,3 @@ public:
 private:
     void upload_uniforms(Renderer& renderer, Shader* shader);
 };
-
-

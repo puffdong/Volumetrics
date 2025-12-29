@@ -8,7 +8,6 @@
 #include "core/rendering/Model.hpp"
 #include "core/rendering/Texture.hpp"
 
-#include "core/resources/adapters/ShaderAdapter.hpp"
 #include "core/resources/adapters/ModelAdapter.hpp"
 
 ResourceManager::ResourceManager(const std::string& assets_root_path, const std::string& assets_handle)
@@ -68,7 +67,6 @@ Res::Model ResourceManager::load_model(const std::string& asset_path) {
     model.name = std::filesystem::path(file_path).filename().string();
     model.asset_path = asset_path;
     model.file_path = file_path;
-    model.last_changed = std::filesystem::last_write_time(file_path);
     
     model.gpu_data = ModelAdapter::load_obj(file_path);
 
