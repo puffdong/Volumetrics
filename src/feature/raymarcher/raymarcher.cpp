@@ -6,7 +6,6 @@
 #include "core/ui/ui_dumptruck.hpp"
 
 
-
 Raymarcher::Raymarcher() : Base()
 {
 

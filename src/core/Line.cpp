@@ -16,7 +16,6 @@ Line::Line(std::vector<LinePrimitive> lines)
 }
 
 Line::~Line() {
-    // delete shader; // TODO: fix later
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &instanceVBO);
@@ -72,7 +71,7 @@ void Line::enqueue(Renderer& renderer, ResourceManager& resources) {
         (*shader)->set_uniform_mat4("projection", renderer.get_proj());
         (*shader)->set_uniform_mat4("view", renderer.get_view());
         (*shader)->set_uniform_int("u_depth_texture", 2);
-        (*shader)->set_uniform_vec2("u_resolution", renderer.get_framebuffer_size(RenderPass::UI));
+        (*shader)->set_uniform_vec2("u_resolution", renderer.get_viewport_size());
         (*shader)->set_uniform_float("u_far", renderer.get_far());
         (*shader)->set_uniform_float("u_near", renderer.get_near());
         

@@ -33,12 +33,12 @@ void Glass::enqueue(Renderer& renderer, ResourceManager& resources) {
         shader->bind();
         shader->set_uniform_float("u_far", renderer.get_far());
         shader->set_uniform_float("u_near", renderer.get_near());
-        shader->set_uniform_vec2("u_resolution", renderer.get_framebuffer_size(RenderPass::UI));
+        shader->set_uniform_vec2("u_resolution", renderer.get_viewport_size());
 
         glm::vec3 mouse;
         if (bm.MousePointerActive && bm.MouseLeft) {
             mouse = glm::vec3(bm.MousePosX, bm.MousePosY, 1.0);
-            glm::vec3 hmm = glm::vec3(bm.MousePosX / renderer.get_framebuffer_size(RenderPass::UI).x, bm.MousePosY / renderer.get_framebuffer_size(RenderPass::UI).y, 1.0);
+            glm::vec3 hmm = glm::vec3(bm.MousePosX / renderer.get_viewport_size().x, bm.MousePosY / renderer.get_viewport_size().y, 1.0);
         } else {
             mouse = glm::vec3(bm.MousePosX, bm.MousePosY, 0.0);
         }

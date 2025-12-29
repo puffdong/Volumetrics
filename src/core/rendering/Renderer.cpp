@@ -1,6 +1,14 @@
 #include "Renderer.hpp"
 #include <iostream>
 
+// helper stuff
+#ifdef __APPLE__
+    #define ASSET_PATH "/Users/puff/Developer/graphics/Volumetrics/res/"
+    #endif
+#if defined _WIN32 || defined _WIN64
+    #define ASSET_PATH "C:/Dev/OpenGL/Volumetrics/res/"
+#endif 
+
 void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
@@ -12,8 +20,12 @@ bool GLLogCall(const char* function, const char* file, int line) {
     }
     return true;
 }
- 
-Renderer::Renderer(ResourceManager& resources) : resources(resources) {}
+
+std::string get_full_path(const std::string& asset_path) {
+    std::string asset_handle = "res://";
+    return std::string(ASSET_PATH) + std::string(asset_path.substr(asset_handle.size(), asset_path.size()));
+}
+// that's that! 
 
 void Renderer::init_renderer(int width, int height)
 {  
@@ -28,16 +40,12 @@ void Renderer::init_renderer(int width, int height)
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    default_vao = 0;
-    GLCall(glGenVertexArrays(1, &default_vao)); // keep these GL calls, if the gl context is wonky we know it early
-    GLCall(glBindVertexArray(default_vao));
-
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glDisable(GL_LINE_SMOOTH);
     glDepthMask(GL_TRUE);
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); // pick one and stick to it, CCW: counter clock wise
+    glFrontFace(GL_CCW);
 
     current.depth_test      = false;
     current.depth_write     = true;
@@ -45,15 +53,13 @@ void Renderer::init_renderer(int width, int height)
     current.cull_front_back = GL_BACK;
     current.line_smooth     = false;
     
-    // init shaders, and set the uniforms that stay static during run-time
-    composite_shader = new Shader(resources.get_full_path("res://shaders/pipeline/composite.vs"), resources.get_full_path("res://shaders/pipeline/composite.fs"));
+    composite_shader = new Shader(get_full_path("res://shaders/pipeline/composite.vs"), get_full_path("res://shaders/pipeline/composite.fs"));
     composite_shader->bind();
     composite_shader->set_uniform_int("u_src_color",   0);
     composite_shader->set_uniform_int("u_volum_color", 1);
-    composite_shader->set_uniform_int("u_depth_texture", 2); // kept for later depth-aware composite
+    composite_shader->set_uniform_int("u_depth_texture", 2); // gotta get the depth to be taken into account
 
-
-    copy_present_shader = new Shader(resources.get_full_path("res://shaders/pipeline/copy_present.vs"), resources.get_full_path("res://shaders/pipeline/copy_present.fs"));
+    copy_present_shader = new Shader(get_full_path("res://shaders/pipeline/copy_present.vs"), get_full_path("res://shaders/pipeline/copy_present.fs"));
     copy_present_shader->bind();
     copy_present_shader->set_uniform_int("u_src_color", 0);
     copy_present_shader->set_uniform_int("u_depth_texture", 2);
@@ -64,34 +70,14 @@ void Renderer::init_renderer(int width, int height)
     glViewport(0,0, width, height);
 }
 
-void Renderer::init_framebuffers(int width, int height)
-{
-    create_render_framebuffer(width, height);
-    create_volumetric_framebuffer(width, height);
-    create_composite_framebuffer(width, height);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // default framebuffer
-}
-
-void Renderer::destroy_renderer() {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-    // Todo: Clear framebuffers
-
-    for (auto& q : queues) q.clear();
-}
-
 void Renderer::init_quad() {
-    if (quad_vao) return; // already done
+    if (quad_vao) return;
 
     float verts[] = {
-        //   pos   // uv
-        -1.f, -1.f, 0.f, 0.f,
-        3.f, -1.f, 2.f, 0.f,  // single-triangle trick
-        -1.f,  3.f, 0.f, 2.f
+        // pos     // uv
+       -1.f, -1.f, 0.f, 0.f,
+        3.f, -1.f, 2.f, 0.f,
+       -1.f,  3.f, 0.f, 2.f
     };
     glGenVertexArrays(1, &quad_vao);
     glGenBuffers(1, &quad_vbo);
@@ -104,129 +90,70 @@ void Renderer::init_quad() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
 }
 
-void Renderer::create_render_framebuffer(int width, int height) {
-    // Store size
+void Renderer::init_framebuffers(int width, int height)
+{
+    // render fbo
     r_width  = width;
     r_height = height;
 
-    // Clean up previous
-    if (r_fbo) {
-        if (r_color_texture) glDeleteTextures(1, &r_color_texture);
-        if (r_depth_texture) glDeleteTextures(1, &r_depth_texture);
-        glDeleteFramebuffers(1, &r_fbo);
-        r_fbo = 0; r_color_texture = 0; r_depth_texture = 0;
+    if (render_fbo) {
+        if (ping_color) glDeleteTextures(1, &ping_color);
+        if (pong_color) glDeleteTextures(1, &pong_color);
+        if (ping_pong_depth) glDeleteTextures(1, &ping_pong_depth);
+        glDeleteFramebuffers(1, &render_fbo);
+        render_fbo = 0; ping_color = 0; pong_color = 0; ping_pong_depth = 0;
     }
 
-    // FBO
-    glGenFramebuffers(1, &r_fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, r_fbo);
+    glGenFramebuffers(1, &render_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 
-    // Color (LDR; switch to GL_SRGB8_ALPHA8 or GL_RGBA16F later if desired)
-    glGenTextures(1, &r_color_texture);
-    glBindTexture(GL_TEXTURE_2D, r_color_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
-                 GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D, r_color_texture, 0);
-
-    // Depth (texture so we can sample it later)
-    glGenTextures(1, &r_depth_texture);
-    glBindTexture(GL_TEXTURE_2D, r_depth_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0,
-                 GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    // Important: read numeric depth, not shadow compare:
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                           GL_TEXTURE_2D, r_depth_texture, 0);
+    ping_color = create_color_attachment(width, height);
+    pong_color = create_color_attachment(width, height);
+    ping_pong_depth = create_depth_attachment(width, height);
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    // Sanity check
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "[Renderer] r_fbo incomplete: 0x" << std::hex << status << std::dec << "\n";
+        std::cout << "r_fbo incomplete!" << std::endl;
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-}
 
-void Renderer::create_volumetric_framebuffer(int width, int height) {
+    // volumetric fbo
     v_width  = width;
     v_height = height;
 
-    // Clean previous
-    if (v_fbo) {
-        if (v_color_texture) glDeleteTextures(1, &v_color_texture);
-        if (v_depth_texture) glDeleteTextures(1, &v_depth_texture);
-        glDeleteFramebuffers(1, &v_fbo);
-        v_fbo = 0; v_color_texture = 0; v_depth_texture = 0;
+    if (volumetric_fbo) {
+        if (volumetric_depth) glDeleteTextures(1, &volumetric_depth);
+        if (volumetric_color) glDeleteTextures(1, &volumetric_color);
+        glDeleteFramebuffers(1, &volumetric_fbo);
+        volumetric_fbo = 0; volumetric_color = 0; volumetric_depth = 0;
     }
 
-    glGenFramebuffers(1, &v_fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, v_fbo);
+    glGenFramebuffers(1, &volumetric_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, volumetric_fbo);
 
-    // Color: HDR to avoid banding in fog
-    glGenTextures(1, &v_color_texture);
-    glBindTexture(GL_TEXTURE_2D, v_color_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, v_width, v_height, 0,
-                 GL_RGBA, GL_HALF_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D, v_color_texture, 0);
-
-    // Depth is optional for pure raymarch; keeping it gives flexibility (e.g., slicing)
-    glGenTextures(1, &v_depth_texture);
-    glBindTexture(GL_TEXTURE_2D, v_depth_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, v_width, v_height, 0,
-                 GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                           GL_TEXTURE_2D, v_depth_texture, 0);
+    volumetric_color = create_color_attachment(v_width, v_height);
+    volumetric_depth = create_depth_attachment(v_width, v_height);
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "[Renderer] v_fbo incomplete: 0x" << std::hex << status << std::dec << "\n";
+        std::cout << "v_fbo incomplete!" << std::endl;
     }
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind default :)
 }
 
-void Renderer::create_composite_framebuffer(int width, int height) {
-    c_width  = width;
-    c_height = height;
-    // Clean previous
-    if (c_fbo) {
-        if (c_color_texture) glDeleteTextures(1, &c_color_texture);
-        if (c_depth_texture) glDeleteTextures(1, &c_depth_texture);
-        glDeleteFramebuffers(1, &c_fbo);
-        c_fbo = 0; c_color_texture = 0; c_depth_texture = 0;
-    }
-
-    glGenFramebuffers(1, &c_fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, c_fbo);
-
-    // Color (LDR by default; switch to RGBA16F if you build an HDR post chain)
-    glGenTextures(1, &c_color_texture);
-    glBindTexture(GL_TEXTURE_2D, c_color_texture);
+unsigned int Renderer::create_color_attachment(int width, int height) {
+    unsigned int color_attachment = 0;
+    glGenTextures(1, &color_attachment);
+    glBindTexture(GL_TEXTURE_2D, color_attachment);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -234,11 +161,14 @@ void Renderer::create_composite_framebuffer(int width, int height) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D, c_color_texture, 0);
+                           GL_TEXTURE_2D, color_attachment, 0);
+    return color_attachment;
+}
 
-    // Depth (often not needed for pure fullscreen composites, but you exposed it)
-    glGenTextures(1, &c_depth_texture);
-    glBindTexture(GL_TEXTURE_2D, c_depth_texture);
+unsigned int Renderer::create_depth_attachment(int width, int height) {
+    unsigned int depth_attachment = 0;
+    glGenTextures(1, &depth_attachment);
+    glBindTexture(GL_TEXTURE_2D, depth_attachment);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0,
                  GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -247,23 +177,25 @@ void Renderer::create_composite_framebuffer(int width, int height) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                           GL_TEXTURE_2D, c_depth_texture, 0);
+                           GL_TEXTURE_2D, depth_attachment, 0);
 
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "[Renderer] c_fbo incomplete: 0x" << std::hex << status << std::dec << "\n";
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    return depth_attachment;
 }
 
 void Renderer::resize(int width, int height) {
     viewport_width = width;
     viewport_height = height;
     init_framebuffers(width, height); // the function re-initializes the framebuffer
+}
+
+void Renderer::destroy_renderer() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    for (auto& q : queues) q.clear();
 }
 
 void Renderer::set_projection_matrix(float new_aspect_ratio, float new_fov, float near_plane, float far_plane) {
@@ -277,30 +209,14 @@ void Renderer::set_projection_matrix(float new_aspect_ratio, float new_fov, floa
 
     fov = new_fov;
     proj = glm::perspective(glm::radians(fov), aspect_ratio, 0.1f, far);
-	changes_made = true;
 }
 
 void Renderer::set_fov(float fov) {
     set_projection_matrix(aspect_ratio, fov, near, far); // jank but honestly, pretty lush
 }
 
-
-
-glm::vec2 Renderer::get_viewport_size() {
+glm::vec2 Renderer::get_viewport_size() const {
     return glm::vec2(viewport_width, viewport_height);
-}
-
-glm::vec2 Renderer::get_framebuffer_size(RenderPass pass) {
-    switch (pass) { // This is shitty
-        case RenderPass::Skypass:
-        case RenderPass::Forward:
-        case RenderPass::UI:
-            return glm::vec2(r_width, r_height);
-        case RenderPass::Volumetrics:
-            return glm::vec2(v_width, v_height);
-        default:
-            return glm::vec2(viewport_width, viewport_height);
-    }
 }
 
 void Renderer::begin_frame()
@@ -325,15 +241,15 @@ void Renderer::flush(RenderPass pass)
 
 void Renderer::execute_pipeline() {
     // --- Ping-pong roles ------------------------------------------------------
-    GLuint src_color = r_color_texture;   // current scene buffer we READ from
-    GLuint dst_color = c_color_texture;   // destination buffer we WRITE into
+    GLuint src_color = ping_color;
+    GLuint dst_color = pong_color;
 
-    // --- 1) Skypass + Forward onto r_fbo (with depth) ------------------------
-    glBindFramebuffer(GL_FRAMEBUFFER, r_fbo);
+    // Skypass, Forward
+    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
     glViewport(0, 0, r_width, r_height);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, src_color, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,   GL_TEXTURE_2D, r_depth_texture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,   GL_TEXTURE_2D, ping_pong_depth, 0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     glDisable(GL_SCISSOR_TEST);
@@ -346,8 +262,8 @@ void Renderer::execute_pipeline() {
     flush(RenderPass::Skypass);
     flush(RenderPass::Forward);
 
-    // --- 2) Volumetrics into v_fbo -------------------------------------------
-    glBindFramebuffer(GL_FRAMEBUFFER, v_fbo);
+    // Volumetrics
+    glBindFramebuffer(GL_FRAMEBUFFER, volumetric_fbo);
     glViewport(0, 0, v_width, v_height);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
@@ -358,92 +274,72 @@ void Renderer::execute_pipeline() {
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Volumetric shaders will pull depth on whatever units they expect; we just make it handy on TU2 as convention.
-    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture);
+    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, ping_pong_depth);
 
     flush(RenderPass::Volumetrics);
 
-    // --- 3) Composite volumes → dst_color on r_fbo ---------------------------
-    glBindFramebuffer(GL_FRAMEBUFFER, r_fbo);
+    // Composite (skypass and forward) + (volumetrics)
+    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
     glViewport(0, 0, r_width, r_height);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst_color, 0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    // Detach depth while sampling it (avoids any read/write ambiguity)
+    // Don't write to depth (what?)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
 
-    // Bind inputs to well-known units
-    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // scene color
-    glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, v_color_texture); // volumetrics
-    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture); // scene depth
+    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);
+    glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, volumetric_color);
+    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, ping_pong_depth);
 
-    // Bind composite program and set sampler uniforms to the *unit indices*
     composite_shader->hot_reload_if_changed();
     composite_shader->bind();
-
-    // Optional (for later when we use depth): composite_shader->set_uniform_float("u_near", near); composite_shader->set_uniform_float("u_far",  far);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    // flush(RenderPass::UI);
+    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+    glViewport(0, 0, r_width, r_height);
+
     for (const auto& cmd : queues[int(RenderPass::UI)]) {
         { GLuint t = src_color; src_color = dst_color; dst_color = t; } // ping pong
 
-        // Re-attach depth for any later geometry-type passes (kept consistent)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, r_depth_texture, 0);
-
-        // --- 4) UI OVER SCENE (BEFORE present) -----------------------------------
-        glBindFramebuffer(GL_FRAMEBUFFER, r_fbo);
-        glViewport(0, 0, r_width, r_height);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, ping_pong_depth, 0);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst_color, 0);
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-        // Detach depth attachment while we *sample* the depth texture
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);  // 4th argument == 0 (ie, we detached depth tex)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
 
-        // 4a) Base copy src_color → dst_color
-        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // in here, both opaque and volumetrics are combined :)
-        glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture);
+        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);
+        glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, ping_pong_depth);
 
-        copy_present_shader->hot_reload_if_changed();
         copy_present_shader->bind();
 
         glBindVertexArray(quad_vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        // 4b) Make scene color + depth available to UI shaders (by convention)
-        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);       // in here, both opaque and volumetrics are combined :)
-        glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, r_depth_texture); // scene depth
-
-
         execute_command(cmd);
-        
     }
 
-    // 4c) Swap so UI-composited image becomes the new src
     { GLuint t = src_color; src_color = dst_color; dst_color = t; }
 
-    // Restore depth attachment (not strictly needed for present)
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, r_depth_texture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, ping_pong_depth, 0);
 
-    // --- 5) Present the current scene (now includes UI) ----------------------
+    // present to screen!
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, viewport_width, viewport_height);
 
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, src_color);
+    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);
 
     copy_present_shader->bind();
 

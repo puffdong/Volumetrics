@@ -13,7 +13,6 @@
 #include "feature/Sun.hpp"
 #include "feature/Skybox.hpp"
 #include "feature/raymarcher/raymarcher.hpp"
-#include "feature/water/WaterSurface.hpp"
 
 Space::Space(ResourceManager& resources) : resources(resources)
 {	
@@ -21,22 +20,20 @@ Space::Space(ResourceManager& resources) : resources(resources)
 }
 
 void Space::init_space() {
-	// Standard stuff, always there, need em for the getters and setters
 	camera = new Camera(glm::vec3(0.0, 10.0f, 0.0));
 	sun = new Sun(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)); // gotta work more on this tho
 	sun->init(resources, this); 
 
 	// world grid lines (currently parallell to all axis at 0)
 	std::vector<LinePrimitive> lines = {{glm::vec3(256.f, 0.0f, 0.0f), glm::vec3(-256.0f, 0.0f, 0.0f), glm::vec4(0.86f, 0.08f, 0.24f, 1.0f)},    // X : R (crimson red)
-										{glm::vec3(0.f, 256.0f, 0.0f), glm::vec3(0.0f, -256.0f, 0.0f), glm::vec4(0.196f, 0.754f, 0.196f, 1.0f)}, // Y : G (forest green)
-										{glm::vec3(0.f, 0.0f, 256.0f), glm::vec3(0.0f, 0.0f, -256.0f), glm::vec4(0.118f, 0.565f, 1.0f, 1.0f)}};  // Z : B (dodger blue)
+	{glm::vec3(0.f, 256.0f, 0.0f), glm::vec3(0.0f, -256.0f, 0.0f), glm::vec4(0.196f, 0.754f, 0.196f, 1.0f)}, // Y : G (forest green)
+	{glm::vec3(0.f, 0.0f, 256.0f), glm::vec3(0.0f, 0.0f, -256.0f), glm::vec4(0.118f, 0.565f, 1.0f, 1.0f)}};  // Z : B (dodger blue)
 	
 	add_base_entity(std::make_unique<Line>(std::move(lines)));
 	add_base_entity(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_shader.vs", "res://models/teapot.obj", ""));
 	add_base_entity(std::make_unique<Raymarcher>());
-	// add_base_entity(std::make_unique<WaterSurface>(glm::vec3(5.f, -10.f, 5.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, 20.f, 20.f));
 	add_base_entity(std::make_unique<Skybox>());
-	// add_base_entity(std::make_unique<Glass>());
+	add_base_entity(std::make_unique<Glass>());
 
 	// THIS IS STINKY; EWWW
 	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), nullptr, "res://shaders/core/default_shader.vs");

@@ -295,8 +295,6 @@ int Application::run() {
 
         glfwSwapBuffers(window);
 
-        glfwPollEvents();
-
         if (glfwWindowShouldClose(window)) {
             stop();
         }
