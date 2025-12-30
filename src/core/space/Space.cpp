@@ -13,11 +13,12 @@
 #include "feature/glass/Glass.hpp"
 #include "feature/Sun.hpp"
 #include "feature/Skybox.hpp"
-#include "feature/raymarcher/raymarcher.hpp"
 
-Space::Space(ResourceManager& resources, Renderer& renderer) : resources(resources), renderer(renderer)
+Space::Space(ResourceManager& resources, Renderer& renderer)
+ : resources(resources), renderer(renderer), voxel_grid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f))
 {	
 	init_space();
+	init_raymarcher_and_voxelgrid();
 }
 
 void Space::init_space() {
@@ -32,9 +33,10 @@ void Space::init_space() {
 	
 	add_base_entity(std::make_unique<Line>(std::move(lines)));
 	add_base_entity(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs", "res://models/teapot.obj", ""));
-	add_base_entity(std::make_unique<Raymarcher>());
 	add_base_entity(std::make_unique<Skybox>());
-	add_base_entity(std::make_unique<Glass>());
+
+
+	// add_base_entity(std::make_unique<Glass>());
 
 	// THIS IS STINKY; EWWW
 	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs");
@@ -46,10 +48,10 @@ void Space::init_space() {
 	// THIS IS STINKY; BLEEEH
 
 	std::string sphere_path = "res://models/sphere.obj";
-	id_1 = create_object(glm::vec3(7.0f, -1.0f, -8.0f), glm::vec3(0.0f), glm::vec3(5.0f), sphere_path);
-	id_2 = create_object(glm::vec3(-18.0f, 5.0f, 28.0f), glm::vec3(0.0f), glm::vec3(3.5f), sphere_path);
-	id_3 = create_object(glm::vec3(35.0f, 2.0f, 14.0f), glm::vec3(0.0f), glm::vec3(2.0f), sphere_path);
-	id_4 = create_object(glm::vec3(17.0f, 3.5f, -2.0f), glm::vec3(0.0f), glm::vec3(7.0f), sphere_path);
+	create_object(glm::vec3(7.0f, -1.0f, -8.0f), glm::vec3(0.0f), glm::vec3(5.0f), sphere_path);
+	create_object(glm::vec3(-18.0f, 5.0f, 28.0f), glm::vec3(0.0f), glm::vec3(3.5f), sphere_path);
+	create_object(glm::vec3(35.0f, 2.0f, 14.0f), glm::vec3(0.0f), glm::vec3(2.0f), sphere_path);
+	create_object(glm::vec3(17.0f, 3.5f, -2.0f), glm::vec3(0.0f), glm::vec3(7.0f), sphere_path);
 
 	// light stuff
 	light1.position = glm::vec3(0.0f, 10.0f, 0.0);
@@ -74,6 +76,14 @@ void Space::init_space() {
 	light_sphere3->init(resources, this);
 }
 
+void Space::init_raymarcher_and_voxelgrid() {
+	// voxel_grid = VoxelGrid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f));
+    voxel_grid.init(resources);
+	voxel_grid.set_visibility(false);
+	raymarcher = Raymarcher();
+	raymarcher.init(resources);
+}
+
 void Space::tick(float delta, ButtonMap bm)
 {
 	time += delta;
@@ -95,12 +105,11 @@ void Space::tick(float delta, ButtonMap bm)
 
 	for (auto& b : base_objects) {
 		b->tick(delta);
-		// std::string title = std::to_string(o->get_id());
-		// ui::transform_window(*o, title.c_str());
 	}
+	voxel_grid.tick(delta);
+	raymarcher.tick(delta);
+    ui::raymarcher_panel(raymarcher, raymarcher.get_raymarch_settings(), voxel_grid);
 
-	// quick and dirty way to get the light stuff editable during run-time
-	// ui_dumptruck stuff here
 }
 
 void Space::enqueue_renderables() {
@@ -116,32 +125,20 @@ void Space::enqueue_renderables() {
 		b->enqueue(renderer, resources);
 	}
 	
+	voxel_grid.enqueue(renderer, resources);
+	raymarcher.enqueue(renderer, resources, camera->get_position(), sun->get_direction(), sun->get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
 	sun->enqueue(renderer, resources);
 }
 
-UUID<Base> Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset) {
+void Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset) {
 	auto new_object = std::make_unique<Object>(position, rotation, scale, "res://shaders/core/default_shader.vs", model_asset);
 	new_object->init(resources, this);
-	auto id = new_object->get_id();
 	base_objects.push_back(std::move(new_object));
-
-	return id;
 }
 
-UUID<Base> Space::add_base_entity(std::unique_ptr<Base> base) {
-	auto id = base->get_id();
+void Space::add_base_entity(std::unique_ptr<Base> base) {
 	base->init(resources, this); 
 	base_objects.push_back(std::move(base));
-	return id;
-}
-
-Base* Space::get_base_entity(const UUID<Base>& id) {
-    for (auto& b : base_objects) {
-        if (b->get_id() == id) {
-            return b.get();
-        }
-    }
-    return nullptr;
 }
 
 void Space::cast_ray() {
@@ -152,3 +149,4 @@ void Space::cast_ray() {
 
 	add_base_entity(std::make_unique<Line>(start, end, glm::vec4(1.0f)));
 }
+

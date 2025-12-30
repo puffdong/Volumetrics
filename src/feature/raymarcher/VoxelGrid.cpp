@@ -1,11 +1,9 @@
 #include "VoxelGrid.hpp"
 #include <iostream>
-#include "core/space/Space.hpp"
 
-VoxelGrid::VoxelGrid(int w, int h, int d, 
-                     uint8_t init_value, float cell_size,
-			         glm::vec3 pos, glm::vec3 rot, glm::vec3 scale)
-    : width(w), height(h), depth(d), cell_size(cell_size), num_occupied_voxels(0), Base(pos, rot, scale) 
+
+VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, glm::vec3 pos, glm::vec3 scale)
+    : width(w), height(h), depth(d), cell_size(cell_size), num_occupied_voxels(0), position(pos), scale(scale)
 {   
     num_voxels = h * w * d;
     voxels = std::vector<uint8_t>(num_voxels, static_cast<uint8_t>(init_value));
@@ -18,11 +16,10 @@ VoxelGrid::VoxelGrid(int w, int h, int d,
     add_cube(glm::ivec3(8, 8, 8), 4, 6, 4, 1);
 }
 
-void VoxelGrid::init(ResourceManager& resources, Space* space) {
-    Base::init(resources, space);
+void VoxelGrid::init(ResourceManager& resources) {
     r_shader = resources.load_shader("res:://shaders/VoxelShaders/VoxelDebug.vs", "res:://shaders/VoxelShaders/VoxelDebug.fs");
-    cube = new ModelObject(resources.get_full_path("res://models/VoxelModels/defaultCube.obj"));
-
+    Res::Model r_model = resources.load_model("res://models/VoxelModels/defaultCube.obj");
+    cube_model = resources.get_model_gpu_data(r_model.id);
     init_instance_buffer();
     create_voxel_texture();
 }
@@ -46,16 +43,13 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
         (*shader)->set_uniform_vec3("u_grid_origin", position);
         (*shader)->set_uniform_float("u_voxel_size", cell_size);
 
-        GLuint vao = cube->get_vao();             
-        unsigned int index_count = cube->getIndexCount(); 
-
         TextureBinding bind{ voxel_tex, GL_TEXTURE_3D, 5, "u_voxels" };
 
         RenderCommand cmd{};
-        cmd.vao        = vao;
+        cmd.vao        = cube_model.vao;
         cmd.draw_type   = DrawType::ElementsInstanced;
         cmd.primitive = GL_TRIANGLES;
-        cmd.count      = index_count;
+        cmd.count      = cube_model.index_count;
         cmd.instance_count = num_occupied_voxels;
         cmd.shader     = (*shader);
         cmd.state.depth_test = true;
@@ -86,7 +80,7 @@ void VoxelGrid::init_instance_buffer() {
 
     std::cout << instance_grid_indexes.size() << " <--- VOXEL GRID INSTANCE COUNT!" << std::endl;
 
-    GLuint vao = cube->get_vao();
+    GLuint vao = cube_model.vao;
     glBindVertexArray(vao);
 
     glGenBuffers(1, &instanceVBO);
@@ -141,7 +135,6 @@ void VoxelGrid::re_init_instance_buffer() {
 }
 
 VoxelGrid::~VoxelGrid() {
-    delete cube;
     if (instanceVBO != 0) {
         glDeleteBuffers(1, &instanceVBO);
     }

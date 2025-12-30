@@ -1,22 +1,14 @@
 #include "raymarcher.hpp"
 #include <iostream>
-#include "core/space/Space.hpp"
 #include "core/utils/perlin_noise_generator.hpp"
-#include "core/ui/ui_dumptruck.hpp"
 
-
-Raymarcher::Raymarcher() : Base()
+Raymarcher::Raymarcher()
 {
 
 }
 
-void Raymarcher::init(ResourceManager& resources, Space* space) {
-    Base::init(resources, space);
+void Raymarcher::init(ResourceManager& resources) {
     r_shader = resources.load_shader("res://shaders/raymarching/raymarcher.vs", "res://shaders/raymarching/raymarcher.fs");
-
-    voxel_grid = new VoxelGrid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.f), glm::vec3(1.f));
-    voxel_grid->init(resources, space);
-    voxel_grid->set_visibility(false);
 
     PerlinNoiseTexture perlinTexture3D(128, 128, 128);
     GLCall(GLuint textureID3D = perlinTexture3D.getTextureID());
@@ -25,30 +17,26 @@ void Raymarcher::init(ResourceManager& resources, Space* space) {
 
 void Raymarcher::tick(float delta) {
     time += delta;
-    ui::raymarcher_panel(*this, raymarch_settings, *voxel_grid);
-    voxel_grid->tick(delta);
 }
 
-void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
-    voxel_grid->enqueue(renderer, resources);
+void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size) {
     
     if (!_visible) return;
 
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        upload_uniforms(renderer, *shader);
+        upload_uniforms(renderer, *shader, camera_pos, sun_dir, sun_color, grid_dim, grid_origin, cell_size);
 
         TextureBinding perlin_noise{ perlin3d, GL_TEXTURE_3D, 5, "u_noise_texture" };
-
-        TextureBinding voxel_tex{ voxel_grid->get_voxel_texture_id(), GL_TEXTURE_3D, 6, "u_voxels" };
+        TextureBinding vox_tex{ voxel_tex, GL_TEXTURE_3D, 6, "u_voxels" };
 
         RenderCommand cmd{};
         cmd.draw_type = DrawType::FullscreenQuad;
         cmd.shader    = (*shader);
         cmd.state.depth_write = false;
         cmd.textures.push_back(perlin_noise);
-        cmd.textures.push_back(voxel_tex);
+        cmd.textures.push_back(vox_tex);
         cmd.attach_lights = true;
 
         renderer.submit(RenderPass::Volumetrics, cmd);
@@ -58,7 +46,7 @@ void Raymarcher::enqueue(Renderer& renderer, ResourceManager& resources) {
     }
 }
 
-void Raymarcher::upload_uniforms(Renderer& renderer, Shader* shader) {
+void Raymarcher::upload_uniforms(Renderer& renderer, Shader* shader, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size) {
         glm::mat4 proj = renderer.get_proj();
         glm::mat4 view = renderer.get_view();
         glm::mat4 inverted_proj_view = glm::inverse(proj * view);
@@ -67,15 +55,15 @@ void Raymarcher::upload_uniforms(Renderer& renderer, Shader* shader) {
         shader->set_uniform_mat4("u_invprojview", inverted_proj_view);
         shader->set_uniform_float("u_near_plane", renderer.get_near());
         shader->set_uniform_float("u_far_plane", renderer.get_far());
-        shader->set_uniform_vec3("u_camera_pos", _space->get_camera()->get_position());
-        shader->set_uniform_vec3("u_sun_dir", _space->get_sun()->get_direction());
-        shader->set_uniform_vec3("u_sun_color", _space->get_sun()->get_color());
+        shader->set_uniform_vec3("u_camera_pos", camera_pos);
+        shader->set_uniform_vec3("u_sun_dir", sun_dir);
+        shader->set_uniform_vec3("u_sun_color", sun_color);
         shader->set_uniform_float("u_time", time);
 
         // voxel grid params
-        shader->set_uniform_ivec3("u_grid_dim", voxel_grid->get_grid_dim());
-        shader->set_uniform_vec3("u_grid_origin", voxel_grid->get_position());
-        shader->set_uniform_float("u_cell_size", voxel_grid->get_cell_size());
+        shader->set_uniform_ivec3("u_grid_dim", grid_dim);
+        shader->set_uniform_vec3("u_grid_origin", grid_origin);
+        shader->set_uniform_float("u_cell_size", cell_size);
 
         // raymarch parame
         shader->set_uniform_int("u_max_steps", raymarch_settings.max_steps);

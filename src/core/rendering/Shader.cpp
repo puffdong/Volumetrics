@@ -6,23 +6,6 @@
 #include <span>
 #include "Renderer.hpp"
 
-Shader::Shader(const std::string& file_path) 
-: _shader_files(), _rendering_id(0), _uniform_location_cache(), _uniform_block_index_cache()
-{
-    _shader_name = std::filesystem::path(file_path).filename().string();
-    if (_shader_name.empty()) _shader_name = "file not found ;_;";
-
-    ShaderProgramSource source = parse_shader(file_path);
-    _rendering_id = create_shader(source);
-    if (_rendering_id == 0) {
-        std::cout << "Shader could not be created: " << _shader_name << std::endl; 
-    }
-
-    std::filesystem::file_time_type last_write_time = std::filesystem::last_write_time(file_path);
-    
-    _shader_files.push_back({file_path, last_write_time, ShaderType::NONE}); 
-}
-
 Shader::Shader(const std::string& vertex_path, const std::string& fragment_path) 
 : _shader_files(), _rendering_id(0), _uniform_location_cache(), _uniform_block_index_cache()
 {
@@ -44,34 +27,6 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
 
 Shader::~Shader() {
     glDeleteProgram(_rendering_id);
-}
-
-ShaderProgramSource Shader::parse_shader(const std::string& file_path) {
-    std::ifstream stream(file_path);
-
-    std::string line;
-    std::stringstream ss[2]; // two types of shaders (hard coded slop heuheu)
-    ShaderType type = ShaderType::NONE;
-    while (getline(stream, line))
-    {
-        if (line.find("#shader") != std::string::npos)
-        {
-            if (line.find("vertex") != std::string::npos) {
-                type = ShaderType::VERTEX;
-            }
-            else if (line.find("fragment") != std::string::npos) {
-                type = ShaderType::FRAGMENT;
-            }
-        }
-        else {
-            if (type != ShaderType::NONE) 
-                {
-                    ss[(int)type] << line << '\n';
-                }
-        }
-    }
-
-    return { ss[0].str(), ss[1].str() }; // ShaderProgramSource struct
 }
 
 ShaderProgramSource Shader::parse_shader(const std::string& vertex_path, const std::string& fragment_path) {
@@ -154,61 +109,33 @@ void Shader::unbind() const {
 
 void Shader::hot_reload_if_changed() {
     namespace fs = std::filesystem;
+    bool changed = false;
+    for (ShaderFile file : _shader_files) {
+        fs::file_time_type now = fs::last_write_time(file.file_path);
+        if (now != file.last_write_time) {
+            changed = true; // ding ding!
 
-    // this is hacky but bear with me okay?
+        }
+        
+    }
 
-    // if only 1 file, then we got the old .shader format
-    if (_shader_files.size() == 1) { 
-        fs::file_time_type now = fs::last_write_time(_shader_files[0].file_path);
-        if (now == _shader_files[0].last_write_time) return; // nothing changed
-
-        ShaderProgramSource source = parse_shader(_shader_files[0].file_path);
+    if (changed) {
+        ShaderProgramSource source = parse_shader(_shader_files[0].file_path, _shader_files[1].file_path); // [0] -> vertex, [1] -> fragment 
         unsigned int new_id = create_shader(source);
 
         if (new_id) {
             glDeleteProgram(_rendering_id);
             _rendering_id = new_id;
             _uniform_location_cache.clear();
-            _shader_files[0].last_write_time = now;
-            std::cout << "hot-reloaded " << _shader_name << std::endl;;
+            
+            _shader_files[0].last_write_time = fs::last_write_time(_shader_files[0].file_path);
+            _shader_files[1].last_write_time = fs::last_write_time(_shader_files[1].file_path);
+            std::cout << "hot-reloaded shader: " << _shader_name << '\n';
         }
         else {
-            std::cout << "!!: hot-reloading " << _shader_name << " failed!";
+            std::cout << "!!!: hot-reloading " << _shader_name << " failed!";
         }
     }
-    // if there are more, then we know there are at least two files to look through
-    else {
-        // check both the vertex and fragment timestamps
-        bool changed = false;
-        for (ShaderFile file : _shader_files) {
-            fs::file_time_type now = fs::last_write_time(file.file_path);
-            if (now != file.last_write_time) {
-                changed = true; // ding ding!
-
-            }
-            
-        }
-
-        if (changed) {
-            ShaderProgramSource source = parse_shader(_shader_files[0].file_path, _shader_files[1].file_path); // [0] -> vertex, [1] -> fragment 
-            unsigned int new_id = create_shader(source);
-
-            if (new_id) {
-                glDeleteProgram(_rendering_id);
-                _rendering_id = new_id;
-                _uniform_location_cache.clear();
-                
-                _shader_files[0].last_write_time = fs::last_write_time(_shader_files[0].file_path);
-                _shader_files[1].last_write_time = fs::last_write_time(_shader_files[1].file_path);
-                std::cout << "hot-reloaded shader: " << _shader_name << '\n';
-            }
-            else {
-                std::cout << "!!!: hot-reloading " << _shader_name << " failed!";
-            }
-        }
-    }
-    // we did some major work on this shader class this evening, but I am at my wits end
-    // refactoring this won't be a pain, surely :))
 }
 
 void Shader::set_uniform_float(const std::string& name, float f)

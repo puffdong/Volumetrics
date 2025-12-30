@@ -5,6 +5,7 @@
 #include "core/Camera.hpp"
 #include "core/Base.hpp"
 #include "glm/glm.hpp"
+#include <iostream>
 
 #define PI 3.14159265358979323846f
 

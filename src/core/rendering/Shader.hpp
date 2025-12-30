@@ -15,7 +15,7 @@ enum class ShaderType {
 struct ShaderFile {
 	std::string file_path;
 	std::filesystem::file_time_type last_write_time;
-	ShaderType type; // NONE means it is a .shader file!
+	ShaderType type;
 };
 
 struct ShaderProgramSource {
@@ -32,7 +32,6 @@ private:
 	unsigned int _rendering_id; // opengl program id
 	
 public:
-	Shader(const std::string& file_path);
 	Shader(const std::string& vertex_path, const std::string& fragment_path);
 	~Shader();
 
@@ -64,7 +63,6 @@ public:
 	void set_uniform_block(const std::string& block_name, unsigned int binding_point);
 
 private:
-	ShaderProgramSource parse_shader(const std::string& file_path);
 	ShaderProgramSource parse_shader(const std::string& vertex_path, const std::string& fragment_path);
 
 	unsigned int create_shader(ShaderProgramSource source);

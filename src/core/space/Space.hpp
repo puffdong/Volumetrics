@@ -8,14 +8,14 @@
 #include "core/utils/ButtonMap.hpp"
 #include "core/resources/ResourceManager.hpp"
 
+#include "core/space/Light.hpp"
 #include "core/UUID.hpp"
 
 #include "core/Camera.hpp"
 #include "feature/Sun.hpp"
+#include "feature/raymarcher/VoxelGrid.hpp"
+#include "feature/raymarcher/raymarcher.hpp"
 
-#include "core/space/Light.hpp"
-
-class Raymarcher; // fwd decl
 class Object;
 
 class Space {
@@ -28,16 +28,11 @@ private:
 	// various doohickeys
 	Camera* camera;
 	Sun* sun;
-	Raymarcher* raymarcher;
+	VoxelGrid voxel_grid;
+	Raymarcher raymarcher;
 	
 	float time = 0.0;
 	ButtonMap this_frames_button_map;
-
-	// placeholder for create_object feature
-	UUID<Base> id_1;
-	UUID<Base> id_2;
-	UUID<Base> id_3;
-	UUID<Base> id_4;
 
 	Light light1;
 	Light light2;
@@ -56,22 +51,20 @@ public:
 	Camera* get_camera() const { return camera; };
 	Sun* get_sun() const { return sun; };
 	const ButtonMap& get_button_map() const { return this_frames_button_map; };
-	float get_time() const { return time; };
 
-	
-	UUID<Base> create_object(glm::vec3 position = glm::vec3(0.0f), 
+	void create_object(glm::vec3 position = glm::vec3(0.0f), 
 							 glm::vec3 rotation = glm::vec3(0.0f), 
 							 glm::vec3 scale = glm::vec3(1.0f), 
 							 const std::string& model_asset = "");
 
 
 
-	UUID<Base> add_base_entity(std::unique_ptr<Base> base);
-	Base* get_base_entity(const UUID<Base>& id);
+	void add_base_entity(std::unique_ptr<Base> base);
 	
 	void cast_ray();
 
 private:
 	void init_space();
+	void init_raymarcher_and_voxelgrid();
 	
 };

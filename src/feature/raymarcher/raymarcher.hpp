@@ -1,11 +1,8 @@
 #pragma once
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-
-#include "core/Base.hpp"
-#include "feature/raymarcher/VoxelGrid.hpp"
-
-class Space;
+#include "core/resources/ResourceManager.hpp"
+#include "core/rendering/Renderer.hpp"
 
 struct RaymarchSettings {
     int max_steps = 256;
@@ -22,22 +19,26 @@ struct RaymarchSettings {
     float extincion_coefficient = 0.25f;
 };
 
-class Raymarcher : public Base {
+class Raymarcher {
 private:
     Resource r_shader;
-
-    VoxelGrid* voxel_grid;
     GLuint perlin3d;
 
     float time = 0.0;
     RaymarchSettings raymarch_settings;
 
+    bool _visible = true;
+
 public:
     Raymarcher();
-    void init(ResourceManager& resources, Space* space) override;
-    void tick(float delta) override;
-    void enqueue(Renderer& renderer, ResourceManager& resources) override;
+    void init(ResourceManager& resources);
+    void tick(float delta);
+    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
+
+    void set_visibility(const bool v) { _visible = v; };
+    bool is_visible() const { return _visible; };
+    RaymarchSettings& get_raymarch_settings() { return raymarch_settings; };
 
 private:
-    void upload_uniforms(Renderer& renderer, Shader* shader);
+    void upload_uniforms(Renderer& renderer, Shader* shader, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
 };
