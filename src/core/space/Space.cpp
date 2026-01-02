@@ -12,12 +12,12 @@
 // feature imports :)
 #include "feature/glass/Glass.hpp"
 #include "feature/Sun.hpp"
-#include "feature/Skybox.hpp"
 
 Space::Space(ResourceManager& resources, Renderer& renderer)
  : resources(resources), renderer(renderer), voxel_grid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f))
 {	
 	init_space();
+	init_skybox();
 	init_raymarcher_and_voxelgrid();
 }
 
@@ -33,9 +33,6 @@ void Space::init_space() {
 	
 	add_base_entity(std::make_unique<Line>(std::move(lines)));
 	add_base_entity(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs", "res://models/teapot.obj", ""));
-	add_base_entity(std::make_unique<Skybox>());
-
-
 	// add_base_entity(std::make_unique<Glass>());
 
 	// THIS IS STINKY; EWWW
@@ -74,6 +71,11 @@ void Space::init_space() {
 	light_sphere1->init(resources, this);
 	light_sphere2->init(resources, this);
 	light_sphere3->init(resources, this);
+}
+
+void Space::init_skybox() {
+	skybox = Skybox();
+	skybox.init(resources);
 }
 
 void Space::init_raymarcher_and_voxelgrid() {
@@ -120,6 +122,8 @@ void Space::enqueue_renderables() {
 	light_sphere1->enqueue(renderer, resources);
 	light_sphere2->enqueue(renderer, resources);
 	light_sphere3->enqueue(renderer, resources);
+
+	skybox.enqueue(renderer, resources, cam_pos);
 
 	for (auto& b : base_objects) {
 		b->enqueue(renderer, resources);

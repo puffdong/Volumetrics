@@ -15,6 +15,7 @@
 #include "feature/Sun.hpp"
 #include "feature/raymarcher/VoxelGrid.hpp"
 #include "feature/raymarcher/raymarcher.hpp"
+#include "feature/Skybox.hpp"
 
 class Object;
 
@@ -28,6 +29,7 @@ private:
 	// various doohickeys
 	Camera* camera;
 	Sun* sun;
+	Skybox skybox;
 	VoxelGrid voxel_grid;
 	Raymarcher raymarcher;
 	
@@ -65,6 +67,7 @@ public:
 
 private:
 	void init_space();
+	void init_skybox();
 	void init_raymarcher_and_voxelgrid();
 	
 };

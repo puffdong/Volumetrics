@@ -1,15 +1,14 @@
 #include "Skybox.hpp"
 #include "core/OBJLoader.hpp"
-#include "core/space/Space.hpp"
 #include "core/rendering/Renderer.hpp"
 
-Skybox::Skybox() : Base()
-{}
+Skybox::Skybox() {
 
-void Skybox::init(ResourceManager& resources, Space* space) {
-	Base::init(resources, space);
+}
+
+void Skybox::init(ResourceManager& resources) {
 	r_shader = resources.load_shader("res://shaders/skybox.vs", "res://shaders/skybox.fs");
-	model = new ModelObject(resources.get_full_path("res://models/skybox-full-tweaked.obj"));
+	r_model = resources.load_model("res://models/skybox-full-tweaked.obj");
 
 	TextureData top;
 	LoadTGATextureData(resources.get_full_path("res://textures/skybox/top.tga").c_str(), &top);
@@ -30,18 +29,9 @@ void Skybox::init(ResourceManager& resources, Space* space) {
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_tex);
 
 	for (int i = 0; i < 6; ++i) {
-		// faces[0..5] = your 6 images
 		auto& img = faces[i];
-		glTexImage2D(
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-			0,
-			GL_RGBA,
-			img.width, img.height,
-			0,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			img.imageData
-		);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.imageData);
+		free(img.imageData);
 	}
 
 	// filtering / wrapping
@@ -52,17 +42,16 @@ void Skybox::init(ResourceManager& resources, Space* space) {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
-void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
+void Skybox::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos)
 {
 	if (auto shader = resources.get_shader(r_shader.id)) {
-		auto camera = _space->get_camera();
-		glm::mat4 model_matrix = glm::scale(glm::translate(glm::mat4(1.f), camera->get_position()), glm::vec3(5.f, 5.f, 5.f));
+		glm::mat4 model_matrix = glm::scale(glm::translate(glm::mat4(1.f), camera_pos), glm::vec3(5.f, 5.f, 5.f));
 		glm::mat4 mvp = renderer.get_proj() * renderer.get_view() * model_matrix;
 
+		(*shader)->hot_reload_if_changed();
 		(*shader)->bind();
 		(*shader)->set_uniform_mat4("u_proj", renderer.get_proj());
 		(*shader)->set_uniform_mat4("u_view", renderer.get_view());
-		(*shader)->set_uniform_mat4("u_mvp", mvp);
 		
 		TextureBinding tex{};
 		tex.id = skybox_tex;
@@ -70,10 +59,12 @@ void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
 		tex.unit = 5;
 		tex.uniform_name = "u_texture";
 
+		ModelGpuData model_gpu = resources.get_model_gpu_data(r_model.id);
+
 		RenderCommand cmd{};
-		cmd.vao        = model->get_vao();
+		cmd.vao        = model_gpu.vao;
 		cmd.draw_type   = DrawType::Elements;
-		cmd.count      = model->getIndexCount();
+		cmd.count      = model_gpu.index_count;
 		cmd.shader     = (*shader);
 		cmd.state.depth_test  = false;
 		cmd.state.depth_write = false;
