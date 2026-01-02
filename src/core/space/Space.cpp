@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include "core/rendering/Renderer.hpp"
-#include "core/Base.hpp"
 #include "core/space/Object.hpp"
 #include "core/ui/ui_dumptruck.hpp"
 #include "core/Line.hpp"
@@ -11,7 +10,6 @@
 
 // feature imports :)
 #include "feature/glass/Glass.hpp"
-#include "feature/Sun.hpp"
 
 Space::Space(ResourceManager& resources, Renderer& renderer)
  : resources(resources), renderer(renderer), voxel_grid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f))
@@ -23,8 +21,6 @@ Space::Space(ResourceManager& resources, Renderer& renderer)
 
 void Space::init_space() {
 	camera = new Camera(glm::vec3(0.0, 10.0f, 0.0));
-	sun = new Sun(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)); // gotta work more on this tho
-	sun->init(resources, this); 
 
 	// world grid lines (currently parallell to all axis at 0)
 	std::vector<LinePrimitive> lines = {{glm::vec3(256.f, 0.0f, 0.0f), glm::vec3(-256.0f, 0.0f, 0.0f), glm::vec4(0.86f, 0.08f, 0.24f, 1.0f)},    // X : R (crimson red)
@@ -76,6 +72,10 @@ void Space::init_space() {
 void Space::init_skybox() {
 	skybox = Skybox();
 	skybox.init(resources);
+	sun = Sun();
+	sun.set_direction(glm::vec3(1.0f, 1.0f, 1.0f));
+	sun.set_color(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	sun.init(resources);
 }
 
 void Space::init_raymarcher_and_voxelgrid() {
@@ -92,7 +92,7 @@ void Space::tick(float delta, ButtonMap bm)
 	this_frames_button_map = bm;
 
 	camera->tick(delta, bm);
-	sun->tick(delta);
+	sun.tick(delta);
 
 	glm::vec3 light_pos1 = glm::vec3(10.0f * sin(time * 0.12), 10.f, 10.0f * cos(time * 0.12));
 	glm::vec3 light_pos2 = glm::vec3(10.0f * sin(time * 0.12 + 3 * PI/2), 10.f, 10.0f * cos(time * 0.12 + 3 * PI/2));
@@ -116,22 +116,22 @@ void Space::tick(float delta, ButtonMap bm)
 
 void Space::enqueue_renderables() {
 	glm::mat4 view_matrix = camera->get_view_matrix();
-	glm::vec3 cam_pos = camera->get_position();
+	glm::vec3 camera_pos = camera->get_position();
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
 	renderer.submit_lighting_data(std::vector<Light>{light1, light2, light3});
 	light_sphere1->enqueue(renderer, resources);
 	light_sphere2->enqueue(renderer, resources);
 	light_sphere3->enqueue(renderer, resources);
 
-	skybox.enqueue(renderer, resources, cam_pos);
+	skybox.enqueue(renderer, resources, camera_pos);
+	sun.enqueue(renderer, resources, camera_pos);
 
 	for (auto& b : base_objects) {
 		b->enqueue(renderer, resources);
 	}
 	
 	voxel_grid.enqueue(renderer, resources);
-	raymarcher.enqueue(renderer, resources, camera->get_position(), sun->get_direction(), sun->get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
-	sun->enqueue(renderer, resources);
+	raymarcher.enqueue(renderer, resources, camera->get_position(), sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
 }
 
 void Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset) {

@@ -1,5 +1,4 @@
 #include "Skybox.hpp"
-#include "core/OBJLoader.hpp"
 #include "core/rendering/Renderer.hpp"
 
 Skybox::Skybox() {

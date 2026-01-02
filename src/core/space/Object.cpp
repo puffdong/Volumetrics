@@ -45,7 +45,7 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
         (*shader)->set_uniform_vec3("u_camera_pos", _space->get_camera()->get_position());
-        (*shader)->set_uniform_vec3("u_sun_dir", _space->get_sun()->get_direction());
+        (*shader)->set_uniform_vec3("u_sun_dir", _space->get_sun().get_direction());
         (*shader)->set_uniform_vec3("u_sun_color", glm::vec3(1.0, 1.0, 1.0));
         (*shader)->set_uniform_mat4("u_mvp", proj * view * model);
         (*shader)->set_uniform_mat4("u_proj", renderer.get_proj());

@@ -1,14 +1,14 @@
 #pragma once
 #include "core/resources/ResourceManager.hpp"
-#include "core/rendering/Texture.hpp"
+#include "core/rendering/Renderer.hpp"
+#include "core/LoadTGA.hpp"
+
 
 class Space; //fwd decl
 
 struct Skybox {
 	Resource r_shader;
 	Res::Model r_model;
-	
-	Texture* texture;
 
 	GLuint skybox_tex;
 

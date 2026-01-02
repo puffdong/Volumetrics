@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "glm/glm.hpp"
+#include "core/Base.hpp"
 
 #include "core/utils/ButtonMap.hpp"
 #include "core/resources/ResourceManager.hpp"
@@ -13,9 +14,9 @@
 
 #include "core/Camera.hpp"
 #include "feature/Sun.hpp"
+#include "feature/Skybox.hpp"
 #include "feature/raymarcher/VoxelGrid.hpp"
 #include "feature/raymarcher/raymarcher.hpp"
-#include "feature/Skybox.hpp"
 
 class Object;
 
@@ -28,8 +29,8 @@ private:
 	
 	// various doohickeys
 	Camera* camera;
-	Sun* sun;
 	Skybox skybox;
+	Sun sun;
 	VoxelGrid voxel_grid;
 	Raymarcher raymarcher;
 	
@@ -51,7 +52,7 @@ public:
 	void enqueue_renderables();
 	
 	Camera* get_camera() const { return camera; };
-	Sun* get_sun() const { return sun; };
+	Sun& get_sun() { return sun; };
 	const ButtonMap& get_button_map() const { return this_frames_button_map; };
 
 	void create_object(glm::vec3 position = glm::vec3(0.0f), 

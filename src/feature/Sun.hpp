@@ -1,36 +1,36 @@
 #pragma once
-#include "core/Base.hpp"
-#include "glm/glm.hpp"
+#include "core/resources/ResourceManager.hpp"
+#include "core/rendering/Renderer.hpp"
+#include <glm/glm.hpp>
 
-class Space; // fwd decl
-
-class Sun : public Base {
+class Sun {
 public:
-    Resource r_shader; 
+    glm::vec3 direction{0.0f, 1.0f, 0.0f};
+    glm::vec4 color{1.0f};
+    float sun_distance = 250.0f;
+    float time = 0.0f;
 
-	glm::vec3 dir;
-    glm::vec4 color;
+    Sun();
+    ~Sun();
 
-    float sun_distance = 250.f;
+    void init(ResourceManager& resources);
+    void tick(float delta);
+    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos);
 
-    float time;
-
-	Sun(glm::vec3 direction, glm::vec4 color);
-
-    void init(ResourceManager& resources, Space* space) override;
-    void tick(float delta) override;
-    void enqueue(Renderer& renderer, ResourceManager& resources) override;
+    glm::vec3 get_direction() const { return direction; }
+    glm::vec4 get_color() const { return color; }
+    float get_distance() const { return sun_distance; }
     
-	glm::vec3 get_direction() { return dir; };
-    glm::vec4 get_color() { return color; };
-    float get_distance() { return sun_distance; };
-    void set_distance(float distance) { sun_distance = distance; };
-
+    void set_direction(const glm::vec3& dir) { direction = dir; }
+    void set_color(const glm::vec4& c) { color = c; }
+    void set_distance(float dist) { sun_distance = dist; }
 
 private:
-    GLuint VAO, VBO, EBO;
-    GLsizei index_count;
-    
+    Resource r_shader;
+    GLuint vao = 0;
+    GLuint vbo = 0;
+    GLuint ebo = 0;
+    GLsizei index_count = 0;
 
     void init_billboard_model();
 };

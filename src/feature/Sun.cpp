@@ -1,104 +1,98 @@
 #include "Sun.hpp"
-#include "core/space/Space.hpp"
-#include <glm/glm.hpp>
+#include "core/rendering/Renderer.hpp"
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/geometric.hpp>
-#include <iostream>
+#include <vector>
 
+Sun::Sun() = default;
 
-Sun::Sun(glm::vec3 direction, glm::vec4 color) 
-    : dir(direction), color(color), time(0.0f), Base() {
-    }
+Sun::~Sun() {
+    if (vao) glDeleteVertexArrays(1, &vao);
+    if (vbo) glDeleteBuffers(1, &vbo);
+    if (ebo) glDeleteBuffers(1, &ebo);
+}
 
-void Sun::init(ResourceManager& resources, Space* space) {
-    Base::init(resources, space);
+void Sun::init(ResourceManager& resources) {
     r_shader = resources.load_shader("res://shaders/sun.vs", "res://shaders/sun.fs");
     init_billboard_model();
 }
 
 void Sun::tick(float delta) {
     time += delta;
-    dir.x += 0.005 * sin(time); 
-    dir.z += 0.005 * cos(time);
+    float speed = 0.5f; 
+
+    float x = std::sin(time * speed);
+    float z = std::cos(time * speed);
+    float y = 1.0f; 
+
+    direction = glm::vec3(x, y, z);
+    direction = glm::normalize(direction);
 }
 
 void Sun::init_billboard_model() {
     float depth = 5.0f;
     float width = 5.0f;
+    
     std::vector<float> vertices = {
-    // Positions                            // Normals            // Texture Coords
+    // Positions                            // Normals            // UVs
     -width / 2.0f, 0.0f, -depth / 2.0f,     0.0f, 1.0f, 0.0f,     0.0f, 0.0f,
      width / 2.0f, 0.0f, -depth / 2.0f,     0.0f, 1.0f, 0.0f,     1.0f, 0.0f,
      width / 2.0f, 0.0f,  depth / 2.0f,     0.0f, 1.0f, 0.0f,     1.0f, 1.0f,
     -width / 2.0f, 0.0f,  depth / 2.0f,     0.0f, 1.0f, 0.0f,     0.0f, 1.0f
     };
 
-    std::vector<unsigned int> indices = {
-        2, 1, 0,
-        0, 3, 2
-    };
+    std::vector<unsigned int> indices = { 2, 1, 0, 0, 3, 2 };
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindVertexArray(vao);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    GLsizei stride = 8 * sizeof(float); // 3 + 3 + 2
-    glEnableVertexAttribArray(0); // loc 0
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(0));
-    glEnableVertexAttribArray(1); // loc 1
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(3 * sizeof(float)));
-    glEnableVertexAttribArray(2); // loc 2
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void*>(6 * sizeof(float)));
+    GLsizei stride = 8 * sizeof(float); 
+    glEnableVertexAttribArray(0); 
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    glEnableVertexAttribArray(1); 
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2); 
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
     
     glBindVertexArray(0);
 
     index_count = static_cast<GLsizei>(indices.size());
 }
 
-void Sun::enqueue(Renderer& renderer, ResourceManager& resources) {
-    glm::vec3 cam_pos = _space->get_camera()->get_position();
+void Sun::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos) {
+    auto shader_ptr = resources.get_shader(r_shader.id);
+    if (!shader_ptr) return;
+    
+    auto* shader = *shader_ptr;
+    
+    glm::vec3 sun_pos = camera_pos + (glm::normalize(direction) * sun_distance);
 
-    glm::vec3 norm_sun_dir = glm::normalize(this->dir); 
-    glm::vec3 sun_pos = cam_pos + (norm_sun_dir * sun_distance);
+    glm::mat4 look_at = glm::lookAt(sun_pos, camera_pos, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model = glm::inverse(look_at);
 
-    glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
+    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    glm::vec3 new_Y_axis_ws = cam_pos - sun_pos;
-    float distance_to_camera = glm::length(new_Y_axis_ws);
-    new_Y_axis_ws /= glm::length(new_Y_axis_ws); 
-    glm::vec3 new_X_axis_ws = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), new_Y_axis_ws));
+    glm::mat4 mvp = renderer.get_proj() * renderer.get_view() * model;
 
-    glm::vec3 new_Z_axis_ws = glm::normalize(glm::cross(new_X_axis_ws, new_Y_axis_ws));
-    glm::mat4 rot(1.0f);
-    rot[0] = glm::vec4(new_X_axis_ws, 0.0f);    
-    rot[1] = glm::vec4(new_Y_axis_ws, 0.0f);    
-    rot[2] = glm::vec4(new_Z_axis_ws, 0.0f);    
+    shader->bind();
+    shader->set_uniform_mat4("u_mvp", mvp);
 
-    glm::mat4 trans = glm::translate(glm::mat4(1.0f), sun_pos);
-    glm::mat4 model_matrix = trans * rot;
+    RenderCommand cmd{};
+    cmd.vao = vao;
+    cmd.draw_type = DrawType::Elements;
+    cmd.count = index_count;
+    cmd.shader = shader;
+    
+    cmd.state.depth_test = false;
+    cmd.state.depth_write = false;
 
-    glm::mat4 mvp = renderer.get_proj() * renderer.get_view() * model_matrix;
-    if (auto shader = resources.get_shader(r_shader.id)) {
-        (*shader)->bind();
-        (*shader)->set_uniform_vec3("sun_dir", this->dir); 
-        (*shader)->set_uniform_mat4("u_mvp", mvp);
-
-        RenderCommand cmd{};
-        cmd.vao        = VAO;
-        cmd.draw_type   = DrawType::Elements;
-        cmd.count      = index_count;
-        cmd.shader     = (*shader);
-        cmd.state.depth_test  = false;
-        cmd.state.depth_write = false;
-
-        renderer.submit(RenderPass::Skypass, cmd);
-    } else {
-        std::cout << "sun ain't sunning" << std::endl;
-    }
+    renderer.submit(RenderPass::Skypass, cmd);
 }
