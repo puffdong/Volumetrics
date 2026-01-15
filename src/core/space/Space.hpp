@@ -17,6 +17,7 @@
 #include "feature/Skybox.hpp"
 #include "feature/raymarcher/VoxelGrid.hpp"
 #include "feature/raymarcher/raymarcher.hpp"
+#include "feature/glass/Glass.hpp"
 
 class Object;
 
@@ -33,6 +34,7 @@ private:
 	Sun sun;
 	VoxelGrid voxel_grid;
 	Raymarcher raymarcher;
+	Glass glass;
 	
 	float time = 0.0;
 	ButtonMap this_frames_button_map;
@@ -70,5 +72,6 @@ private:
 	void init_space();
 	void init_skybox();
 	void init_raymarcher_and_voxelgrid();
+	void init_glass();
 	
 };

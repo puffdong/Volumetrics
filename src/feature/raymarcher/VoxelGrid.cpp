@@ -1,7 +1,6 @@
 #include "VoxelGrid.hpp"
 #include <iostream>
 
-
 VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, glm::vec3 pos, glm::vec3 scale)
     : width(w), height(h), depth(d), cell_size(cell_size), num_occupied_voxels(0), position(pos), scale(scale)
 {   

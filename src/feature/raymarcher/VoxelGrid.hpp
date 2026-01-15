@@ -5,8 +5,6 @@
 #include "core/resources/ResourceManager.hpp"
 #include "core/rendering/Renderer.hpp"
 
-struct Resource;
-
 class VoxelGrid {
 private:
 	glm::vec3 position;
@@ -30,6 +28,7 @@ private:
 	bool _visible = true;
 	
 public:
+	VoxelGrid() = default;
 	VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, glm::vec3 pos, glm::vec3 scale);
 	~VoxelGrid();
 

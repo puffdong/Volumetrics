@@ -8,19 +8,18 @@
 
 #include "core/utils/ModelGenerator.hpp"
 
-// feature imports :)
-#include "feature/glass/Glass.hpp"
-
 Space::Space(ResourceManager& resources, Renderer& renderer)
- : resources(resources), renderer(renderer), voxel_grid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f))
+ : resources(resources), renderer(renderer)
 {	
 	init_space();
-	init_skybox();
-	init_raymarcher_and_voxelgrid();
 }
 
 void Space::init_space() {
 	camera = new Camera(glm::vec3(0.0, 10.0f, 0.0));
+
+	init_skybox();
+	init_raymarcher_and_voxelgrid();
+	init_glass();
 
 	// world grid lines (currently parallell to all axis at 0)
 	std::vector<LinePrimitive> lines = {{glm::vec3(256.f, 0.0f, 0.0f), glm::vec3(-256.0f, 0.0f, 0.0f), glm::vec4(0.86f, 0.08f, 0.24f, 1.0f)},    // X : R (crimson red)
@@ -79,11 +78,15 @@ void Space::init_skybox() {
 }
 
 void Space::init_raymarcher_and_voxelgrid() {
-	// voxel_grid = VoxelGrid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f));
+	voxel_grid = VoxelGrid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f)); 
     voxel_grid.init(resources);
 	voxel_grid.set_visibility(false);
 	raymarcher = Raymarcher();
 	raymarcher.init(resources);
+}
+
+void Space::init_glass() {
+	glass.init(resources);
 }
 
 void Space::tick(float delta, ButtonMap bm)
@@ -111,6 +114,7 @@ void Space::tick(float delta, ButtonMap bm)
 	voxel_grid.tick(delta);
 	raymarcher.tick(delta);
     ui::raymarcher_panel(raymarcher, raymarcher.get_raymarch_settings(), voxel_grid);
+	glass.tick(delta, bm);
 
 }
 
@@ -132,6 +136,7 @@ void Space::enqueue_renderables() {
 	
 	voxel_grid.enqueue(renderer, resources);
 	raymarcher.enqueue(renderer, resources, camera->get_position(), sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
+	glass.enqueue(renderer, resources, this_frames_button_map);
 }
 
 void Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset) {
