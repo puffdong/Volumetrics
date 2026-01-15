@@ -39,6 +39,8 @@ private:
 	float time = 0.0;
 	ButtonMap this_frames_button_map;
 
+	std::vector<Light> lights;
+
 	Light light1;
 	Light light2;
 	Light light3;
@@ -73,5 +75,11 @@ private:
 	void init_skybox();
 	void init_raymarcher_and_voxelgrid();
 	void init_glass();
+	
+	
+	void init_lights();
+	void add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
+					  glm::vec3 direction, float volumetric_intensity, LightType type);
+	void process_lights();
 	
 };

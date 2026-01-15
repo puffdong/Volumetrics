@@ -14,9 +14,12 @@ struct RaymarchSettings {
     float min_distance = 0.000001f;
 
     glm::vec3 base_color = glm::vec3(0.05f, 0.05f, 0.05f);
-    float absorption_coefficient = 0.5f;
-    float scattering_coefficient = 0.5f;
-    float extincion_coefficient = 0.25f;
+    float absorption_coefficient = 1.0f;
+    float scattering_coefficient = 0.6f;
+    float extincion_coefficient = 1.6f;
+
+    float anisotropy = 0.5f; // for the HG phase function
+    float sun_intensity = 20.f;
 };
 
 class Raymarcher {

@@ -20,6 +20,7 @@ void Space::init_space() {
 	init_skybox();
 	init_raymarcher_and_voxelgrid();
 	init_glass();
+	init_lights();
 
 	// world grid lines (currently parallell to all axis at 0)
 	std::vector<LinePrimitive> lines = {{glm::vec3(256.f, 0.0f, 0.0f), glm::vec3(-256.0f, 0.0f, 0.0f), glm::vec4(0.86f, 0.08f, 0.24f, 1.0f)},    // X : R (crimson red)
@@ -45,27 +46,7 @@ void Space::init_space() {
 	create_object(glm::vec3(35.0f, 2.0f, 14.0f), glm::vec3(0.0f), glm::vec3(2.0f), sphere_path);
 	create_object(glm::vec3(17.0f, 3.5f, -2.0f), glm::vec3(0.0f), glm::vec3(7.0f), sphere_path);
 
-	// light stuff
-	light1.position = glm::vec3(0.0f, 10.0f, 0.0);
-	light1.radius = 200.f;
-	light1.color = glm::vec3(1.0f, 0.3f, 0.2f);
-	light1.intensity = 25.0f;
-	light1.direction = glm::vec3(0.0f, -1.0f, 0.0f);
-	light1.volumetric_intensity = 1.0f;
-	light1.type = LightType::Point;
 
-	light2 = light1;
-	light2.color = glm::vec3(0.0f, 0.58f, 1.0f);
-	light3 = light1;
-	light3.color = glm::vec3(0.31f, 0.78f, 0.48f);
-
-							   								 //invert the scale to invert the normals x) now its lit up! 
-	light_sphere1 = new Object(light1.position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
-	light_sphere2 = new Object(light2.position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
-	light_sphere3 = new Object(light3.position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
-	light_sphere1->init(resources, this);
-	light_sphere2->init(resources, this);
-	light_sphere3->init(resources, this);
 }
 
 void Space::init_skybox() {
@@ -87,6 +68,22 @@ void Space::init_raymarcher_and_voxelgrid() {
 
 void Space::init_glass() {
 	glass.init(resources);
+	glass.set_visibility(false);
+}
+
+void Space::init_lights() {
+	lights.reserve(3);
+	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(1.0f, 0.3f, 0.2f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
+	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(0.0f, 0.58f, 1.0f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
+	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(0.31f, 0.78f, 0.48f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
+	
+	//invert the scale to invert the normals x) now its lit up! 
+	light_sphere1 = new Object(lights[0].position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
+	light_sphere2 = new Object(lights[1].position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
+	light_sphere3 = new Object(lights[2].position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
+	light_sphere1->init(resources, this);
+	light_sphere2->init(resources, this);
+	light_sphere3->init(resources, this);
 }
 
 void Space::tick(float delta, ButtonMap bm)
@@ -97,16 +94,7 @@ void Space::tick(float delta, ButtonMap bm)
 	camera->tick(delta, bm);
 	sun.tick(delta);
 
-	glm::vec3 light_pos1 = glm::vec3(10.0f * sin(time * 0.12), 10.f, 10.0f * cos(time * 0.12));
-	glm::vec3 light_pos2 = glm::vec3(10.0f * sin(time * 0.12 + 3 * PI/2), 10.f, 10.0f * cos(time * 0.12 + 3 * PI/2));
-	glm::vec3 light_pos3 = glm::vec3(10.0f * sin(time * 0.12 + PI), 10.f, 10.0f * cos(time * 0.12 + PI));
-	
-	light_sphere1->set_position(light_pos1);
-	light_sphere2->set_position(light_pos2);
-	light_sphere3->set_position(light_pos3);
-	light1.position = light_sphere1->get_position();
-	light2.position = light_sphere2->get_position();
-	light3.position = light_sphere3->get_position();
+	process_lights();
 
 	for (auto& b : base_objects) {
 		b->tick(delta);
@@ -118,11 +106,27 @@ void Space::tick(float delta, ButtonMap bm)
 
 }
 
+void Space::process_lights() {
+	// not pretty but we aint all perfect alright?
+	glm::vec3 light_pos1 = glm::vec3(10.0f * sin(time * 0.12), 10.f, 10.0f * cos(time * 0.12));
+	glm::vec3 light_pos2 = glm::vec3(10.0f * sin(time * 0.12 + 3 * PI/2), 10.f, 10.0f * cos(time * 0.12 + 3 * PI/2));
+	glm::vec3 light_pos3 = glm::vec3(10.0f * sin(time * 0.12 + PI), 10.f, 10.0f * cos(time * 0.12 + PI));
+
+	light_sphere1->set_position(light_pos1);
+	light_sphere2->set_position(light_pos2);
+	light_sphere3->set_position(light_pos3);
+	lights[0].position = light_pos1;
+	lights[1].position = light_pos2;
+	lights[2].position = light_pos3;
+}
+
 void Space::enqueue_renderables() {
 	glm::mat4 view_matrix = camera->get_view_matrix();
 	glm::vec3 camera_pos = camera->get_position();
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
-	renderer.submit_lighting_data(std::vector<Light>{light1, light2, light3});
+	
+	// lights
+	renderer.submit_lighting_data(lights);
 	light_sphere1->enqueue(renderer, resources);
 	light_sphere2->enqueue(renderer, resources);
 	light_sphere3->enqueue(renderer, resources);
@@ -149,6 +153,14 @@ void Space::add_base_entity(std::unique_ptr<Base> base) {
 	base->init(resources, this); 
 	base_objects.push_back(std::move(base));
 }
+
+void Space::add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
+					  glm::vec3 direction, float volumetric_intensity, LightType type) {
+	Light new_light{position, radius, color, intensity, direction, volumetric_intensity, type};
+	lights.push_back(std::move(new_light));
+}
+
+
 
 void Space::cast_ray() {
 	glm::vec3 view_dir = camera->get_front();

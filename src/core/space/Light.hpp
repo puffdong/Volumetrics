@@ -21,6 +21,7 @@ struct Light {
     LightType type       = LightType::Point;
 };
 
+// the struct we convert to when uploading the light block! 
 struct GpuLight {
     glm::vec4 position_radius;
     glm::vec4 color_intensity;

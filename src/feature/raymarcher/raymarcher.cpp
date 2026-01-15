@@ -77,6 +77,8 @@ void Raymarcher::upload_uniforms(Renderer& renderer, Shader* shader, glm::vec3 c
         shader->set_uniform_float("u_absorption_coefficient", raymarch_settings.absorption_coefficient);
         shader->set_uniform_float("u_scattering_coefficient", raymarch_settings.scattering_coefficient);
         shader->set_uniform_float("u_extincion_coefficient", raymarch_settings.extincion_coefficient);
+        shader->set_uniform_float("u_anisotropy", raymarch_settings.anisotropy);
+        shader->set_uniform_float("u_sun_intensity", raymarch_settings.sun_intensity);
 }
 
 void save_perlin() {

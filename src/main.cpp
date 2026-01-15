@@ -8,7 +8,7 @@
 
 int main(void) {
 #ifdef __APPLE__
-    AppConfig config{750, 500, ASSET_PATH, "macOS"};
+    AppConfig config{1050, 750, ASSET_PATH, "macOS"};
 #endif 
 #if defined _WIN32 || defined _WIN64
     AppConfig config{1920, 1080, ASSET_PATH, "Windows"};

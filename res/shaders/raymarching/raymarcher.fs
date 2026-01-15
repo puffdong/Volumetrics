@@ -46,6 +46,8 @@ uniform vec3 u_base_color;
 uniform float u_absorption_coefficient;
 uniform float u_scattering_coefficient;
 uniform float u_extincion_coefficient;
+uniform float u_anisotropy;
+uniform float u_sun_intensity;
 
 
 // constants
@@ -89,6 +91,20 @@ uint get_voxel(vec3 pos) {
 
 float rayleigh(float cos_theta) {
     return (3.0f / (16.0f * 3.1415926538)) * (1 + cos_theta * cos_theta);
+}
+
+// g = anisotropy.
+// g = 0 -> isotropic (Rayleigh-esque)
+// g = 0.5 -> forward scattering (Smoke/Clouds)
+// g = 0.9 -> strong "Silver Lining"
+float get_henyey_greenstein_phase(float cos_theta, float g) {
+    float g2 = g * g;
+    float num = 1.0 - g2;
+    float denom = 1.0 + g2 - 2.0 * g * cos_theta;
+    
+    // The power of 1.5 is computationally expensive, sometimes folks use approximations, 
+    // but keep it for now for accuracy.
+    return (1.0 / (4.0 * 3.14159)) * num / pow(denom, 1.5);
 }
 
 float sample_density(vec3 sample_pos) {

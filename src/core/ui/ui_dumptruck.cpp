@@ -104,6 +104,11 @@ namespace ui {
         ImGui::SliderFloat("Absorption coefficient", &ray_settings.absorption_coefficient, 0.0f, 5.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
         ImGui::SliderFloat("Scattering coefficient", &ray_settings.scattering_coefficient, 0.0f, 5.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
         ImGui::SliderFloat("Extinction coefficient", &ray_settings.extincion_coefficient, 0.0f, 5.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        
+        ImGui::Separator();
+
+        ImGui::SliderFloat("Anisotropy", &ray_settings.anisotropy, 0.01f, 3.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Sun intensity", &ray_settings.sun_intensity, 1.0f, 250.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
         ImGui::Text("Base color (RGB)");
         ImGui::SliderFloat("R##base_color", &ray_settings.base_color.x, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
