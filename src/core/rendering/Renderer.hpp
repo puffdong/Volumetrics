@@ -78,9 +78,7 @@ private:
     unsigned int pong_color = 0;
     unsigned int ping_pong_depth = 0;
     
-    int v_width; 
-    int v_height; 
     unsigned int volumetric_fbo = 0;
     unsigned int volumetric_color = 0;
-    unsigned int volumetric_depth = 0;
+    unsigned int raymarch_bounds_depth = 0;
 };

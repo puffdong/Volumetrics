@@ -122,21 +122,18 @@ void Renderer::init_framebuffers(int width, int height)
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // volumetric fbo
-    v_width  = width;
-    v_height = height;
-
     if (volumetric_fbo) {
-        if (volumetric_depth) glDeleteTextures(1, &volumetric_depth);
+        if (raymarch_bounds_depth) glDeleteTextures(1, &raymarch_bounds_depth);
         if (volumetric_color) glDeleteTextures(1, &volumetric_color);
         glDeleteFramebuffers(1, &volumetric_fbo);
-        volumetric_fbo = 0; volumetric_color = 0; volumetric_depth = 0;
+        volumetric_fbo = 0; volumetric_color = 0; raymarch_bounds_depth = 0;
     }
 
     glGenFramebuffers(1, &volumetric_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, volumetric_fbo);
 
-    volumetric_color = create_color_attachment(v_width, v_height);
-    volumetric_depth = create_depth_attachment(v_width, v_height);
+    volumetric_color = create_color_attachment(r_width, r_height);
+    raymarch_bounds_depth = create_depth_attachment(r_width, r_height);
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
@@ -262,9 +259,14 @@ void Renderer::execute_pipeline() {
     flush(RenderPass::Skypass);
     flush(RenderPass::Forward);
 
+    // Raymarch Bounds
+    // glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+    // // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, src_color, 0);
+    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,   GL_TEXTURE_2D, raymarch_bounds_depth, 0);
+
+
     // Volumetrics
     glBindFramebuffer(GL_FRAMEBUFFER, volumetric_fbo);
-    glViewport(0, 0, v_width, v_height);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     glDisable(GL_SCISSOR_TEST);

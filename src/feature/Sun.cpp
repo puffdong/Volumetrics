@@ -18,7 +18,7 @@ void Sun::init(ResourceManager& resources) {
 
 void Sun::tick(float delta) {
     time += delta;
-    float speed = 0.5f; 
+    const float speed = 0.05f; 
 
     float x = std::sin(time * speed);
     float z = std::cos(time * speed);

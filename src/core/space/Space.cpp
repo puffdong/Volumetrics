@@ -61,7 +61,7 @@ void Space::init_skybox() {
 void Space::init_raymarcher_and_voxelgrid() {
 	voxel_grid = VoxelGrid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f)); 
     voxel_grid.init(resources);
-	voxel_grid.set_visibility(false);
+	voxel_grid.set_visibility(true);
 	raymarcher = Raymarcher();
 	raymarcher.init(resources);
 }
@@ -108,9 +108,11 @@ void Space::tick(float delta, ButtonMap bm)
 
 void Space::process_lights() {
 	// not pretty but we aint all perfect alright?
-	glm::vec3 light_pos1 = glm::vec3(10.0f * sin(time * 0.12), 10.f, 10.0f * cos(time * 0.12));
-	glm::vec3 light_pos2 = glm::vec3(10.0f * sin(time * 0.12 + 3 * PI/2), 10.f, 10.0f * cos(time * 0.12 + 3 * PI/2));
-	glm::vec3 light_pos3 = glm::vec3(10.0f * sin(time * 0.12 + PI), 10.f, 10.0f * cos(time * 0.12 + PI));
+	const float speed = 0.12f;
+
+	glm::vec3 light_pos1 = glm::vec3(10.0f * sin(time * speed), 10.f, 10.0f * cos(time * speed));
+	glm::vec3 light_pos2 = glm::vec3(10.0f * sin(time * speed + 3 * PI/2), 10.f, 10.0f * cos(time * speed + 3 * PI/2));
+	glm::vec3 light_pos3 = glm::vec3(10.0f * sin(time * speed + PI), 10.f, 10.0f * cos(time * speed + PI));
 
 	light_sphere1->set_position(light_pos1);
 	light_sphere2->set_position(light_pos2);

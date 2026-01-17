@@ -55,7 +55,7 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
         cmd.state.depth_write = true;
         cmd.textures.push_back(bind);
 
-        renderer.submit(RenderPass::Forward, cmd);
+        renderer.submit(RenderPass::RaymarchBounds, cmd);
     } else {
         std::cout << "something fricked up when displaying the voxelgrid" << std::endl;
     }
