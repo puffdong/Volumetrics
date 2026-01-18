@@ -5,16 +5,13 @@ in vec2 v_uv;
 in vec3 v_origin;
 in vec3 v_ray;
 
-// #define MAX_LIGHTS 16
-
 struct Light {
     vec4 position_radius; // position, radius
     vec4 color_intensity; // color, intensity
-    vec4 misc;              // volumetric_intensity, type (0 = point, 1 = directional), padding padding
+    vec4 misc;            // volumetric_intensity, type (0 = point, 1 = directional), padding padding
 };
 
 layout(std140) uniform b_light_block {
-    // Light u_lights[MAX_LIGHTS];
     Light u_lights[16];
 };
 
@@ -42,7 +39,7 @@ uniform float u_far_plane;
 uniform int u_max_steps;
 uniform float u_step_size;
 uniform int u_max_light_steps;
-uniform float u_hit_step_size;
+uniform float u_hit_step_size; // unused
 uniform float u_light_step_size;
 uniform float u_max_distance;
 uniform float u_min_distance;
@@ -52,25 +49,6 @@ uniform float u_scattering_coefficient;
 uniform float u_extincion_coefficient;
 uniform float u_anisotropy;
 uniform float u_sun_intensity;
-
-// marching
-const int MAX_STEPS = 56;
-const float STEP_SIZE = 0.5;
-const float HIT_STEP_SIZE = 0.2; // a bit lower but myeee
-
-const int MAX_LIGHT_STEPS = 16;
-const float LIGHT_STEP_SIZE = 0.75;
-
-// light calc params
-const vec3 FOG_COLOR = vec3(0.05, 0.05, 0.05);
-const float ABSORPTION_COEFF = 0.5f;
-const float SCATTERING_COEFF = 0.5f;
-const float EXTINCTION_COEFF = 0.25; // absorption * scattering
-
-const float SHADOW_DENSITY = 1.0f;
-
-const float MAX_DIST = 256.0;
-const float MIN_DIST = 0.000001;
 
 float linearize_depth(float depth) {
     float z = depth * 2.0 - 1.0; // back to NDC
@@ -103,7 +81,7 @@ float rayleigh(float cos_theta) {
 // g = 0 -> isotropic (Rayleigh-esque)
 // g = 0.5 -> forward scattering (Smoke/Clouds)
 // g = 0.9 -> strong "Silver Lining"
-float get_henyey_greenstein_phase(float cos_theta, float g) {
+float henyey_greenstein(float cos_theta, float g) {
     float g2 = g * g;
     float num = 1.0 - g2;
     float denom = 1.0 + g2 - 2.0 * g * cos_theta;
@@ -119,19 +97,24 @@ float sample_density(vec3 sample_pos) {
 }
 
 vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float raymarch_depth) {    
-    float distance_traveled = 0.0f;
+    float start_dist = linearize_depth(raymarch_depth);
+    float scene_dist = linearize_depth(scene_depth);
+    
+    float distance_traveled = start_dist;
 
-    float scene_linear_depth = linearize_depth(scene_depth);
-    float raymarch_linear_depth = linearize_depth(raymarch_depth);
-    distance_traveled = raymarch_linear_depth;
-    
-    
-    vec3 col = u_base_color;
+    vec3 total_light = vec3(0.0);
+    float transmittance = 1.0;
+
+    vec3 sun_vec = -normalize(u_sun_dir);
+
+    float cos_theta = dot(sun_vec, ray_direction);
+    float phase = henyey_greenstein(cos_theta, u_anisotropy);
+
+    // vec3 col = u_base_color;
+    vec3 col = vec3(0.0);
     float alpha = 1.0f;
     float collected_density = 0.0;
     float thickness = 0.0f;
-
-    bool hit_something = false;
 
     Light point_light = u_lights[0]; // trial run, lets go
 
@@ -142,40 +125,29 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float r
     // float light_intensity   = point_light.color_intensity.w;
     // float light_volumetric  = point_light.misc.x;
     // float light_type        = point_light.misc.y; // 0 = point, 1 = directional (unused for now)
-
+    
     for (int i = 0; i < u_max_steps; ++i) {
         
         vec3 sample_pos = ray_origin + ray_direction * distance_traveled;
         uint v = get_voxel(sample_pos); // snaps to closest voxel from vec3(float)
 
         if (v != 0u) {
-            if (!hit_something) {
-                hit_something = true; // first hit
-                distance_traveled -= u_step_size; // take a step back and then increase step size later on to fill in the gaps
-            }
-            // cool calcs below
-            vec3 wi = normalize(-u_sun_dir);
-            vec3 wo = normalize(-ray_direction);
-            float cos_theta = dot(wi, wo);
-            
-            float phase = rayleigh(cos_theta);
+            float density = sample_density(sample_pos);
 
-            float sample_density = sample_density(sample_pos);
-
-            collected_density += sample_density * u_hit_step_size;// * 0.5 * 0.9;
-            thickness += sample_density * u_hit_step_size;
+            collected_density += density * u_step_size;// * 0.5 * 0.9;
+            thickness += density * u_step_size;
             alpha = exp(-thickness * collected_density * u_extincion_coefficient);
 
             vec3 light_sample_pos = sample_pos;
             float light = 0.0f;
             vec3 light_result_color = vec3(0.0);
 
-            light += sample_density * 1.0;
+            light += density * 1.0;
             for (int j = 0; j < u_max_light_steps; ++j) {
                 light_sample_pos = light_sample_pos + normalize(u_sun_dir) * u_light_step_size;
                 uint w = get_voxel(light_sample_pos);
                 if (w != 0u) {
-                    light += sample_density;
+                    light += sample_density(light_sample_pos);
                 }
                 // light_sample_pos = light_sample_pos + normalize(point_light.position_radius.xyz - light_sample_pos) * u_light_step_size;    
                 // uint w = get_voxel(light_sample_pos);
@@ -186,7 +158,7 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float r
             }
 
             vec3 light_attenuation = exp(-(light / vec3(1.0) * u_extincion_coefficient * 1.0));
-            col += vec3(1.0) * light_attenuation * alpha * phase * u_scattering_coefficient * 1.0 * sample_density;
+            col += vec3(1.0) * light_attenuation * alpha * phase * u_scattering_coefficient * 1.0 * density;
             // col += vec3(1.0) * light_result_color * light_attenuation * alpha * phase * u_scattering_coefficient * 1.0 * sample_density;
 
             if (collected_density >= 1.0) {
@@ -195,21 +167,10 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float r
             }
         }
 
-
-        // end of iteration stuff
-        if (distance_traveled > u_max_distance) break;
-        if (hit_something) {
-            distance_traveled += u_hit_step_size;
-        } else {
+        if (distance_traveled > scene_dist) break; // hmm maybe this can be used to determine max steps dynamically?
         distance_traveled += u_step_size;
-        }
     }
 
-    vec4 result = vec4(0.0);
-    if (hit_something) {
-        vec3 base_color = vec3(1.0, 8.0, 8.0);
-        result = vec4(u_base_color, clamp(collected_density, 0.0, 1.0));
-    }
     return vec4(col, clamp(collected_density, 0.0, 1.0));
 }
 
@@ -233,10 +194,10 @@ void main() {
     vec4 result = do_raymarch(v_origin, ray_direction, scene_depth, raymarch_depth);
 
     // VISUALIZE RAY ORIGIN
-    // o_color = vec4(normalize(v_origin), 1.0);
+    // vec4 result = vec4(normalize(v_origin), 1.0);
 
     // VISUALIZE RAY DIRECTION
-    // o_color = vec4(normalize(ray_direction), 1.0);
+    // vec4 result = vec4(normalize(ray_direction), 1.0);
     
     o_color = result;
 }

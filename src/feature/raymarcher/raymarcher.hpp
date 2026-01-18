@@ -6,8 +6,8 @@
 
 struct RaymarchSettings {
     int max_steps = 256;
-    float step_size = 0.3f; 
-    float hit_step_size = 0.15f;
+    float step_size = 0.15f; 
+    float hit_step_size = 0.15f; // unused
     int max_light_steps = 16;
     float light_step_size = 0.6f;
     float max_distance = 512.f;
@@ -18,7 +18,7 @@ struct RaymarchSettings {
     float scattering_coefficient = 0.6f;
     float extincion_coefficient = 1.6f;
 
-    float anisotropy = 0.5f; // for the HG phase function
+    float anisotropy = 0.35f; // for the HG phase function
     float sun_intensity = 20.f;
 };
 

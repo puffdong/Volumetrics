@@ -85,8 +85,8 @@ namespace ui {
         
         // --- Marching ---
         ImGui::SliderInt("Max steps", &ray_settings.max_steps, 1, 1024);
-        ImGui::SliderFloat("Step size", &ray_settings.step_size, 0.001f, 5.0f, "%.4f", ImGuiSliderFlags_AlwaysClamp);
-        ImGui::SliderFloat("Hit step size", &ray_settings.hit_step_size, 0.00001f, 1.0f, "%.5f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Step size", &ray_settings.step_size, 0.001f, 3.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Hit step size (unused)", &ray_settings.hit_step_size, 0.00001f, 1.0f, "%.5f", ImGuiSliderFlags_AlwaysClamp);
         ImGui::SliderFloat("Max distance", &ray_settings.max_distance, 0.01f, 4096.0f, "%.2f",
                         ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_AlwaysClamp);
         ImGui::SliderFloat("Min distance (epsilon)", &ray_settings.min_distance, 1e-6f, 1e-1f, "%.6f",
