@@ -31,7 +31,7 @@ void VoxelGrid::tick(float delta) {
 }
 
 void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
-    if (!_visible) return;
+    // if (!_visible) return; // this was moved to execute_pipeline!
 
     if (auto shader = resources.get_shader(r_shader.id)) {
         (*shader)->hot_reload_if_changed();
@@ -51,8 +51,8 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
         cmd.count      = cube_model.index_count;
         cmd.instance_count = num_occupied_voxels;
         cmd.shader     = (*shader);
-        cmd.state.depth_test = true;
-        cmd.state.depth_write = true;
+        // cmd.state.depth_test = true;
+        // cmd.state.depth_write = true;
         cmd.textures.push_back(bind);
 
         renderer.submit(RenderPass::RaymarchBounds, cmd);

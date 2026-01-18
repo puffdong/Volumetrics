@@ -107,7 +107,7 @@ void Shader::unbind() const {
     glUseProgram(0);
 }
 
-void Shader::hot_reload_if_changed() {
+bool Shader::hot_reload_if_changed() {
     namespace fs = std::filesystem;
     bool changed = false;
     for (ShaderFile file : _shader_files) {
@@ -136,6 +136,8 @@ void Shader::hot_reload_if_changed() {
             std::cout << "!!!: hot-reloading " << _shader_name << " failed!";
         }
     }
+    
+    return changed;
 }
 
 void Shader::set_uniform_float(const std::string& name, float f)

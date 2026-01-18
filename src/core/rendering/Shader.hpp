@@ -37,7 +37,7 @@ public:
 
 	void bind() const;
 	void unbind() const;
-	void hot_reload_if_changed();
+	bool hot_reload_if_changed();
 	unsigned int get_renderer_id() const { return _rendering_id; };
 
 	// uniform stuff

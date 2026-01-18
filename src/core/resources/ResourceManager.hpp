@@ -1,5 +1,9 @@
 #pragma once
+#include <memory>
+#include <optional>
+#include <filesystem>
 #include <unordered_map>
+#include "core/rendering/Shader.hpp"
 #include "core/UUID.hpp"
 #include "core/rendering/Model.hpp"
 

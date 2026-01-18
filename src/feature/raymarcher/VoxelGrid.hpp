@@ -41,9 +41,9 @@ public:
 	void set_voxel_value(int x, int y, int z, uint8_t value);
 	void set_cell_size(float size) { cell_size = size; changed = true; };
 	void set_position(const glm::vec3& p) { position = p; changed = true; };
-	void set_visibility(const bool v) { _visible = v; };
+	void set_debug_visibility(const bool v) { _visible = v; };
 	
-	bool is_visible() const { return _visible; };
+	inline bool is_debug_view_visible() const { return _visible; };
 	uint8_t get_voxel_value(int x, int y, int z);
     glm::vec3 get_scale() const { return scale; };
     void set_scale(const glm::vec3& s) { scale = s; };

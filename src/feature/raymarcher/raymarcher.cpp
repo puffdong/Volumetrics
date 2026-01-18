@@ -60,6 +60,10 @@ void Raymarcher::upload_uniforms(Renderer& renderer, Shader* shader, glm::vec3 c
         shader->set_uniform_vec3("u_sun_color", sun_color);
         shader->set_uniform_float("u_time", time);
 
+        // depth textures
+        shader->set_uniform_int("u_scene_depth", 2);
+        shader->set_uniform_int("u_raymarch_depth", 3);
+
         // voxel grid params
         shader->set_uniform_ivec3("u_grid_dim", grid_dim);
         shader->set_uniform_vec3("u_grid_origin", grid_origin);

@@ -19,7 +19,7 @@ Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path)
     float aspect_ratio = static_cast<float>(initial_width) / initial_height;
     renderer.set_projection_matrix(aspect_ratio, 70.f, 0.1f, 512.f);
 
-    space = new Space(resources, renderer);
+    space.init_space();
 
     last_time = (float) glfwGetTime();
 }
@@ -113,7 +113,7 @@ void Application::mouse_callback(GLFWwindow*, double xpos, double ypos)
         last_x = (float) xpos;
         last_y = (float) ypos;
 
-        space->get_camera()->process_mouse(xoffset, yoffset);
+        space.get_camera()->process_mouse(xoffset, yoffset);
     }
 
     mouse_pos_x = xpos;
@@ -127,7 +127,7 @@ void Application::mouse_button_callback(GLFWwindow* window, int button, int acti
         camera_control_mouse_active = true;
         first_mouse = true;
     } else if ((button == GLFW_MOUSE_BUTTON_RIGHT) && (action == GLFW_PRESS) && (camera_control_mouse_active == true)) {
-        space->cast_ray();
+        space.cast_ray();
     }
 
     if (action == GLFW_PRESS) {
@@ -281,13 +281,11 @@ int Application::run() {
         float current_time = glfwGetTime();
         float delta_time = current_time - last_time;
         last_time = current_time;
-        space->tick(delta_time, button_map);
-        space->enqueue_renderables();
-
-        renderer.execute_pipeline();
-
+        space.tick(delta_time, button_map);
+        space.enqueue_renderables(); // moved the render call into space for now... 
+         
         // ui 
-        ui::stats_overlay(space->get_camera(), renderer);
+        ui::stats_overlay(space.get_camera(), renderer);
 
         // Imgui again
         ImGui::Render();
@@ -307,8 +305,7 @@ void Application::stop() {
 }
 
 int Application::shutdown() {
-    std::cout << "Shutting down..."; 
-    delete space;
+    std::cout << "Shutting down..." << std::endl; 
 
     renderer.destroy_renderer();
     

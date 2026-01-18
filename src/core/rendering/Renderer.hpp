@@ -41,7 +41,7 @@ public:
     void begin_frame();
     void submit(RenderPass pass, const RenderCommand& cmd);
     void submit_lighting_data(std::vector<Light> lights); // this sucks because we are copying crap
-    void execute_pipeline();
+    void execute_pipeline(bool voxel_grid_debug_view = false);
     void flush(RenderPass pass);
     
     void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 0.1, float far_plane = 512.0f);
@@ -77,8 +77,9 @@ private:
     unsigned int ping_color = 0;
     unsigned int pong_color = 0;
     unsigned int ping_pong_depth = 0;
+
+    unsigned int raymarch_bounds_depth = 0;
     
     unsigned int volumetric_fbo = 0;
     unsigned int volumetric_color = 0;
-    unsigned int raymarch_bounds_depth = 0;
 };

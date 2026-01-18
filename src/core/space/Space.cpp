@@ -11,7 +11,7 @@
 Space::Space(ResourceManager& resources, Renderer& renderer)
  : resources(resources), renderer(renderer)
 {	
-	init_space();
+	
 }
 
 void Space::init_space() {
@@ -61,7 +61,7 @@ void Space::init_skybox() {
 void Space::init_raymarcher_and_voxelgrid() {
 	voxel_grid = VoxelGrid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f)); 
     voxel_grid.init(resources);
-	voxel_grid.set_visibility(true);
+	voxel_grid.set_debug_visibility(false);
 	raymarcher = Raymarcher();
 	raymarcher.init(resources);
 }
@@ -72,18 +72,10 @@ void Space::init_glass() {
 }
 
 void Space::init_lights() {
-	lights.reserve(3);
+	lights.reserve(3); light_spheres.reserve(3);
 	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(1.0f, 0.3f, 0.2f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
 	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(0.0f, 0.58f, 1.0f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
-	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(0.31f, 0.78f, 0.48f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
-	
-	//invert the scale to invert the normals x) now its lit up! 
-	light_sphere1 = new Object(lights[0].position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
-	light_sphere2 = new Object(lights[1].position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
-	light_sphere3 = new Object(lights[2].position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
-	light_sphere1->init(resources, this);
-	light_sphere2->init(resources, this);
-	light_sphere3->init(resources, this);
+	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(0.31f, 0.78f, 0.48f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);	
 }
 
 void Space::tick(float delta, ButtonMap bm)
@@ -113,10 +105,10 @@ void Space::process_lights() {
 	glm::vec3 light_pos1 = glm::vec3(10.0f * sin(time * speed), 10.f, 10.0f * cos(time * speed));
 	glm::vec3 light_pos2 = glm::vec3(10.0f * sin(time * speed + 3 * PI/2), 10.f, 10.0f * cos(time * speed + 3 * PI/2));
 	glm::vec3 light_pos3 = glm::vec3(10.0f * sin(time * speed + PI), 10.f, 10.0f * cos(time * speed + PI));
-
-	light_sphere1->set_position(light_pos1);
-	light_sphere2->set_position(light_pos2);
-	light_sphere3->set_position(light_pos3);
+	
+	light_spheres[0]->set_position(light_pos1);
+	light_spheres[1]->set_position(light_pos2);
+	light_spheres[2]->set_position(light_pos3);
 	lights[0].position = light_pos1;
 	lights[1].position = light_pos2;
 	lights[2].position = light_pos3;
@@ -129,9 +121,9 @@ void Space::enqueue_renderables() {
 	
 	// lights
 	renderer.submit_lighting_data(lights);
-	light_sphere1->enqueue(renderer, resources);
-	light_sphere2->enqueue(renderer, resources);
-	light_sphere3->enqueue(renderer, resources);
+	for (auto& light_sphere : light_spheres) { // the light objects (hard to see em otherwise)
+		light_sphere->enqueue(renderer, resources);
+	}
 
 	skybox.enqueue(renderer, resources, camera_pos);
 	sun.enqueue(renderer, resources, camera_pos);
@@ -143,6 +135,8 @@ void Space::enqueue_renderables() {
 	voxel_grid.enqueue(renderer, resources);
 	raymarcher.enqueue(renderer, resources, camera->get_position(), sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
 	glass.enqueue(renderer, resources, this_frames_button_map);
+
+	renderer.execute_pipeline(voxel_grid.is_debug_view_visible());
 }
 
 void Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset) {
@@ -160,6 +154,11 @@ void Space::add_light(glm::vec3 position, float radius, glm::vec3 color, float i
 					  glm::vec3 direction, float volumetric_intensity, LightType type) {
 	Light new_light{position, radius, color, intensity, direction, volumetric_intensity, type};
 	lights.push_back(std::move(new_light));
+	
+																	// invert the scale to invert the normals x) now its lit up! :)
+	Object* new_light_object = new Object(position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
+	new_light_object->init(resources, this);
+	light_spheres.push_back(new_light_object);
 }
 
 

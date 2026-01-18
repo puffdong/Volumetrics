@@ -39,9 +39,9 @@ public:
     
 private:
     GLFWwindow* window;
-    Space* space;
     ResourceManager resources;
     Renderer renderer;
+    Space space{resources, renderer}; // it ain't on the heap no more!
     ButtonMap button_map;
 
     bool running;

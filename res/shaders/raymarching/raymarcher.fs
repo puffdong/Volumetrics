@@ -24,6 +24,10 @@ uniform float time;
 uniform vec3 u_sun_dir;
 uniform vec3 u_sun_color;
 uniform vec3 u_camera_pos;
+
+// textures
+uniform sampler2D u_scene_depth;
+uniform sampler2D u_raymarch_depth;
 uniform sampler3D u_noise_texture;
 
 // voxels
@@ -49,8 +53,6 @@ uniform float u_extincion_coefficient;
 uniform float u_anisotropy;
 uniform float u_sun_intensity;
 
-
-// constants
 // marching
 const int MAX_STEPS = 56;
 const float STEP_SIZE = 0.5;
@@ -69,7 +71,11 @@ const float SHADOW_DENSITY = 1.0f;
 
 const float MAX_DIST = 256.0;
 const float MIN_DIST = 0.000001;
-// const int MAX_STEPS = 16;
+
+float linearize_depth(float depth) {
+    float z = depth * 2.0 - 1.0; // back to NDC
+    return (2.0 * u_near_plane * u_far_plane) / (u_far_plane + u_near_plane - z * (u_far_plane - u_near_plane));
+}
 
 uint voxel_value_at(ivec3 cell) {
     if (any(lessThan(cell, ivec3(0))) || any(greaterThanEqual(cell, u_grid_dim))) return 0u;
@@ -112,9 +118,13 @@ float sample_density(vec3 sample_pos) {
     return noise;
 }
 
-vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
+vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float raymarch_depth) {    
     float distance_traveled = 0.0f;
-    int iteration = 0;
+
+    float scene_linear_depth = linearize_depth(scene_depth);
+    float raymarch_linear_depth = linearize_depth(raymarch_depth);
+    distance_traveled = raymarch_linear_depth;
+    
     
     vec3 col = u_base_color;
     float alpha = 1.0f;
@@ -126,12 +136,12 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
     Light point_light = u_lights[0]; // trial run, lets go
 
     // Unpack the light data once
-    vec3  light_pos         = point_light.position_radius.xyz;
-    float light_radius      = point_light.position_radius.w;
-    vec3  light_color       = point_light.color_intensity.xyz;
-    float light_intensity   = point_light.color_intensity.w;
-    float light_volumetric  = point_light.misc.x;
-    float light_type        = point_light.misc.y; // 0 = point, 1 = directional (unused for now)
+    // vec3  light_pos         = point_light.position_radius.xyz;
+    // float light_radius      = point_light.position_radius.w;
+    // vec3  light_color       = point_light.color_intensity.xyz;
+    // float light_intensity   = point_light.color_intensity.w;
+    // float light_volumetric  = point_light.misc.x;
+    // float light_type        = point_light.misc.y; // 0 = point, 1 = directional (unused for now)
 
     for (int i = 0; i < u_max_steps; ++i) {
         
@@ -204,9 +214,23 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction) {
 }
 
 void main() {
+    float scene_depth = texture(u_scene_depth, v_uv).r;
+    float raymarch_depth = texture(u_raymarch_depth, v_uv).r;
+
+    // check for if marching is needed
+    if (raymarch_depth >= scene_depth) {
+        o_color = vec4(0.0); // behind scene, early out
+        return;
+    }
+
+    if (raymarch_depth >= 1.0) {
+        o_color = vec4(0.0);
+        return;
+    }
+    // if all clear, then we march!
 
     vec3 ray_direction = normalize(v_ray);
-    vec4 result = do_raymarch(v_origin, ray_direction);
+    vec4 result = do_raymarch(v_origin, ray_direction, scene_depth, raymarch_depth);
 
     // VISUALIZE RAY ORIGIN
     // o_color = vec4(normalize(v_origin), 1.0);

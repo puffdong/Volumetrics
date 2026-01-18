@@ -57,7 +57,8 @@ void Renderer::init_renderer(int width, int height)
     composite_shader->bind();
     composite_shader->set_uniform_int("u_src_color",   0);
     composite_shader->set_uniform_int("u_volum_color", 1);
-    composite_shader->set_uniform_int("u_depth_texture", 2); // gotta get the depth to be taken into account
+    composite_shader->set_uniform_int("u_scene_depth", 2);
+    composite_shader->set_uniform_int("u_raymarch_depth", 3);
 
     copy_present_shader = new Shader(get_full_path("res://shaders/pipeline/copy_present.vs"), get_full_path("res://shaders/pipeline/copy_present.fs"));
     copy_present_shader->bind();
@@ -92,7 +93,6 @@ void Renderer::init_quad() {
 
 void Renderer::init_framebuffers(int width, int height)
 {
-    // render fbo
     r_width  = width;
     r_height = height;
 
@@ -121,7 +121,6 @@ void Renderer::init_framebuffers(int width, int height)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    // volumetric fbo
     if (volumetric_fbo) {
         if (raymarch_bounds_depth) glDeleteTextures(1, &raymarch_bounds_depth);
         if (volumetric_color) glDeleteTextures(1, &volumetric_color);
@@ -236,7 +235,7 @@ void Renderer::flush(RenderPass pass)
         execute_command(cmd);
 }
 
-void Renderer::execute_pipeline() {
+void Renderer::execute_pipeline(bool voxel_grid_debug_view) {
     // --- Ping-pong roles ------------------------------------------------------
     GLuint src_color = ping_color;
     GLuint dst_color = pong_color;
@@ -246,7 +245,7 @@ void Renderer::execute_pipeline() {
     glViewport(0, 0, r_width, r_height);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, src_color, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,   GL_TEXTURE_2D, ping_pong_depth, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, ping_pong_depth, 0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     glDisable(GL_SCISSOR_TEST);
@@ -260,23 +259,28 @@ void Renderer::execute_pipeline() {
     flush(RenderPass::Forward);
 
     // Raymarch Bounds
-    // glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-    // // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, src_color, 0);
-    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,   GL_TEXTURE_2D, raymarch_bounds_depth, 0);
-
+    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, raymarch_bounds_depth, 0);
+    if (!voxel_grid_debug_view) glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    flush(RenderPass::RaymarchBounds);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
     // Volumetrics
     glBindFramebuffer(GL_FRAMEBUFFER, volumetric_fbo);
+    glViewport(0, 0, r_width, r_height);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0); // we want to read from this one! disable it!
 
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
 
     glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT); // de-attachment of depth means we can skip clearing it
 
     glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, ping_pong_depth);
+    glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, raymarch_bounds_depth);
 
     flush(RenderPass::Volumetrics);
 
@@ -296,9 +300,16 @@ void Renderer::execute_pipeline() {
     glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);
     glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, volumetric_color);
     glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, ping_pong_depth);
+    glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, raymarch_bounds_depth);
 
-    composite_shader->hot_reload_if_changed();
+    bool changed = composite_shader->hot_reload_if_changed();
     composite_shader->bind();
+    if (changed) {
+        composite_shader->set_uniform_int("u_src_color",   0);
+        composite_shader->set_uniform_int("u_volum_color", 1);
+        composite_shader->set_uniform_int("u_scene_depth", 2);
+        composite_shader->set_uniform_int("u_raymarch_depth", 3);
+    }
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);

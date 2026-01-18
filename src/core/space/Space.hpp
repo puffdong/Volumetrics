@@ -40,10 +40,8 @@ private:
 	ButtonMap this_frames_button_map;
 
 	std::vector<Light> lights;
+	std::vector<Object*> light_spheres;
 
-	Light light1;
-	Light light2;
-	Light light3;
 	Object* light_sphere1; 
 	Object* light_sphere2; 
 	Object* light_sphere3; 
@@ -51,7 +49,8 @@ private:
 
 public:
 	Space(ResourceManager& resources, Renderer& renderer);
-	
+	void init_space();
+
 	void tick(float delta, ButtonMap bm);
 	void enqueue_renderables();
 	
@@ -71,7 +70,7 @@ public:
 	void cast_ray();
 
 private:
-	void init_space();
+	
 	void init_skybox();
 	void init_raymarcher_and_voxelgrid();
 	void init_glass();

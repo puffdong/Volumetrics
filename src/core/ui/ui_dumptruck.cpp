@@ -18,7 +18,7 @@ namespace ui {
         ImGui::SetNextWindowBgAlpha(0.35f);
         ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Always);
         if (ImGui::Begin("##overlay", nullptr, flags)) {
-            ImGui::Text("FPS: %.1f FOV: %.1f", ImGui::GetIO().Framerate, renderer.get_fov());
+            ImGui::Text("FOV: %.1f FPS: %.1f", renderer.get_fov(), ImGui::GetIO().Framerate);
             glm::vec2 viewport_size = renderer.get_viewport_size();
             ImGui::Text("Resolution: %d x %d", (int)viewport_size.x, (int)viewport_size.y);
             ImGui::Separator();
@@ -118,9 +118,9 @@ namespace ui {
 
     void voxel_grid_settings(VoxelGrid& grid) {
         {
-            bool visible = grid.is_visible();
-            if (ImGui::Checkbox("Show voxel grid", &visible)) {
-                grid.set_visibility(visible);
+            bool visible = grid.is_debug_view_visible();
+            if (ImGui::Checkbox("Show voxel grid debug view", &visible)) {
+                grid.set_debug_visibility(visible);
             }
         }
         // Cell size slider (clamped 0.1f..50.0f)
