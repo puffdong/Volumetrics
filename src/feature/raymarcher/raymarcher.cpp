@@ -2,11 +2,6 @@
 #include <iostream>
 #include "core/utils/perlin_noise_generator.hpp"
 
-Raymarcher::Raymarcher()
-{
-
-}
-
 void Raymarcher::init(ResourceManager& resources) {
     r_shader = resources.load_shader("res://shaders/raymarching/raymarcher.vs", "res://shaders/raymarching/raymarcher.fs");
 

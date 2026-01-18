@@ -33,7 +33,7 @@ private:
     bool _visible = true;
 
 public:
-    Raymarcher();
+    Raymarcher() = default;
     void init(ResourceManager& resources);
     void tick(float delta);
     void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);

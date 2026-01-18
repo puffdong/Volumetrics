@@ -1,13 +1,11 @@
 #include "Shader.hpp"
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <sstream>
 #include <span>
-#include "Renderer.hpp"
 
 Shader::Shader(const std::string& vertex_path, const std::string& fragment_path) 
-: _shader_files(), _rendering_id(0), _uniform_location_cache(), _uniform_block_index_cache()
+: _shader_files(), _rendering_id(0), _uniform_location_cache(), _uniform_block_index_cache(), _debug_output(false)
 {
     _shader_name = std::filesystem::path(vertex_path).stem().string(); // vertex path is king, might make more robust later, we'll see
     if (_shader_name.empty()) _shader_name = "file not found ;_;";
@@ -71,10 +69,10 @@ unsigned int Shader::compile_shader(const std::string& source, unsigned int type
 }
 
 // unsigned int Shader::create_shader(const std::string& vertexShader, const std::string& fragmentShader) {
-unsigned int Shader::create_shader(ShaderProgramSource source) {
-    unsigned int program = glCreateProgram();
-    unsigned int vs = compile_shader(source.vertex_source, GL_VERTEX_SHADER);
-    unsigned int fs = compile_shader(source.fragment_source, GL_FRAGMENT_SHADER);
+unsigned int Shader::create_shader(const ShaderProgramSource& source) {
+	unsigned int program = glCreateProgram();
+	unsigned int vs = compile_shader(source.vertex_source, GL_VERTEX_SHADER);
+	unsigned int fs = compile_shader(source.fragment_source, GL_FRAGMENT_SHADER);
 
     glAttachShader(program, vs);
     glAttachShader(program, fs);
@@ -127,6 +125,7 @@ bool Shader::hot_reload_if_changed() {
             glDeleteProgram(_rendering_id);
             _rendering_id = new_id;
             _uniform_location_cache.clear();
+            _debug_output = true;
             
             _shader_files[0].last_write_time = fs::last_write_time(_shader_files[0].file_path);
             _shader_files[1].last_write_time = fs::last_write_time(_shader_files[1].file_path);
@@ -142,98 +141,102 @@ bool Shader::hot_reload_if_changed() {
 
 void Shader::set_uniform_float(const std::string& name, float f)
 {
-    GLCall(glUniform1f(get_uniform_location(name), f));
+	glUniform1f(get_uniform_location(name), f);
 }
 
-void Shader::set_uniform_vec2(const std::string& name, glm::vec2 vec) {
-    GLCall(glUniform2f(get_uniform_location(name), vec.x, vec.y));
+void Shader::set_uniform_vec2(const std::string& name, const glm::vec2& vec) {
+	glUniform2f(get_uniform_location(name), vec.x, vec.y);
 }
 
-void Shader::set_uniform_vec3(const std::string& name, glm::vec3 vec) {
-    GLCall(glUniform3f(get_uniform_location(name), vec.x, vec.y, vec.z));
+void Shader::set_uniform_vec3(const std::string& name, const glm::vec3& vec) {
+	glUniform3f(get_uniform_location(name), vec.x, vec.y, vec.z);
 }
 
-void Shader::set_uniform_vec4(const std::string& name, glm::vec4 vec)
+void Shader::set_uniform_vec4(const std::string& name, const glm::vec4& vec)
 {
-    GLCall(glUniform4f(get_uniform_location(name), vec.x, vec.y, vec.z, vec.w));
+	glUniform4f(get_uniform_location(name), vec.x, vec.y, vec.z, vec.w);
 }
 
 void Shader::set_uniform_float_array(const std::string& name, std::span<const float> array)
 {
-    GLCall(glUniform1fv(get_uniform_location(name), (GLint)array.size(), &array[0]));
+	glUniform1fv(get_uniform_location(name), (GLint)array.size(), &array[0]);
 }
 
 void Shader::set_uniform_vec2_array(const std::string& name, std::span<const glm::vec2> array)
 {
-    GLCall(glUniform2fv(get_uniform_location(name), (GLint)array.size(), &array[0].x));
+	glUniform2fv(get_uniform_location(name), (GLint)array.size(), &array[0].x);
 }
 
 void Shader::set_uniform_vec3_array(const std::string& name, std::span<const glm::vec3> array)
 {
-    GLCall(glUniform3fv(get_uniform_location(name), (GLint)array.size(), &array[0].x));
+	glUniform3fv(get_uniform_location(name), (GLint)array.size(), &array[0].x);
 }
 
 void Shader::set_uniform_vec4_array(const std::string& name, std::span<const glm::vec4> array)
 {
-    GLCall(glUniform4fv(get_uniform_location(name), (GLint)array.size(), &array[0].x));
+	glUniform4fv(get_uniform_location(name), (GLint)array.size(), &array[0].x);
 }
 
 void Shader::set_uniform_int(const std::string& name, int i)
 {
-    GLCall(glUniform1i(get_uniform_location(name), i));
+	glUniform1i(get_uniform_location(name), i);
 }
 
-void Shader::set_uniform_ivec2(const std::string& name, glm::ivec2 ivec) {
-    GLCall(glUniform2i(get_uniform_location(name), ivec.x, ivec.y));
+void Shader::set_uniform_ivec2(const std::string& name, const glm::ivec2& ivec) {
+	glUniform2i(get_uniform_location(name), ivec.x, ivec.y);
 }
 
-void Shader::set_uniform_ivec3(const std::string& name, glm::ivec3 ivec) {
-    GLCall(glUniform3i(get_uniform_location(name), ivec.x, ivec.y, ivec.z));
+void Shader::set_uniform_ivec3(const std::string& name, const glm::ivec3& ivec) {
+	glUniform3i(get_uniform_location(name), ivec.x, ivec.y, ivec.z);
 }
 
 void Shader::set_uniform_int_array(const std::string& name, std::span<const int> array)
 {
-    GLCall(glUniform1iv(get_uniform_location(name), (GLint)array.size(), &array[0]));
+	glUniform1iv(get_uniform_location(name), (GLint)array.size(), &array[0]);
 }
 
 void Shader::set_uniform_mat3(const std::string& name, const glm::mat3& matrix) {
-    GLCall(glUniformMatrix3fv(get_uniform_location(name), 1, GL_FALSE, &matrix[0][0]));
+	glUniformMatrix3fv(get_uniform_location(name), 1, GL_FALSE, &matrix[0][0]);
 }
 
 void Shader::set_uniform_mat4(const std::string& name, const glm::mat4& matrix) {
-    GLCall(glUniformMatrix4fv(get_uniform_location(name), 1, GL_FALSE, &matrix[0][0]));
+	glUniformMatrix4fv(get_uniform_location(name), 1, GL_FALSE, &matrix[0][0]);
 }
 
 void Shader::set_uniform_block(const std::string& block_name, unsigned int binding_point) {
-    glUniformBlockBinding(_rendering_id, get_uniform_block_index(block_name), binding_point);
-    while (GLenum error = glGetError()) {
-        std::cout << "[OpenGL Error] (" << error << ") <- prolly some block error in -> " << _shader_name << std::endl;
-    }
+	glUniformBlockBinding(_rendering_id, get_uniform_block_index(block_name), binding_point);
+	if (_debug_output) {
+		while (GLenum error = glGetError()) {
+			std::cout << "[OpenGL Error] (" << error << ") <- prolly some block error in -> " << _shader_name << std::endl;
+		}
+	} else {
+		glGetError(); // clear error queue silently
+	}
 }
 
 int Shader::get_uniform_location(const std::string& uniform_name) {
-    if (_uniform_location_cache.find(uniform_name) != _uniform_location_cache.end()) {
-        return _uniform_location_cache[uniform_name];
-    }
+	if (_uniform_location_cache.find(uniform_name) != _uniform_location_cache.end()) {
+		return _uniform_location_cache[uniform_name];
+	}
 
-    int location = glGetUniformLocation(_rendering_id, uniform_name.c_str());
-    if (location == -1) {
-        std::cout << "'" << uniform_name << "' in " << _shader_name << " doesn't exist!" << std::endl;
-    }
-    _uniform_location_cache[uniform_name] = location;
-    return location;
+	int location = glGetUniformLocation(_rendering_id, uniform_name.c_str());
+	if (location == -1 && _debug_output) {
+		std::cout << "'" << uniform_name << "' in " << _shader_name << " doesn't exist!" << std::endl;
+	}
+	_uniform_location_cache[uniform_name] = location;
+	return location;
 }
 
 int Shader::get_uniform_block_index(const std::string& block_name) {
-    if (_uniform_block_index_cache.find(block_name) != _uniform_block_index_cache.end()) {
-        return _uniform_block_index_cache[block_name];
-    }
+	if (_uniform_block_index_cache.find(block_name) != _uniform_block_index_cache.end()) {
+		return _uniform_block_index_cache[block_name];
+	}
 
-    int block_index = glGetUniformBlockIndex(_rendering_id, block_name.c_str());
-    if (block_index == GL_INVALID_INDEX) {
-        std::cout << "'" << block_name << "' block in " << _shader_name << " doesn't exist!" << std::endl;
-    }
+	int block_index = glGetUniformBlockIndex(_rendering_id, block_name.c_str());
+	if (block_index == GL_INVALID_INDEX && _debug_output) {
+		std::cout << "'" << block_name << "' block in " << _shader_name << " doesn't exist!" << std::endl;
+	}
 
-    _uniform_block_index_cache[block_name] = block_index;
-    return block_index;
+	_uniform_block_index_cache[block_name] = block_index;
+	return block_index;
 }

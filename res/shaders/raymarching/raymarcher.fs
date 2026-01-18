@@ -96,6 +96,10 @@ float sample_density(vec3 sample_pos) {
     return noise;
 }
 
+float do_light_marching(vec3 origin, vec3 direction) {
+    return 0.0;
+}
+
 vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float raymarch_depth) {    
     float start_dist = linearize_depth(raymarch_depth);
     float scene_dist = linearize_depth(scene_depth);

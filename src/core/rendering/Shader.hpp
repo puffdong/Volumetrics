@@ -1,7 +1,8 @@
 #pragma once
 #include <GL/glew.h>
 #include <string>
-#include <filesystem>  
+#include <filesystem>
+#include <vector>
 #include <unordered_map>
 #include <span>
 #include "glm/glm.hpp"
@@ -30,6 +31,7 @@ private:
 	std::unordered_map<std::string, int> _uniform_location_cache;
 	std::unordered_map<std::string, int> _uniform_block_index_cache;
 	unsigned int _rendering_id; // opengl program id
+	bool _debug_output;
 	
 public:
 	Shader(const std::string& vertex_path, const std::string& fragment_path);
@@ -38,13 +40,15 @@ public:
 	void bind() const;
 	void unbind() const;
 	bool hot_reload_if_changed();
-	unsigned int get_renderer_id() const { return _rendering_id; };
+	unsigned int get_renderer_id() const { return _rendering_id; }
+	bool get_debug_output() const { return _debug_output; }
+	void set_debug_output(bool debug) { _debug_output = debug; }
 
 	// uniform stuff
 	void set_uniform_float(const std::string& name, float f);
-	void set_uniform_vec2(const std::string& name, glm::vec2 vec);
-	void set_uniform_vec3(const std::string& name, glm::vec3 vec);
-	void set_uniform_vec4(const std::string& name, glm::vec4 vec);
+	void set_uniform_vec2(const std::string& name, const glm::vec2& vec);
+	void set_uniform_vec3(const std::string& name, const glm::vec3& vec);
+	void set_uniform_vec4(const std::string& name, const glm::vec4& vec);
 
 	void set_uniform_float_array(const std::string& name, std::span<const float> array);
 	void set_uniform_vec2_array(const std::string& name, std::span<const glm::vec2> array);
@@ -52,8 +56,8 @@ public:
 	void set_uniform_vec4_array(const std::string& name, std::span<const glm::vec4> array);
 
 	void set_uniform_int(const std::string& name, int i);
-	void set_uniform_ivec2(const std::string& name, glm::ivec2 ivec);
-	void set_uniform_ivec3(const std::string& name, glm::ivec3 ivec);
+	void set_uniform_ivec2(const std::string& name, const glm::ivec2& ivec);
+	void set_uniform_ivec3(const std::string& name, const glm::ivec3& ivec);
 
 	void set_uniform_int_array(const std::string& name, std::span<const int> array);
 
@@ -65,7 +69,7 @@ public:
 private:
 	ShaderProgramSource parse_shader(const std::string& vertex_path, const std::string& fragment_path);
 
-	unsigned int create_shader(ShaderProgramSource source);
+	unsigned int create_shader(const ShaderProgramSource& source);
 	unsigned int compile_shader(const std::string& source, unsigned int type);
 	int get_uniform_location(const std::string& name);
 	int get_uniform_block_index(const std::string& block_name);

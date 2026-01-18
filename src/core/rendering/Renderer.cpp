@@ -55,15 +55,11 @@ void Renderer::init_renderer(int width, int height)
     
     composite_shader = new Shader(get_full_path("res://shaders/pipeline/composite.vs"), get_full_path("res://shaders/pipeline/composite.fs"));
     composite_shader->bind();
-    composite_shader->set_uniform_int("u_src_color",   0);
-    composite_shader->set_uniform_int("u_volum_color", 1);
-    composite_shader->set_uniform_int("u_scene_depth", 2);
-    composite_shader->set_uniform_int("u_raymarch_depth", 3);
+    upload_composite_shader_uniforms();
 
     copy_present_shader = new Shader(get_full_path("res://shaders/pipeline/copy_present.vs"), get_full_path("res://shaders/pipeline/copy_present.fs"));
     copy_present_shader->bind();
     copy_present_shader->set_uniform_int("u_src_color", 0);
-    copy_present_shader->set_uniform_int("u_depth_texture", 2);
 
     light_manager.init();
     init_quad();
@@ -176,6 +172,16 @@ unsigned int Renderer::create_depth_attachment(int width, int height) {
                            GL_TEXTURE_2D, depth_attachment, 0);
 
     return depth_attachment;
+}
+
+void Renderer::upload_composite_shader_uniforms() {
+    composite_shader->bind();
+    composite_shader->set_uniform_float("u_near", near);
+    composite_shader->set_uniform_float("u_far", far);
+    composite_shader->set_uniform_int("u_src_color",   0);
+    composite_shader->set_uniform_int("u_volum_color", 1);
+    composite_shader->set_uniform_int("u_scene_depth", 2);
+    composite_shader->set_uniform_int("u_raymarch_depth", 3);
 }
 
 void Renderer::resize(int width, int height) {
@@ -305,10 +311,7 @@ void Renderer::execute_pipeline(bool voxel_grid_debug_view) {
     bool changed = composite_shader->hot_reload_if_changed();
     composite_shader->bind();
     if (changed) {
-        composite_shader->set_uniform_int("u_src_color",   0);
-        composite_shader->set_uniform_int("u_volum_color", 1);
-        composite_shader->set_uniform_int("u_scene_depth", 2);
-        composite_shader->set_uniform_int("u_raymarch_depth", 3);
+        upload_composite_shader_uniforms();
     }
 
     glBindVertexArray(quad_vao);

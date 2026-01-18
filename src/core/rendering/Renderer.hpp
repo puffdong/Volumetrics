@@ -67,6 +67,8 @@ private:
 
     std::vector<Light> current_frame_light_list;
 
+    void upload_composite_shader_uniforms();
+
     // framebuffers :)
     void init_framebuffers(int width, int height);
     unsigned int create_color_attachment(int width, int height);
