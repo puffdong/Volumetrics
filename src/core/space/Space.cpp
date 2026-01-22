@@ -4,7 +4,6 @@
 #include "core/rendering/Renderer.hpp"
 #include "core/space/Object.hpp"
 #include "core/ui/ui_dumptruck.hpp"
-#include "core/Line.hpp"
 
 #include "core/utils/ModelGenerator.hpp"
 
@@ -21,15 +20,9 @@ void Space::init_space() {
 	init_raymarcher_and_voxelgrid();
 	init_glass();
 	init_lights();
+	init_lines();
 
-	// world grid lines (currently parallell to all axis at 0)
-	std::vector<LinePrimitive> lines = {{glm::vec3(256.f, 0.0f, 0.0f), glm::vec3(-256.0f, 0.0f, 0.0f), glm::vec4(0.86f, 0.08f, 0.24f, 1.0f)},    // X : R (crimson red)
-	{glm::vec3(0.f, 256.0f, 0.0f), glm::vec3(0.0f, -256.0f, 0.0f), glm::vec4(0.196f, 0.754f, 0.196f, 1.0f)}, // Y : G (forest green)
-	{glm::vec3(0.f, 0.0f, 256.0f), glm::vec3(0.0f, 0.0f, -256.0f), glm::vec4(0.118f, 0.565f, 1.0f, 1.0f)}};  // Z : B (dodger blue)
-	
-	add_base_entity(std::make_unique<Line>(std::move(lines)));
 	add_base_entity(std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs", "res://models/teapot.obj", ""));
-	// add_base_entity(std::make_unique<Glass>());
 
 	// THIS IS STINKY; EWWW
 	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs");
@@ -68,7 +61,7 @@ void Space::init_raymarcher_and_voxelgrid() {
 
 void Space::init_glass() {
 	glass.init(resources);
-	glass.set_visibility(false);
+	glass.set_visibility(true);
 }
 
 void Space::init_lights() {
@@ -76,6 +69,16 @@ void Space::init_lights() {
 	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(1.0f, 0.3f, 0.2f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
 	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(0.0f, 0.58f, 1.0f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
 	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(0.31f, 0.78f, 0.48f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);	
+}
+
+void Space::init_lines() {
+	// world grid lines (currently parallell to all axis at 0)
+	line_manager = Line();
+	line_manager.init(resources.get_full_path("res://shaders/line.vs"), resources.get_full_path("res://shaders/line.fs"));
+	std::vector<LinePrimitive> world_grid_lines = {{glm::vec3(256.f, 0.0f, 0.0f), glm::vec3(-256.0f, 0.0f, 0.0f), glm::vec4(0.86f, 0.08f, 0.24f, 1.0f)}, // X : R (crimson red)
+	{glm::vec3(0.f, 256.0f, 0.0f), glm::vec3(0.0f, -256.0f, 0.0f), glm::vec4(0.196f, 0.754f, 0.196f, 1.0f)}, // Y : G (forest green)
+	{glm::vec3(0.f, 0.0f, 256.0f), glm::vec3(0.0f, 0.0f, -256.0f), glm::vec4(0.118f, 0.565f, 1.0f, 1.0f)}};  // Z : B (dodger blue)
+	line_manager.add_lines(world_grid_lines);
 }
 
 void Space::tick(float delta, ButtonMap bm)
@@ -136,6 +139,8 @@ void Space::enqueue_renderables() {
 	raymarcher.enqueue(renderer, resources, camera->get_position(), sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
 	glass.enqueue(renderer, resources, this_frames_button_map);
 
+	line_manager.enqueue(renderer);
+
 	renderer.execute_pipeline(voxel_grid.is_debug_view_visible());
 }
 
@@ -169,6 +174,6 @@ void Space::cast_ray() {
 	glm::vec3 start = camera->get_position();
 	glm::vec3 end = start + view_dir * 25.0f;
 
-	add_base_entity(std::make_unique<Line>(start, end, glm::vec4(1.0f)));
+	line_manager.add_line(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 

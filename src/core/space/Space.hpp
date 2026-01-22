@@ -18,6 +18,7 @@
 #include "feature/raymarcher/VoxelGrid.hpp"
 #include "feature/raymarcher/raymarcher.hpp"
 #include "feature/glass/Glass.hpp"
+#include "core/Line.hpp"
 
 class Object;
 
@@ -25,7 +26,7 @@ class Space {
 private:
 	ResourceManager& resources;
 	Renderer& renderer;
-	
+
 	std::vector<std::unique_ptr<Base>> base_objects;
 	
 	// various doohickeys
@@ -35,6 +36,7 @@ private:
 	VoxelGrid voxel_grid;
 	Raymarcher raymarcher;
 	Glass glass;
+	Line line_manager;
 	
 	float time = 0.0;
 	ButtonMap this_frames_button_map;
@@ -66,19 +68,19 @@ public:
 
 
 	void add_base_entity(std::unique_ptr<Base> base);
-	
 	void cast_ray();
 
 private:
-	
 	void init_skybox();
 	void init_raymarcher_and_voxelgrid();
 	void init_glass();
-	
-	
 	void init_lights();
+	void init_lines();
+	
+	
 	void add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
 					  glm::vec3 direction, float volumetric_intensity, LightType type);
 	void process_lights();
+
 	
 };
