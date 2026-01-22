@@ -7,15 +7,17 @@ Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale,
            const std::string& shader_path, 
            const std::string& model_path, 
            const std::string& texture_path) 
-           : Base(pos, rot, scale) 
-           {
+           : position(pos), rotation(rot), scale(scale) {
+            _id = UUID<Object>{};
             r_shader.asset_path = shader_path;
             r_model.asset_path = model_path;
             r_texture.asset_path = texture_path;
            }
 
+Object::~Object() {}
+
 void Object::init(ResourceManager& resources, Space* space) {
-    Base::init(resources, space);
+    _space = space;
     if (r_model.asset_path.empty()) {
         r_model = resources.load_model("res://models/VoxelModels/defaultCube.obj"); // default to cube if no model path is supplied
     } else {
@@ -37,6 +39,16 @@ void Object::tick(float delta) {
 
 }
 
+glm::mat4 Object::get_model_matrix() const {
+    glm::mat4 m(1.0f);
+    m = glm::translate(m, position);
+    m = glm::rotate(m, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)); // roll
+    m = glm::rotate(m, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)); // yaw
+    m = glm::rotate(m, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)); // pitch
+    m = glm::scale(m, scale);
+    return m;
+}
+
 void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
     if (auto shader = resources.get_shader(r_shader.id)) {
         glm::mat4 proj = renderer.get_proj();
@@ -44,7 +56,7 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
         glm::mat4 model = get_model_matrix();
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->set_uniform_vec3("u_camera_pos", _space->get_camera()->get_position());
+        (*shader)->set_uniform_vec3("u_camera_pos", _space->get_camera().get_position());
         (*shader)->set_uniform_vec3("u_sun_dir", _space->get_sun().get_direction());
         (*shader)->set_uniform_vec3("u_sun_color", glm::vec3(1.0, 1.0, 1.0));
         (*shader)->set_uniform_mat4("u_mvp", proj * view * model);

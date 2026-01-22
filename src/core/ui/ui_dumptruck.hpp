@@ -8,17 +8,17 @@
 #include "feature/raymarcher/raymarcher.hpp"
 #include "feature/raymarcher/VoxelGrid.hpp"
 #include "core/Camera.hpp"
-#include "core/Base.hpp"
+#include "core/space/Object.hpp"
 #include "glm/glm.hpp"
 
 #define PI 3.14159265358979323846f
 
 namespace ui {
-    void stats_overlay(Camera* camera, Renderer& renderer);
+    void stats_overlay(Camera& camera, Renderer& renderer);
     inline float to_deg(float r) { return r * (180.0f / 3.1415926535f); }
     inline float to_rad(float d) { return d * (3.1415926535f / 180.0f); } 
 
-    void transform_window(Base& obj, const char* title);
+    void transform_window(Object& obj, const char* title);
 
     void raymarch_settings(Raymarcher& marcher, RaymarchSettings& ray_settings);
 

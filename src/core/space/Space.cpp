@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include "core/rendering/Renderer.hpp"
-#include "core/space/Object.hpp"
 #include "core/ui/ui_dumptruck.hpp"
 
 #include "core/utils/ModelGenerator.hpp"
@@ -14,7 +13,7 @@ Space::Space(ResourceManager& resources, Renderer& renderer)
 }
 
 void Space::init_space() {
-	camera = new Camera(glm::vec3(0.0, 10.0f, 0.0));
+	camera.set_position(glm::vec3(0.0f, 10.0f, 0.0f));
 
 	init_skybox();
 	init_raymarcher_and_voxelgrid();
@@ -86,7 +85,7 @@ void Space::tick(float delta, ButtonMap bm)
 	time += delta;
 	this_frames_button_map = bm;
 
-	camera->tick(delta, bm);
+	camera.tick(delta, bm);
 	sun.tick(delta);
 
 	process_lights();
@@ -118,8 +117,8 @@ void Space::process_lights() {
 }
 
 void Space::enqueue_renderables() {
-	glm::mat4 view_matrix = camera->get_view_matrix();
-	glm::vec3 camera_pos = camera->get_position();
+	glm::mat4 view_matrix = camera.get_view_matrix();
+	glm::vec3 camera_pos = camera.get_position();
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
 	
 	// lights
@@ -136,7 +135,7 @@ void Space::enqueue_renderables() {
 	}
 	
 	voxel_grid.enqueue(renderer, resources);
-	raymarcher.enqueue(renderer, resources, camera->get_position(), sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
+	raymarcher.enqueue(renderer, resources, camera.get_position(), sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
 	glass.enqueue(renderer, resources, this_frames_button_map);
 
 	line_manager.enqueue(renderer);
@@ -150,7 +149,7 @@ void Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scal
 	base_objects.push_back(std::move(new_object));
 }
 
-void Space::add_base_entity(std::unique_ptr<Base> base) {
+void Space::add_base_entity(std::unique_ptr<Object> base) {
 	base->init(resources, this); 
 	base_objects.push_back(std::move(base));
 }
@@ -169,9 +168,9 @@ void Space::add_light(glm::vec3 position, float radius, glm::vec3 color, float i
 
 
 void Space::cast_ray() {
-	glm::vec3 view_dir = camera->get_front();
+	glm::vec3 view_dir = camera.get_front();
 	
-	glm::vec3 start = camera->get_position();
+	glm::vec3 start = camera.get_position();
 	glm::vec3 end = start + view_dir * 25.0f;
 
 	line_manager.add_line(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));

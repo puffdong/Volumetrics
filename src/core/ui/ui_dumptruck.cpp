@@ -3,7 +3,7 @@
 #include "feature/raymarcher/raymarcher.hpp"
 #include "feature/raymarcher/VoxelGrid.hpp"
 #include "core/Camera.hpp"
-#include "core/Base.hpp"
+#include "core/space/Object.hpp"
 #include "glm/glm.hpp"
 #include <iostream>
 
@@ -11,7 +11,7 @@
 
 namespace ui {
     
-    void stats_overlay(Camera* camera, Renderer& renderer) {
+    void stats_overlay(Camera& camera, Renderer& renderer) {
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                                  ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
                                  ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove;
@@ -23,20 +23,20 @@ namespace ui {
             ImGui::Text("Resolution: %d x %d", (int)viewport_size.x, (int)viewport_size.y);
             ImGui::Separator();
             ImGui::Text("pos: %.1f, %.1f, %.1f",
-                camera->position.x,
-                camera->position.y,
-                camera->position.z);
+                camera.position.x,
+                camera.position.y,
+                camera.position.z);
             ImGui::Separator();
             ImGui::Text("dir: %.1f, %.1f, %.1f",
-                camera->front.x,
-                camera->front.y,
-                camera->front.z);
+                camera.front.x,
+                camera.front.y,
+                camera.front.z);
             
         }
         ImGui::End();
     }
 
-    void transform_window(Base& obj, const char* title)
+    void transform_window(Object& obj, const char* title)
     {
         ImGui::PushID(obj.get_id());
 

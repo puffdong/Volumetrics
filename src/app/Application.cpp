@@ -113,7 +113,7 @@ void Application::mouse_callback(GLFWwindow*, double xpos, double ypos)
         last_x = (float) xpos;
         last_y = (float) ypos;
 
-        space.get_camera()->process_mouse(xoffset, yoffset);
+        space.get_camera().process_mouse(xoffset, yoffset);
     }
 
     mouse_pos_x = xpos;

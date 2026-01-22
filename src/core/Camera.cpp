@@ -1,10 +1,10 @@
 #include "Camera.hpp"
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-    : position(position),
-    worldUp(up),
-    yaw(yaw),
-    pitch(pitch),
+Camera::Camera() : 
+    position(glm::vec3(0.0f, 0.0f, 0.0f)),
+    worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
+    yaw(-90.0f),
+    pitch(0.0f),
     front(glm::vec3(0.0f, 0.0f, -1.0f)),
     movement_speed(5.0f),
     rotation_speed(50.0f),
@@ -24,6 +24,10 @@ void Camera::update_camera_vectors()
     // Re-calculate the Right and Up vectors
     right = glm::normalize(glm::cross(front, worldUp));  // Normalize the vectors
     up = glm::normalize(glm::cross(right, front));
+}
+
+void Camera::set_position(const glm::vec3& pos) {
+    position = pos;
 }
 
 glm::mat4 Camera::get_view_matrix()
