@@ -148,23 +148,57 @@ namespace ui {
     }
 
 
-    void raymarcher_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid)
+    void settings_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, Glass& glass)
     {
         ImGui::PushID(&marcher);
 
-        if (ImGui::Begin("Raymarcher")) {
+        if (ImGui::Begin("Rendering Settings")) {
+            if (ImGui::CollapsingHeader("Light Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                light_settings(sun);
+            }
             if (ImGui::CollapsingHeader("Raymarch settings", ImGuiTreeNodeFlags_DefaultOpen)) {
                 raymarch_settings(marcher, ray_settings);
             }
             if (ImGui::CollapsingHeader("Voxel grid settings", ImGuiTreeNodeFlags_DefaultOpen)) {
                 voxel_grid_settings(grid);
             }
-            if (ImGui::CollapsingHeader("Light Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-                
+            if (ImGui::CollapsingHeader("Glass settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                glass_settings(glass);
             }
+
         }
 
         ImGui::End();
         ImGui::PopID();
+    }
+    
+    void light_settings(Sun& sun) {
+        bool moving = sun.get_moving();
+        if (ImGui::Checkbox("Moving", &moving)) {
+            sun.set_moving(moving);
+        }
+        float speed = sun.get_speed();
+        if (moving && ImGui::SliderFloat("Speed", &speed, 0.01f, 3.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+            sun.set_speed(speed);
+        }
+        float hmm = sun.get_hmm();
+        if (ImGui::SliderFloat("Hmm", &hmm, -3.0f, 3.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+            sun.set_hmm(hmm);
+        }
+        ImGui::Separator();
+
+        glm::vec4 color = sun.get_color();
+        // sliders to change the rgb values of sun color
+        ImGui::SliderFloat("R##sun_color", &color.r, 0.0f, 20.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("G##sun_color", &color.g, 0.0f, 20.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("B##sun_color", &color.b, 0.0f, 20.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        sun.set_color(color);
+    }
+
+    void glass_settings(Glass& glass) {
+        bool visible = glass.is_visible();
+        if (ImGui::Checkbox("Toggle Glass", &visible)) {
+            glass.set_visibility(visible);
+        }
     }
 }

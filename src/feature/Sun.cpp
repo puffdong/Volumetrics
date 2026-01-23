@@ -17,20 +17,22 @@ void Sun::init(ResourceManager& resources) {
 }
 
 void Sun::tick(float delta) {
-    time += delta;
-    const float speed = 0.05f; 
+    float y = hmm; 
+    
+    if (_moving) {
+        _time += delta * _speed;
+    }
 
-    float x = std::sin(time * speed);
-    float z = std::cos(time * speed);
-    float y = 1.0f; 
+    float x = std::sin(_time);
+    float z = std::cos(_time);
 
     direction = glm::vec3(x, y, z);
     direction = glm::normalize(direction);
 }
 
 void Sun::init_billboard_model() {
-    float depth = 5.0f;
-    float width = 5.0f;
+    const float depth = 15.0f;
+    const float width = 15.0f;
     
     std::vector<float> vertices = {
     // Positions                            // Normals            // UVs
@@ -83,6 +85,8 @@ void Sun::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 came
     glm::mat4 mvp = renderer.get_proj() * renderer.get_view() * model;
 
     shader->bind();
+    shader->hot_reload_if_changed();
+    shader->set_uniform_vec4("u_sun_color", color);
     shader->set_uniform_mat4("u_mvp", mvp);
 
     RenderCommand cmd{};

@@ -9,6 +9,8 @@
 #include "feature/raymarcher/VoxelGrid.hpp"
 #include "core/Camera.hpp"
 #include "core/space/Object.hpp"
+#include "feature/Sun.hpp"
+#include "feature/glass/Glass.hpp"
 #include "glm/glm.hpp"
 
 #define PI 3.14159265358979323846f
@@ -24,7 +26,9 @@ namespace ui {
 
     void voxel_grid_settings(VoxelGrid& grid);
 
-    void raymarcher_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid);
+    void settings_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, Glass& glass);
 
-    // void light_panel();
+    void light_settings(Sun& sun);
+
+    void glass_settings(Glass& glass);
 }

@@ -46,7 +46,7 @@ void Space::init_skybox() {
 	skybox.init(resources);
 	sun = Sun();
 	sun.set_direction(glm::vec3(1.0f, 1.0f, 1.0f));
-	sun.set_color(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	sun.set_color(glm::vec4(15.0f, 15.0f, 14.0f, 1.0f));
 	sun.init(resources);
 }
 
@@ -60,7 +60,7 @@ void Space::init_raymarcher_and_voxelgrid() {
 
 void Space::init_glass() {
 	glass.init(resources);
-	glass.set_visibility(true);
+	glass.set_visibility(false);
 }
 
 void Space::init_lights() {
@@ -95,7 +95,7 @@ void Space::tick(float delta, ButtonMap bm)
 	}
 	voxel_grid.tick(delta);
 	raymarcher.tick(delta);
-    ui::raymarcher_panel(raymarcher, raymarcher.get_raymarch_settings(), voxel_grid);
+    ui::settings_panel(raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, glass);
 	glass.tick(delta, bm);
 
 }
@@ -173,6 +173,6 @@ void Space::cast_ray() {
 	glm::vec3 start = camera.get_position();
 	glm::vec3 end = start + view_dir * 25.0f;
 
-	line_manager.add_line(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	// line_manager.add_line(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 

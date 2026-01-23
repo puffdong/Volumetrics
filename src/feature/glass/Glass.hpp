@@ -1,3 +1,4 @@
+#pragma once
 #include "glm/glm.hpp"
 #include "core/resources/ResourceManager.hpp"
 #include "core/rendering/Renderer.hpp"
