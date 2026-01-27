@@ -145,9 +145,6 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float r
     vec3 point_light_pos = point_light1.position_radius.xyz;
     vec3 point_light_color = point_light1.color_intensity.xyz;
     float point_light_intensity = point_light1.color_intensity.w;
-    vec3 point_light2_pos = point_light2.position_radius.xyz;
-    vec3 point_light2_color = point_light2.color_intensity.xyz;
-    float point_light2_intensity = point_light2.color_intensity.w;
 
     for (int i = 0; i < u_max_steps; ++i) {
         
@@ -159,13 +156,11 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float r
 
             collected_density += density * u_step_size;
 
-            float light_transmittance1 = do_light_march(ray_pos, sun_vec);
-            float light_transmittance2 = do_light_march(ray_pos, normalize(point_light_pos - ray_pos));
-            float light_transmittance3 = do_light_march(ray_pos, normalize(point_light2_pos - ray_pos));
-            vec3 Li = u_sun_color * u_sun_intensity * light_transmittance1;
+            float light_transmittance = do_light_march(ray_pos, sun_vec);
+
+            vec3 Li = u_sun_color * u_sun_intensity * light_transmittance;
             
-            Li += point_light_color * point_light_intensity * light_transmittance2;
-            Li += point_light2_color * point_light2_intensity * light_transmittance3;
+
 
             light_energy += transmittance * density * sigma_s * phase * Li * u_step_size;
 

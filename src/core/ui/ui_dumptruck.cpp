@@ -148,13 +148,13 @@ namespace ui {
     }
 
 
-    void settings_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, Glass& glass)
+    void settings_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass)
     {
         ImGui::PushID(&marcher);
 
         if (ImGui::Begin("Rendering Settings")) {
             if (ImGui::CollapsingHeader("Light Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-                light_settings(sun);
+                light_settings(sun, lights);
             }
             if (ImGui::CollapsingHeader("Raymarch settings", ImGuiTreeNodeFlags_DefaultOpen)) {
                 raymarch_settings(marcher, ray_settings);
@@ -172,7 +172,7 @@ namespace ui {
         ImGui::PopID();
     }
     
-    void light_settings(Sun& sun) {
+    void light_settings(Sun& sun, std::vector<Light>& lights) {
         bool moving = sun.get_moving();
         if (ImGui::Checkbox("Moving", &moving)) {
             sun.set_moving(moving);
@@ -189,10 +189,63 @@ namespace ui {
 
         glm::vec4 color = sun.get_color();
         // sliders to change the rgb values of sun color
-        ImGui::SliderFloat("R##sun_color", &color.r, 0.0f, 20.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-        ImGui::SliderFloat("G##sun_color", &color.g, 0.0f, 20.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-        ImGui::SliderFloat("B##sun_color", &color.b, 0.0f, 20.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("R##sun_color", &color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("G##sun_color", &color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("B##sun_color", &color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
         sun.set_color(color);
+
+        ImGui::Separator();
+
+        Light& light1 = lights[0];
+        ImGui::Text("Light 1 Settings:");
+        // position
+        ImGui::SliderFloat("X##light1_pos", &light1.position.x, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Y##light1_pos", &light1.position.y, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Z##light1_pos", &light1.position.z, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        // radius
+        ImGui::SliderFloat("Radius##light1_radius", &light1.radius, 0.1f, 100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        // color
+        ImGui::SliderFloat("R##light1_color", &light1.color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("G##light1_color", &light1.color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("B##light1_color", &light1.color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        // intensity
+        ImGui::SliderFloat("Intensity##light1_intensity", &light1.intensity, 0.0f, 500.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+
+
+        ImGui::Separator();
+
+        Light& light2 = lights[1];
+        ImGui::Text("Light 2 Settings:");
+        // position
+        ImGui::SliderFloat("X##light2_pos", &light2.position.x, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Y##light2_pos", &light2.position.y, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Z##light2_pos", &light2.position.z, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        // radius
+        ImGui::SliderFloat("Radius##light2_radius", &light2.radius, 0.1f, 100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        // color
+        ImGui::SliderFloat("R##light2_color", &light2.color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("G##light2_color", &light2.color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("B##light2_color", &light2.color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        // intensity
+        ImGui::SliderFloat("Intensity##light2_intensity", &light2.intensity, 0.0f, 500.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::Separator();
+        
+        Light& light3 = lights[2];
+        ImGui::Text("Light 3 Settings:");
+        // position
+        ImGui::SliderFloat("X##light3_pos", &light3.position.x, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Y##light3_pos", &light3.position.y, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("Z##light3_pos", &light3.position.z, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        // radius
+        ImGui::SliderFloat("Radius##light3_radius", &light3.radius, 0.1f, 100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        // color
+        ImGui::SliderFloat("R##light3_color", &light3.color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("G##light3_color", &light3.color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::SliderFloat("B##light3_color", &light3.color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        // intensity
+        ImGui::SliderFloat("Intensity##light3_intensity", &light3.intensity, 0.0f, 500.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+
+
     }
 
     void glass_settings(Glass& glass) {

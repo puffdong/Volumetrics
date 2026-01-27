@@ -9,10 +9,23 @@ VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, g
     
     turn_on_corner_visualization();
 
+    // chimney looking thing
     add_cube(glm::ivec3(5, 5, 5), 10, 2, 10, 1);
     add_cube(glm::ivec3(6, 6, 6), 8, 2, 8, 1);
     add_cube(glm::ivec3(7, 7, 7), 6, 2, 6, 1);
     add_cube(glm::ivec3(8, 8, 8), 4, 6, 4, 1);
+
+    // hollow tube along x axis
+    for (int x = 0; x < 30; x++) {
+        for (int y = 3; y < 11; y++) {
+            for (int z = 18; z < 26; z++) {
+                if (y == 3 || y == 4 || y == 9 || y == 10|| z == 18 || z == 19 || z == 24 || z == 25) {
+                    set_voxel_value(x, y, z, 1);
+                }
+            }
+        }
+    }
+
 }
 
 void VoxelGrid::init(ResourceManager& resources) {

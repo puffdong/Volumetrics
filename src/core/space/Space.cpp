@@ -46,7 +46,8 @@ void Space::init_skybox() {
 	skybox.init(resources);
 	sun = Sun();
 	sun.set_direction(glm::vec3(1.0f, 1.0f, 1.0f));
-	sun.set_color(glm::vec4(15.0f, 15.0f, 14.0f, 1.0f));
+	// sun.set_color(glm::vec4(15.0f, 15.0f, 14.0f, 1.0f));
+	sun.set_color(glm::vec4(1.0f, 1.0f, 0.930f, 1.0f));
 	sun.init(resources);
 }
 
@@ -65,9 +66,9 @@ void Space::init_glass() {
 
 void Space::init_lights() {
 	lights.reserve(3); light_spheres.reserve(3);
-	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(1.0f, 0.3f, 0.2f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
-	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(0.0f, 0.58f, 1.0f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
-	add_light(glm::vec3(0.0f, 10.0f, 0.0), 200.f, glm::vec3(0.31f, 0.78f, 0.48f), 25.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);	
+	add_light(glm::vec3(14.0f, 13.0f, 20.5), 50.f, glm::vec3(1.0f, 0.3f, 0.2f), 84.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
+	add_light(glm::vec3(-10.0f, 11.0f, -22.0), 100.f, glm::vec3(0.0f, 0.58f, 1.0f), 271.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
+	add_light(glm::vec3(-10.0f, 12.0f, 10.0), 50.f, glm::vec3(0.31f, 0.78f, 0.48f), 21.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);	
 }
 
 void Space::init_lines() {
@@ -88,32 +89,21 @@ void Space::tick(float delta, ButtonMap bm)
 	camera.tick(delta, bm);
 	sun.tick(delta);
 
-	process_lights();
+	
 
 	for (auto& b : base_objects) {
 		b->tick(delta);
 	}
 	voxel_grid.tick(delta);
 	raymarcher.tick(delta);
-    ui::settings_panel(raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, glass);
+
 	glass.tick(delta, bm);
 
-}
+    ui::settings_panel(raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, lights, glass);
 
-void Space::process_lights() {
-	// not pretty but we aint all perfect alright?
-	const float speed = 0.12f;
-
-	glm::vec3 light_pos1 = glm::vec3(10.0f * sin(time * speed), 10.f, 10.0f * cos(time * speed));
-	glm::vec3 light_pos2 = glm::vec3(10.0f * sin(time * speed + 3 * PI/2), 10.f, 10.0f * cos(time * speed + 3 * PI/2));
-	glm::vec3 light_pos3 = glm::vec3(10.0f * sin(time * speed + PI), 10.f, 10.0f * cos(time * speed + PI));
-	
-	light_spheres[0]->set_position(light_pos1);
-	light_spheres[1]->set_position(light_pos2);
-	light_spheres[2]->set_position(light_pos3);
-	lights[0].position = light_pos1;
-	lights[1].position = light_pos2;
-	lights[2].position = light_pos3;
+	light_spheres[0]->set_position(lights[0].position);
+	light_spheres[1]->set_position(lights[1].position);
+	light_spheres[2]->set_position(lights[2].position);
 }
 
 void Space::enqueue_renderables() {
