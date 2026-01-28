@@ -25,7 +25,7 @@ private:
     int viewport_height;
 
     float fov = 75.f;
-	float near = 0.1f;
+	float near = 1.0f;
 	float far = 512.0f;
 	float aspect_ratio = 16.f / 9.0f;
 	glm::mat4 proj;
@@ -44,17 +44,18 @@ public:
     void execute_pipeline(bool voxel_grid_debug_view = false);
     void flush(RenderPass pass);
     
-    void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 0.1, float far_plane = 512.0f);
+    void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 1.0f, float far_plane = 512.0f);
     void set_fov(float fov);
     void set_view(glm::mat4 v) { view = v; };
     
     glm::vec2 get_viewport_size() const;
 
-    inline glm::mat4 get_proj() const { return proj; };
-    inline glm::mat4 get_view() const { return view; }
     inline float get_fov() const { return fov; };
     inline float get_near() const { return near; };
     inline float get_far() const { return far; };
+    inline float get_aspect_ratio() const { return aspect_ratio; };
+    inline glm::mat4 get_view() const { return view; }
+    inline glm::mat4 get_proj() const { return proj; };
 
 private:
     void init_quad();

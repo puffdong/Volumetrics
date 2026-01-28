@@ -75,8 +75,6 @@ private:
 	void init_lights();
 	void init_lines();
 	
-	
 	void add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
 					  glm::vec3 direction, float volumetric_intensity, LightType type);
-	void process_lights();
 };

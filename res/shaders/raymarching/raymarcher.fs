@@ -5,6 +5,7 @@ in vec2 v_uv;
 in vec3 v_origin;
 in vec3 v_ray;
 
+// lights
 struct Light {
     vec4 position_radius; // position, radius
     vec4 color_intensity; // color, intensity
@@ -16,10 +17,13 @@ layout(std140) uniform b_light_block {
 };
 
 uniform int u_light_count;
-
-uniform float time;
 uniform vec3 u_sun_dir;
 uniform vec3 u_sun_color;
+uniform mat4 u_invprojview;
+
+// standard uniforms
+uniform float u_time;
+uniform vec2 u_resolution;
 uniform vec3 u_camera_pos;
 
 // textures
@@ -50,10 +54,7 @@ uniform float u_extincion_coefficient;
 uniform float u_anisotropy;
 uniform float u_sun_intensity;
 
-float linearize_depth(float depth) {
-    float z = depth * 2.0 - 1.0; // back to NDC
-    return (2.0 * u_near_plane * u_far_plane) / (u_far_plane + u_near_plane - z * (u_far_plane - u_near_plane));
-}
+
 
 uint voxel_value_at(ivec3 cell) {
     if (any(lessThan(cell, ivec3(0))) || any(greaterThanEqual(cell, u_grid_dim))) return 0u;
@@ -98,6 +99,8 @@ float sample_density(vec3 sample_pos) {
     return noise;
 }
 
+
+
 float do_light_march(vec3 light_pos, vec3 light_dir) {
     float distance_traveled = 0.0;
     float optical_depth = 0.0;
@@ -120,11 +123,8 @@ float do_light_march(vec3 light_pos, vec3 light_dir) {
     return exp(-optical_depth);
 }
 
-vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float raymarch_depth) {    
-    // figure out where to start marching
-    float start_dist = linearize_depth(raymarch_depth);
-    float scene_dist = linearize_depth(scene_depth);
-    float distance_traveled = start_dist;
+vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, float scene_distance) {
+    float distance_traveled = start_distance + 0.01; // added offset to ensure we start inside a voxel
 
     float transmittance = 1.0;
     vec3 light_energy = vec3(0.0);
@@ -138,13 +138,12 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float r
 
     float collected_density = 0.0;
 
-    Light point_light1 = u_lights[0];
-    Light point_light2 = u_lights[1];
+    Light point_light = u_lights[0];
 
     // unpack point lights
-    vec3 point_light_pos = point_light1.position_radius.xyz;
-    vec3 point_light_color = point_light1.color_intensity.xyz;
-    float point_light_intensity = point_light1.color_intensity.w;
+    vec3 point_light_pos = point_light.position_radius.xyz;
+    vec3 point_light_color = point_light.color_intensity.xyz;
+    float point_light_intensity = point_light.color_intensity.w;
 
     for (int i = 0; i < u_max_steps; ++i) {
         
@@ -160,8 +159,6 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float r
 
             vec3 Li = u_sun_color * u_sun_intensity * light_transmittance;
             
-
-
             light_energy += transmittance * density * sigma_s * phase * Li * u_step_size;
 
             transmittance *= exp(-density * sigma_t * u_step_size);
@@ -171,10 +168,10 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float r
                 break;
             }
 
-        }
-
-        if (distance_traveled > scene_dist) break; // hmm maybe this can be used to determine max steps dynamically?
+        } 
+        if (distance_traveled > scene_distance) break; // hmm maybe this can be used to determine max steps dynamically?
         distance_traveled += u_step_size;
+        
     }
 
     vec3 ambient = u_base_color;
@@ -182,6 +179,17 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float scene_depth, float r
     vec3 final_color = ambient * transmittance + light_energy;
 
     return vec4(final_color, clamp(collected_density, 0.0, 1.0));
+}
+
+float linearize_depth(float depth) {
+    float z = depth * 2.0 - 1.0; // back to NDC
+    return (2.0 * u_near_plane * u_far_plane) / (u_far_plane + u_near_plane - z * (u_far_plane - u_near_plane));
+}
+
+vec3 reconstruct_world(vec2 uv, float depth) {
+    vec4 ndc = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    vec4 w = u_invprojview * ndc;
+    return w.xyz / w.w;
 }
 
 void main() {
@@ -198,16 +206,21 @@ void main() {
         o_color = vec4(0.0);
         return;
     }
-    // if all clear, then we march!
+
+    // doing it this way was just wrong but it worked before... gave us the weird rings tho so the new method is better
+    // float scene_dist = linearize_depth(scene_depth);
+    // float start_dist = linearize_depth(raymarch_depth);
+
+    // doing it this way removes the "bug" of having the volume disappear at the edges of the screen at far away distances
+    // it does however cause flickering and weird artifacts...
+    vec3 scene_pos = reconstruct_world(v_uv, scene_depth);
+    vec3 start_pos = reconstruct_world(v_uv, raymarch_depth);
+
+    float start_dist = length(start_pos - v_origin);
+    float scene_dist = length(scene_pos - v_origin);
 
     vec3 ray_direction = normalize(v_ray);
-    vec4 result = do_raymarch(v_origin, ray_direction, scene_depth, raymarch_depth);
-
-    // VISUALIZE RAY ORIGIN
-    // vec4 result = vec4(normalize(v_origin), 1.0);
-
-    // VISUALIZE RAY DIRECTION
-    // vec4 result = vec4(normalize(ray_direction), 1.0);
+    vec4 result = do_raymarch(v_origin, ray_direction, start_dist, scene_dist);
     
     o_color = result;
 }

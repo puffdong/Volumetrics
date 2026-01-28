@@ -210,7 +210,7 @@ void Renderer::set_projection_matrix(float new_aspect_ratio, float new_fov, floa
     far = far_plane;
 
     fov = new_fov;
-    proj = glm::perspective(glm::radians(fov), aspect_ratio, 0.1f, far);
+    proj = glm::perspective(glm::radians(fov), aspect_ratio, near, far);
 }
 
 void Renderer::set_fov(float fov) {

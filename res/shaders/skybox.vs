@@ -14,6 +14,6 @@ void main()
 
 	vec4 pos = u_proj * view * vec4(a_pos, 1.0);
 
-	gl_Position = pos;
 	v_dir = a_pos;
+	gl_Position = pos;
 }

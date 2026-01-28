@@ -7,11 +7,8 @@
 struct RaymarchSettings {
     int max_steps = 256;
     float step_size = 0.15f; 
-    float hit_step_size = 0.15f; // unused
     int max_light_steps = 16;
     float light_step_size = 0.6f;
-    float max_distance = 512.f;
-    float min_distance = 0.000001f;
 
     glm::vec3 base_color = glm::vec3(0.05f, 0.05f, 0.05f);
     float absorption_coefficient = 1.0f;

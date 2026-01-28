@@ -98,7 +98,8 @@ void Space::tick(float delta, ButtonMap bm)
 	raymarcher.tick(delta);
 
 	glass.tick(delta, bm);
-
+        
+	ui::stats_overlay(camera, renderer);
     ui::settings_panel(raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, lights, glass);
 
 	light_spheres[0]->set_position(lights[0].position);

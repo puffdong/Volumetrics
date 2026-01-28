@@ -17,7 +17,7 @@ Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path)
 
     renderer.init_renderer(initial_width, initial_height);
     float aspect_ratio = static_cast<float>(initial_width) / initial_height;
-    renderer.set_projection_matrix(aspect_ratio, 70.f, 0.1f, 512.f);
+    renderer.set_projection_matrix(aspect_ratio, 70.f, 1.0f, 512.f);
 
     space.init_space();
 
@@ -150,7 +150,10 @@ void Application::mouse_button_callback(GLFWwindow* window, int button, int acti
 
 void Application::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     if (camera_control_mouse_active) {
-        fov -= (float) yoffset; // we only want to set it when controlling the camera!
+        // fov -= (float) yoffset; // we only want to set it when controlling the camera!
+        float fov = renderer.get_fov() - (float) yoffset;
+        if (fov < 1.0f) fov = 1.0f;
+        if (fov > 179.0f) fov = 179.0f;
         renderer.set_fov(fov);
     }
 }
@@ -259,7 +262,7 @@ int Application::run() {
 
         if (resize_dirty && glfwGetTime() - last_resize_event > RESIZE_SETTLE) {
             renderer.resize(pending_width, pending_height);
-            renderer.set_projection_matrix(static_cast<float>(pending_width) / pending_height, fov);
+            renderer.set_projection_matrix(static_cast<float>(pending_width) / pending_height, renderer.get_fov());
             resize_dirty = false;
 
             std::cout << "viewport resized to (" << pending_width << ", " << pending_height << ")" << std::endl;
@@ -283,10 +286,7 @@ int Application::run() {
         last_time = current_time;
         space.tick(delta_time, button_map);
         space.enqueue_renderables(); // moved the render call into space for now... 
-         
-        // ui 
-        ui::stats_overlay(space.get_camera(), renderer);
-
+        
         // Imgui again
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
