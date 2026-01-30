@@ -25,7 +25,7 @@ private:
 	ResourceManager& resources;
 	Renderer& renderer;
 
-	std::vector<std::unique_ptr<Object>> objects;
+	std::vector<Object*> objects;
 	
 	Camera camera;
 	Skybox skybox;
@@ -44,6 +44,8 @@ private:
 
 public:
 	Space(ResourceManager& resources, Renderer& renderer);
+	~Space();
+
 	void init_space();
 
 	void tick(float delta, ButtonMap bm);
@@ -58,11 +60,11 @@ public:
 							 glm::vec3 scale = glm::vec3(1.0f), 
 							 const std::string& model_asset = "",
 							 const std::string& name = "");
+
 	void add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
 					  glm::vec3 direction, float volumetric_intensity, LightType type);
 	void remove_light(std::size_t index);
 
-	void add_object(std::unique_ptr<Object> object);
 	void cast_ray();
 
 private:

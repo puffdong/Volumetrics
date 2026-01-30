@@ -4,7 +4,7 @@
 #define PI 3.14159265358979323846f
 
 namespace ui {
-    
+
     void stats_overlay(Camera& camera, Renderer& renderer) {
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
                                  ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
@@ -24,40 +24,47 @@ namespace ui {
             ImGui::Text("dir: %.1f, %.1f, %.1f",
                 camera.front.x,
                 camera.front.y,
-                camera.front.z);
-            
+                camera.front.z); 
         }
         ImGui::End();
     }
 
-    void transform_window(Object& obj, const char* title)
-    {
-        ImGui::PushID(obj.get_id());
+    void object_settings(std::vector<Object*>& objects) {
+        for (std::size_t i = 0; i < objects.size(); ++i) {
+            Object* obj = objects[i];
+            if (!obj) {
+                continue;
+            }
+            ImGui::PushID(obj->get_id());
 
-        if (ImGui::Begin(title)) {
-            // Position (xyz)
-            glm::vec3 p = obj.get_position();
-            float pos[3] = { p.x, p.y, p.z };
-            if (ImGui::InputFloat3("Position", pos, "%.3f")) {
-                obj.set_position({ pos[0], pos[1], pos[2] });
+            std::string title = obj->get_name();
+            if (ImGui::BeginMenu(title.c_str())) {
+                // Position (xyz)
+                glm::vec3 p = obj->get_position();
+                float pos[3] = { p.x, p.y, p.z };
+                if (ImGui::DragFloat3("Position", pos, 0.1f, -50.0f, 50.0f, "%.3f")) {
+                    obj->set_position({ pos[0], pos[1], pos[2] });
+                }
+
+                glm::vec3 r = obj->get_rotation();
+                float rot[3] = { r.x, r.y, r.z };
+                if (ImGui::SliderFloat3("Rotation", rot, -PI, PI, "%.3f",
+                                        ImGuiSliderFlags_AlwaysClamp)) {
+                    obj->set_rotation({ rot[0], rot[1], rot[2] });
+                }
+
+                glm::vec3 scale = obj->get_scale();
+                float s[3] = { scale.x, scale.y, scale.z };
+                if (ImGui::SliderFloat3("Scale", s, 0.01f, 10.0f, "%.3f",
+                                       ImGuiSliderFlags_AlwaysClamp)) {
+                    obj->set_scale({ s[0], s[1], s[2] });
+                }
+
+                ImGui::EndMenu();
             }
 
-            glm::vec3 r = obj.get_rotation();
-            float rot[3] = { r.x, r.y, r.z };
-            if (ImGui::SliderFloat3("Rotation", rot, -PI, PI, "%.3f",
-                                    ImGuiSliderFlags_AlwaysClamp)) {
-                obj.set_rotation({ rot[0], rot[1], rot[2] });
-            }
-            
-            glm::vec3 scale = obj.get_scale();
-            float s[3] = {scale.x, scale.y, scale.z};
-            if (ImGui::SliderFloat3("Scale", s, 0.01f, 10.0f, "%.3f",
-                                   ImGuiSliderFlags_AlwaysClamp)) {
-                obj.set_scale({ s[0], s[1], s[2] });
-            }
+            ImGui::PopID();
         }
-        ImGui::End();
-        ImGui::PopID();
     }
 
     void raymarch_settings(Raymarcher& marcher, RaymarchSettings& ray_settings) {
@@ -158,11 +165,15 @@ namespace ui {
     }
 
 
-    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass)
+    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass, std::vector<Object*>& objects)
     {
         ImGui::PushID(&marcher);
 
         if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("Objects")) {
+                object_settings(objects);
+                ImGui::EndMenu();
+            }            
             if (ImGui::BeginMenu("Lights")) {
                 light_settings(space, sun, lights);
                 ImGui::EndMenu();

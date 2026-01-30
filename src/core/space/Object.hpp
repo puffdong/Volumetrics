@@ -37,6 +37,7 @@ public:
 
     // getters n' setters
     UUID<Object> get_id() const { return _id; };
+    std::string get_name() const { return _name; };
     glm::mat4 get_model_matrix() const;
     glm::vec3 get_position() const { return position; };
     glm::vec3 get_rotation() const { return rotation; };
@@ -48,6 +49,7 @@ public:
     void set_scale(const glm::vec3& s) { scale = s; };
     void set_visibility(const bool v) { _visible = v; };
     void set_active(const bool v) { _active = v; };
+    void set_name(const std::string& name) { _name = name; };
 
     void set_model(Res::Model res);
 };

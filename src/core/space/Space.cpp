@@ -13,6 +13,13 @@ Space::Space(ResourceManager& resources, Renderer& renderer)
 	
 }
 
+Space::~Space() {
+	for (auto* obj : objects) {
+		delete obj;
+	}
+	objects.clear();
+}
+
 void Space::init_space() {
 	camera.set_position(glm::vec3(0.0f, 10.0f, 0.0f));
 
@@ -23,21 +30,21 @@ void Space::init_space() {
 	init_lines();
 
 	
-	// THIS IS STINKY; EWWW
-	auto base_ground = std::make_unique<Object>(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs");
-	base_ground->init(resources);
+	// THIS IS STINKY;
+	Object* base_ground = new Object(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs");
+	base_ground->init(resources, "Ground Plane");
 	ModelGpuData ground_model_2 = ModelGenerator::create_flat_ground(350, 350, 50, 50);
 	Res::Model r_ground_model = resources.upload_model(std::move(ground_model_2));
 	base_ground->set_model(std::move(r_ground_model));
-	objects.push_back(std::move(base_ground));
-	// THIS IS STINKY; BLEEEH
+	objects.push_back(base_ground);
+	// THIS IS STINKY;
 	
 	std::string sphere_path = "res://models/sphere.obj";
 	create_object(glm::vec3(-10.f, 0.f, 10.f), glm::vec3(0.f), glm::vec3(1.f), "res://models/teapot.obj", "Teapot");
-	create_object(glm::vec3(7.0f, -1.0f, -8.0f), glm::vec3(0.0f), glm::vec3(5.0f), sphere_path, "MediumSphere");
-	create_object(glm::vec3(-18.0f, 5.0f, 28.0f), glm::vec3(0.0f), glm::vec3(3.5f), sphere_path);
-	create_object(glm::vec3(35.0f, 2.0f, 14.0f), glm::vec3(0.0f), glm::vec3(2.0f), sphere_path);
-	create_object(glm::vec3(17.0f, 3.5f, -2.0f), glm::vec3(0.0f), glm::vec3(7.0f), sphere_path);
+	create_object(glm::vec3(7.0f, -1.0f, -8.0f), glm::vec3(0.0f), glm::vec3(5.0f), sphere_path, "Sphere 1");
+	create_object(glm::vec3(-18.0f, 5.0f, 28.0f), glm::vec3(0.0f), glm::vec3(3.5f), sphere_path, "Sphere 2");
+	create_object(glm::vec3(35.0f, 2.0f, 14.0f), glm::vec3(0.0f), glm::vec3(2.0f), sphere_path, "Sphere 3");
+	create_object(glm::vec3(17.0f, 3.5f, -2.0f), glm::vec3(0.0f), glm::vec3(7.0f), sphere_path, "Sphere 4");
 }
 
 void Space::init_skybox() {
@@ -97,7 +104,7 @@ void Space::tick(float delta, ButtonMap bm)
 	glass.tick(delta, bm);
         
 	ui::stats_overlay(camera, renderer);
-    ui::settings_panel(*this, raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, lights, glass);
+    ui::settings_panel(*this, raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, lights, glass, objects);
 
 	const std::size_t count = std::min(lights.size(), light_spheres.size());
 	for (std::size_t i = 0; i < count; ++i) {
@@ -133,14 +140,9 @@ void Space::enqueue_renderables() {
 }
 
 void Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset, const std::string& name) {
-	auto new_object = std::make_unique<Object>(position, rotation, scale, "res://shaders/core/default_shader.vs", model_asset);
+	auto* new_object = new Object(position, rotation, scale, "res://shaders/core/default_shader.vs", model_asset);
 	new_object->init(resources, name);
-	objects.push_back(std::move(new_object));
-}
-
-void Space::add_object(std::unique_ptr<Object> object) {
-	object->init(resources); 
-	objects.push_back(std::move(object));
+	objects.push_back(new_object);
 }
 
 void Space::add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 

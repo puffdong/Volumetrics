@@ -41,7 +41,6 @@ std::vector<GpuLight> LightManager::convert_to_gpu_lights(const std::vector<Ligh
 
 void LightManager::upload(const std::vector<Light>& lights) {
     if (_capacity == 0) {
-        std::cout << "no light is being uploaded bro" << std::endl;
         return;
     }
 
