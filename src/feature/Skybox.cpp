@@ -44,11 +44,9 @@ void Skybox::init(ResourceManager& resources) {
 void Skybox::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos)
 {
 	if (auto shader = resources.get_shader(r_shader.id)) {
-		glm::mat4 projection = glm::perspective(renderer.get_fov(), renderer.get_aspect_ratio(), 0.1f, renderer.get_far()); // special case because ultrawide with 1.0 near causes issues
-
 		(*shader)->hot_reload_if_changed();
 		(*shader)->bind();
-		(*shader)->set_uniform_mat4("u_proj", projection);
+		(*shader)->set_uniform_mat4("u_proj", renderer.get_proj());
 		(*shader)->set_uniform_mat4("u_view", renderer.get_view());
 		
 		TextureBinding tex{};

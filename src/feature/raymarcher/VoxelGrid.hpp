@@ -23,9 +23,11 @@ private:
 	ModelGpuData cube_model;
 
 	unsigned int voxel_tex = 0;
+	bool _voxels_changed = false;
+	bool _instances_dirty = false;
 
-	bool changed = false;
-	bool _visible = true;
+	bool _debug_visible = false;
+	bool _show_corners = false;
 	
 public:
 	VoxelGrid() = default;
@@ -36,14 +38,18 @@ public:
     void tick(float delta);
     void enqueue(Renderer& renderer, ResourceManager& resources);
 	
-	// void resize_grid(int w, int h, int d);
+	void resize_grid(int w, int h, int d, bool preserve_data = false);
 	
 	void set_voxel_value(int x, int y, int z, uint8_t value);
-	void set_cell_size(float size) { cell_size = size; changed = true; };
-	void set_position(const glm::vec3& p) { position = p; changed = true; };
-	void set_debug_visibility(const bool v) { _visible = v; };
+	void set_cell_size(float size) { cell_size = size; };
+	void set_position(const glm::vec3& p) { position = p; };
+	void set_debug_visibility(const bool v) { _debug_visible = v; };
+	void set_corner_visualization_enabled(const bool v);
 	
-	inline bool is_debug_view_visible() const { return _visible; };
+	inline bool is_debug_view_visible() const { return _debug_visible; };
+	inline bool is_corner_visualization_enabled() const { return _show_corners; }
+
+
 	uint8_t get_voxel_value(int x, int y, int z);
     glm::vec3 get_scale() const { return scale; };
     void set_scale(const glm::vec3& s) { scale = s; };
@@ -64,9 +70,10 @@ public:
 private:
 	GLuint instanceVBO;
 
-	void turn_on_corner_visualization();
+	void turn_on_corner_visualization(uint8_t value);
 	void init_instance_buffer();
 	void re_init_instance_buffer();
 	void create_voxel_texture();
 	void delete_instance_buffer();
+	void preserve_voxel_data(int old_w, int old_h, int old_d, const std::vector<uint8_t>& old_voxels);
 };

@@ -1,4 +1,5 @@
 #include "ui_dumptruck.hpp"
+#include "core/space/Space.hpp"
 
 #define PI 3.14159265358979323846f
 
@@ -108,6 +109,12 @@ namespace ui {
                 grid.set_debug_visibility(visible);
             }
         }
+        {
+            bool show_corners = grid.is_corner_visualization_enabled();
+            if (ImGui::Checkbox("Show Corner Voxels", &show_corners)) {
+                grid.set_corner_visualization_enabled(show_corners);
+            }
+        }
         // Cell size slider (clamped 0.1f..50.0f)
         {
             float cell_size = grid.get_cell_size();
@@ -119,27 +126,45 @@ namespace ui {
         // Position sliders (X, Y, Z)
         {
             glm::vec3 p = grid.get_position();
-            float x = p.x, y = p.y, z = p.z;
-
-            bool changed = false;
-            changed |= ImGui::SliderFloat("X##grid_pos", &x, -50.0f, 50.0f, "%.3f");
-            changed |= ImGui::SliderFloat("Y##grid_pos", &y, -50.0f, 50.0f, "%.3f");
-            changed |= ImGui::SliderFloat("Z##grid_pos", &z, -50.0f, 50.0f, "%.3f");
-
-            if (changed) {
-                grid.set_position(glm::vec3{x, y, z});
+            if (ImGui::DragFloat3("Position##grid_pos", &p.x, 0.1f, -50.0f, 50.0f, "%.3f")) {
+                grid.set_position(p);
             }
+        }
+        ImGui::Separator();
+        {
+            glm::ivec3 cur = grid.get_grid_dim();
+            ImGui::Text("Size (%d, %d, %d)", cur.x, cur.y, cur.z);
+
+            static bool init_dims = false;
+            static bool preserve_data = false;
+            static int dims[3] = { 1, 1, 1 };
+            if (!init_dims) {
+                dims[0] = cur.x; dims[1] = cur.y; dims[2] = cur.z;
+                init_dims = true;
+            }
+            
+            if (ImGui::InputInt3("", dims)) {
+                if (dims[0] < 1) dims[0] = 1;
+                if (dims[1] < 1) dims[1] = 1;
+                if (dims[2] < 1) dims[2] = 1;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Resize")) {
+                grid.resize_grid(dims[0], dims[1], dims[2], preserve_data);
+            }
+            ImGui::SameLine();
+            ImGui::Checkbox("Preserve", &preserve_data);
         }
     }
 
 
-    void settings_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass)
+    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass)
     {
         ImGui::PushID(&marcher);
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("Lights")) {
-                light_settings(sun, lights);
+                light_settings(space, sun, lights);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Raymarcher")) {
@@ -160,7 +185,7 @@ namespace ui {
         ImGui::PopID();
     }
     
-    void light_settings(Sun& sun, std::vector<Light>& lights) {
+    void light_settings(Space& space, Sun& sun, std::vector<Light>& lights) {
         if (ImGui::BeginMenu("Sun")) {
             bool moving = sun.get_moving();
             if (ImGui::Checkbox("Moving", &moving)) {
@@ -187,46 +212,38 @@ namespace ui {
 
         ImGui::Separator();
 
-        Light& light1 = lights[0];
-        if (ImGui::BeginMenu("Light 1")) {
-            ImGui::Text("Light 1 Settings:");
-            ImGui::SliderFloat("X##light1_pos", &light1.position.x, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Y##light1_pos", &light1.position.y, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Z##light1_pos", &light1.position.z, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Radius##light1_radius", &light1.radius, 0.1f, 100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("R##light1_color", &light1.color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("G##light1_color", &light1.color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("B##light1_color", &light1.color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Intensity##light1_intensity", &light1.intensity, 0.0f, 500.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::EndMenu();
-        }
+        int remove_index = -1;
+        for (std::size_t i = 0; i < lights.size(); ++i) {
+            Light& light = lights[i];
+            ImGui::PushID(static_cast<int>(i));
+            std::string label = "Light " + std::to_string(i + 1);
+            if (ImGui::BeginMenu(label.c_str())) {
+                ImGui::Text("%s Settings:", label.c_str());
+                ImGui::DragFloat3("Position##light_pos", &light.position.x, 0.1f, -50.0f, 50.0f, "%.2f");
+                ImGui::SliderFloat("Radius##light_radius", &light.radius, 0.1f, 100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SliderFloat("R##light_color", &light.color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SliderFloat("G##light_color", &light.color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SliderFloat("B##light_color", &light.color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SliderFloat("Intensity##light_intensity", &light.intensity, 0.0f, 500.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
-        Light& light2 = lights[1];
-        if (ImGui::BeginMenu("Light 2")) {
-            ImGui::Text("Light 2 Settings:");
-            ImGui::SliderFloat("X##light2_pos", &light2.position.x, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Y##light2_pos", &light2.position.y, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Z##light2_pos", &light2.position.z, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Radius##light2_radius", &light2.radius, 0.1f, 100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("R##light2_color", &light2.color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("G##light2_color", &light2.color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("B##light2_color", &light2.color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Intensity##light2_intensity", &light2.intensity, 0.0f, 500.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::EndMenu();
+                ImGui::Separator();
+                if (ImGui::Button("Remove Light")) {
+                    remove_index = static_cast<int>(i);
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::PopID();
         }
-
-        Light& light3 = lights[2];
-        if (ImGui::BeginMenu("Light 3")) {
-            ImGui::Text("Light 3 Settings:");
-            ImGui::SliderFloat("X##light3_pos", &light3.position.x, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Y##light3_pos", &light3.position.y, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Z##light3_pos", &light3.position.z, -50.0f, 50.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Radius##light3_radius", &light3.radius, 0.1f, 100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("R##light3_color", &light3.color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("G##light3_color", &light3.color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("B##light3_color", &light3.color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("Intensity##light3_intensity", &light3.intensity, 0.0f, 500.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::EndMenu();
+        if (remove_index >= 0) {
+            space.remove_light(static_cast<std::size_t>(remove_index));
+        }
+        ImGui::Separator();
+        if (ImGui::Button("Add Light")) {
+            space.add_light(
+                glm::vec3(0.0f, 5.0f, 0.0f), 50.0f,
+                glm::vec3(1.0f), 50.0f, 
+                glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point
+            );
         }
     }
 

@@ -17,6 +17,8 @@
 
 #define PI 3.14159265358979323846f
 
+class Space; // fwd decl
+
 namespace ui {
     void stats_overlay(Camera& camera, Renderer& renderer);
     inline float to_deg(float r) { return r * (180.0f / 3.1415926535f); }
@@ -26,11 +28,11 @@ namespace ui {
 
     void raymarch_settings(Raymarcher& marcher, RaymarchSettings& ray_settings);
 
-    void voxel_grid_settings(VoxelGrid& grid);
+    void voxel_grid_settings(VoxelGrid& grid); // includes corner visualization toggle
 
-    void settings_panel(Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass);
+    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass);
 
-    void light_settings(Sun& sun, std::vector<Light>& lights);
+    void light_settings(Space& space, Sun& sun, std::vector<Light>& lights);
 
     void glass_settings(Glass& glass);
 }

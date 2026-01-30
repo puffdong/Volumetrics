@@ -264,8 +264,6 @@ int Application::run() {
             renderer.resize(pending_width, pending_height);
             renderer.set_projection_matrix(static_cast<float>(pending_width) / pending_height, renderer.get_fov());
             resize_dirty = false;
-
-            std::cout << "viewport resized to (" << pending_width << ", " << pending_height << ")" << std::endl;
         }
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -287,7 +285,6 @@ int Application::run() {
         space.tick(delta_time, button_map);
         space.enqueue_renderables(); // moved the render call into space for now... 
         
-        // Imgui again
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

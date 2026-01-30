@@ -1,6 +1,5 @@
 #include "Object.hpp"
 #include "core/rendering/Texture.hpp"
-#include "core/space/Space.hpp"
 #include <iostream>
 
 Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale,
@@ -16,8 +15,9 @@ Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale,
 
 Object::~Object() {}
 
-void Object::init(ResourceManager& resources, Space* space) {
-    _space = space;
+void Object::init(ResourceManager& resources, const std::string& name) {
+    _name = name.empty() ? "O_" + std::to_string(_id.value()) : name;
+
     if (r_model.asset_path.empty()) {
         r_model = resources.load_model("res://models/VoxelModels/defaultCube.obj"); // default to cube if no model path is supplied
     } else {
@@ -49,16 +49,16 @@ glm::mat4 Object::get_model_matrix() const {
     return m;
 }
 
-void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
+void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color) {
     if (auto shader = resources.get_shader(r_shader.id)) {
         glm::mat4 proj = renderer.get_proj();
         glm::mat4 view = renderer.get_view();
         glm::mat4 model = get_model_matrix();
         (*shader)->hot_reload_if_changed();
         (*shader)->bind();
-        (*shader)->set_uniform_vec3("u_camera_pos", _space->get_camera().get_position());
-        (*shader)->set_uniform_vec3("u_sun_dir", _space->get_sun().get_direction());
-        (*shader)->set_uniform_vec3("u_sun_color", glm::vec3(1.0, 1.0, 1.0));
+        (*shader)->set_uniform_vec3("u_camera_pos", camera_pos);
+        (*shader)->set_uniform_vec3("u_sun_dir", sun_dir);
+        (*shader)->set_uniform_vec3("u_sun_color", sun_color);
         (*shader)->set_uniform_mat4("u_mvp", proj * view * model);
         (*shader)->set_uniform_mat4("u_proj", renderer.get_proj());
         (*shader)->set_uniform_mat4("u_model", model);

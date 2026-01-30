@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <cstddef>
+#include "core/UUID.hpp"
 
 enum class LightType : int {
     Point       = 0,
@@ -19,6 +20,7 @@ struct Light {
     float     volumetric_intensity = 1.0f;
 
     LightType type       = LightType::Point;
+    UUID<Light> id       = UUID<Light>();
 };
 
 // the struct we convert to when uploading the light block! 

@@ -197,6 +197,23 @@ void Renderer::destroy_renderer() {
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
+    if (quad_vao) {
+        glDeleteVertexArrays(1, &quad_vao);
+        quad_vao = 0;
+    }
+    if (quad_vbo) {
+        glDeleteBuffers(1, &quad_vbo);
+        quad_vbo = 0;
+    }
+    if (composite_shader) {
+        delete composite_shader;
+        composite_shader = nullptr;
+    }
+    if (copy_present_shader) {
+        delete copy_present_shader;
+        copy_present_shader = nullptr;
+    }
+
     for (auto& q : queues) q.clear();
 }
 

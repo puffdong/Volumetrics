@@ -1,17 +1,14 @@
 #pragma once
-#include <unordered_map>
 #include "glm/glm.hpp"
 #include "core/utils/ButtonMap.hpp"
 #include "core/rendering/Renderer.hpp"
 #include "core/resources/ResourceManager.hpp"
 #include "core/UUID.hpp"
 
-class Space; // fwd decl
-
 class Object {
 private:
     UUID<Object> _id;
-    Space* _space;
+    std::string _name = "";
     
     glm::vec3 position = glm::vec3(0.0f);
     glm::vec3 rotation = glm::vec3(0.0f);
@@ -34,9 +31,9 @@ public:
     
     virtual ~Object();
     
-    void init(ResourceManager& resources, Space* space);
+    void init(ResourceManager& resources, const std::string& name = "");
     void tick(float delta);
-    void enqueue(Renderer& renderer, ResourceManager& resources);
+    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color);
 
     // getters n' setters
     UUID<Object> get_id() const { return _id; };

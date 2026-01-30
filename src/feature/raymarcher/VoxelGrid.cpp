@@ -6,8 +6,6 @@ VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, g
 {   
     num_voxels = h * w * d;
     voxels = std::vector<uint8_t>(num_voxels, static_cast<uint8_t>(init_value));
-    
-    turn_on_corner_visualization();
 
     // chimney looking thing
     add_cube(glm::ivec3(5, 5, 5), 10, 2, 10, 1);
@@ -37,9 +35,13 @@ void VoxelGrid::init(ResourceManager& resources) {
 }
 
 void VoxelGrid::tick(float delta) {
-    if (changed) {
+    if (_instances_dirty) {
         re_init_instance_buffer();
-        changed = false;
+        _instances_dirty = false;
+    }
+    if (_voxels_changed) {
+        update_voxel_data();
+        _voxels_changed = false;
     }
 }
 
@@ -75,7 +77,7 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources) {
 }
 
 void VoxelGrid::init_instance_buffer() {
-    num_occupied_voxels = 0; // reset this, we are recounting them!
+    num_occupied_voxels = 0;
 
     std::vector<glm::ivec3> instance_grid_indexes;
 
@@ -95,15 +97,19 @@ void VoxelGrid::init_instance_buffer() {
     GLuint vao = cube_model.vao;
     glBindVertexArray(vao);
 
-    glGenBuffers(1, &instanceVBO);
+    if (instanceVBO == 0) {
+        glGenBuffers(1, &instanceVBO);
+    }
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, instance_grid_indexes.size() * sizeof(glm::ivec3), instance_grid_indexes.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 instance_grid_indexes.size() * sizeof(glm::ivec3),
+                 instance_grid_indexes.data(),
+                 GL_DYNAMIC_DRAW);
 
     GLsizei ivec3_size = sizeof(glm::ivec3);
-
-    glEnableVertexAttribArray(3); // pos 3! because the cube got its own lil pool of info already :)
-    glVertexAttribIPointer(3, 3, GL_INT, ivec3_size, (void*) 0);
-    glVertexAttribDivisor(3, 1); 
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 3, GL_INT, ivec3_size, (void*)0);
+    glVertexAttribDivisor(3, 1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -142,7 +148,6 @@ void VoxelGrid::update_voxel_data() {
 }
 
 void VoxelGrid::re_init_instance_buffer() {
-    delete_instance_buffer();
     init_instance_buffer();
 }
 
@@ -163,20 +168,26 @@ uint8_t VoxelGrid::get_voxel_value(int x, int y, int z) {
 void VoxelGrid::set_voxel_value(int x, int y, int z, uint8_t value) {
     int index = height * width * z + width * y + x;
     if (index >= 0 && index < num_voxels) {
-        voxels[index] = static_cast<uint8_t>(value); // making sure its a byte :o u can never be too sure, or?
+        voxels[index] = static_cast<uint8_t>(value);
     }
-    changed = true;
+    _voxels_changed = true;
+    _instances_dirty = true;
 }
 
-void VoxelGrid::turn_on_corner_visualization() {
-    set_voxel_value(0, 0, 0, 1); // setting the corners to true to visualize them! 
-    set_voxel_value(width - 1, height - 1, depth - 1, 1);
-    set_voxel_value(0, height - 1, 0, 1);
-    set_voxel_value(0, 0, depth - 1, 1);
-    set_voxel_value(width - 1, 0, 0, 1);
-    set_voxel_value(width - 1, height - 1, 0, 1);
-    set_voxel_value(width - 1, 0, depth - 1, 1);
-    set_voxel_value(0, height - 1, depth - 1, 1);
+void VoxelGrid::set_corner_visualization_enabled(const bool v) {
+    _show_corners = v;
+    turn_on_corner_visualization(v ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0));
+}
+
+void VoxelGrid::turn_on_corner_visualization(uint8_t value) {
+    set_voxel_value(0, 0, 0, value);
+    set_voxel_value(width - 1, height - 1, depth - 1, value);
+    set_voxel_value(0, height - 1, 0, value);
+    set_voxel_value(0, 0, depth - 1, value);
+    set_voxel_value(width - 1, 0, 0, value);
+    set_voxel_value(width - 1, height - 1, 0, value);
+    set_voxel_value(width - 1, 0, depth - 1, value);
+    set_voxel_value(0, height - 1, depth - 1, value);
 }
 
 glm::vec3 VoxelGrid::get_voxel_world_pos(int x, int y, int z) {
@@ -190,6 +201,52 @@ void VoxelGrid::add_cube(glm::ivec3 position, int width, int height, int depth, 
            for (int d = 0; d < depth; d++) {
                set_voxel_value(position.x + w, position.y + h, position.z + d, value);
            }
+        }
+    }
+}
+
+void VoxelGrid::resize_grid(int w, int h, int d, bool preserve_data) {
+    if (w <= 0 || h <= 0 || d <= 0) return;
+
+    const int old_w = width;
+    const int old_h = height;
+    const int old_d = depth;
+    const std::vector<uint8_t> old_voxels = voxels;
+
+    width = w;
+    height = h;
+    depth = d;
+
+    num_voxels = width * height * depth;
+    voxels.assign(static_cast<size_t>(num_voxels), static_cast<uint8_t>(0));
+    num_occupied_voxels = 0;
+
+    if (preserve_data) {
+        preserve_voxel_data(old_w, old_h, old_d, old_voxels);
+    }
+
+    create_voxel_texture();
+    _voxels_changed = true;
+    _instances_dirty = true;
+}
+
+void VoxelGrid::preserve_voxel_data(int old_w, int old_h, int old_d, const std::vector<uint8_t>& old_voxels) {
+    num_occupied_voxels = 0;
+
+    int min_w = std::min(old_w, width);
+    int min_h = std::min(old_h, height);
+    int min_d = std::min(old_d, depth);
+
+    for (int z = 0; z < min_d; z++) {
+        for (int y = 0; y < min_h; y++) {
+            for (int x = 0; x < min_w; x++) {
+                int old_index = old_h * old_w * z + old_w * y + x;
+                int new_index = height * width * z + width * y + x;
+                voxels[new_index] = old_voxels[old_index];
+                if (old_voxels[old_index] != 0u) {
+                    num_occupied_voxels += 1;
+                }
+            }
         }
     }
 }

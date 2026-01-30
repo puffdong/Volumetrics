@@ -25,9 +25,8 @@ private:
 	ResourceManager& resources;
 	Renderer& renderer;
 
-	std::vector<std::unique_ptr<Object>> base_objects;
+	std::vector<std::unique_ptr<Object>> objects;
 	
-	// various doohickeys
 	Camera camera;
 	Skybox skybox;
 	Sun sun;
@@ -41,10 +40,6 @@ private:
 
 	std::vector<Light> lights;
 	std::vector<Object*> light_spheres;
-
-	Object* light_sphere1; 
-	Object* light_sphere2; 
-	Object* light_sphere3; 
 
 
 public:
@@ -61,11 +56,13 @@ public:
 	void create_object(glm::vec3 position = glm::vec3(0.0f), 
 							 glm::vec3 rotation = glm::vec3(0.0f), 
 							 glm::vec3 scale = glm::vec3(1.0f), 
-							 const std::string& model_asset = "");
+							 const std::string& model_asset = "",
+							 const std::string& name = "");
+	void add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
+					  glm::vec3 direction, float volumetric_intensity, LightType type);
+	void remove_light(std::size_t index);
 
-
-
-	void add_base_entity(std::unique_ptr<Object> object);
+	void add_object(std::unique_ptr<Object> object);
 	void cast_ray();
 
 private:
@@ -74,7 +71,4 @@ private:
 	void init_glass();
 	void init_lights();
 	void init_lines();
-	
-	void add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
-					  glm::vec3 direction, float volumetric_intensity, LightType type);
 };

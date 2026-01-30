@@ -4,6 +4,7 @@
 //forward decl
 uint64_t uuid_generate_random64();
 struct Resource;
+struct Light;
 class Shader;
 class Texture;
 class Model; // yuh, I know, its a thing that just needs to be fucking done at some point
