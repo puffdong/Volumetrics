@@ -5,7 +5,7 @@
 #include <span>
 
 Shader::Shader(const std::string& vertex_path, const std::string& fragment_path) 
-: _shader_files(), _rendering_id(0), _uniform_location_cache(), _uniform_block_index_cache(), _debug_output(false)
+: _rendering_id(0), _uniform_location_cache(), _uniform_block_index_cache(), _debug_output(false)
 {
     _shader_name = std::filesystem::path(vertex_path).stem().string(); // vertex path is king, might make more robust later, we'll see
     if (_shader_name.empty()) _shader_name = "file not found ;_;";
@@ -16,11 +16,8 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
         std::cout << "Shader could not be created: " << _shader_name << std::endl; 
     }
 
-    ShaderFile v{vertex_path, std::filesystem::last_write_time(vertex_path), ShaderType::VERTEX};
-    ShaderFile f{fragment_path, std::filesystem::last_write_time(fragment_path), ShaderType::FRAGMENT};
-
-    _shader_files.push_back(v);
-    _shader_files.push_back(f);
+    _vertex_file = {vertex_path, std::filesystem::last_write_time(vertex_path), ShaderType::VERTEX};
+    _fragment_file = {fragment_path, std::filesystem::last_write_time(fragment_path), ShaderType::FRAGMENT};
 }
 
 Shader::~Shader() {
@@ -68,7 +65,6 @@ unsigned int Shader::compile_shader(const std::string& source, unsigned int type
     return id;
 }
 
-// unsigned int Shader::create_shader(const std::string& vertexShader, const std::string& fragmentShader) {
 unsigned int Shader::create_shader(const ShaderProgramSource& source) {
 	unsigned int program = glCreateProgram();
 	unsigned int vs = compile_shader(source.vertex_source, GL_VERTEX_SHADER);
@@ -108,27 +104,25 @@ void Shader::unbind() const {
 bool Shader::hot_reload_if_changed() {
     namespace fs = std::filesystem;
     bool changed = false;
-    for (ShaderFile file : _shader_files) {
-        fs::file_time_type now = fs::last_write_time(file.file_path);
-        if (now != file.last_write_time) {
-            changed = true; // ding ding!
-
-        }
-        
-    }
+    
+    if (_vertex_file.last_write_time != fs::last_write_time(_vertex_file.file_path)) changed = true;
+    if (_fragment_file.last_write_time != fs::last_write_time(_fragment_file.file_path)) changed = true;
 
     if (changed) {
-        ShaderProgramSource source = parse_shader(_shader_files[0].file_path, _shader_files[1].file_path); // [0] -> vertex, [1] -> fragment 
+        block_error_count = 0;
+        _debug_output = true; // hot-reloading triggers debug output
+
+        ShaderProgramSource source = parse_shader(_vertex_file.file_path, _fragment_file.file_path);
         unsigned int new_id = create_shader(source);
 
         if (new_id) {
             glDeleteProgram(_rendering_id);
             _rendering_id = new_id;
             _uniform_location_cache.clear();
-            _debug_output = true;
+            _uniform_block_index_cache.clear();
             
-            _shader_files[0].last_write_time = fs::last_write_time(_shader_files[0].file_path);
-            _shader_files[1].last_write_time = fs::last_write_time(_shader_files[1].file_path);
+            _vertex_file.last_write_time = fs::last_write_time(_vertex_file.file_path);
+            _fragment_file.last_write_time = fs::last_write_time(_fragment_file.file_path);
             std::cout << "hot-reloaded shader: " << _shader_name << '\n';
         }
         else {
@@ -207,6 +201,8 @@ void Shader::set_uniform_block(const std::string& block_name, unsigned int bindi
 	glUniformBlockBinding(_rendering_id, get_uniform_block_index(block_name), binding_point);
 	if (_debug_output) {
 		while (GLenum error = glGetError()) {
+            block_error_count++;
+            if (block_error_count > 5) break; // prevent spam
 			std::cout << "[OpenGL Error] (" << error << ") <- prolly some block error in -> " << _shader_name << std::endl;
 		}
 	} else {

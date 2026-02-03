@@ -26,12 +26,18 @@ struct ShaderProgramSource {
 
 class Shader {
 private:
-	std::string _shader_name; // name derived from filepath
-	std::vector<ShaderFile> _shader_files;
+	std::string _shader_name = "";
+
+	ShaderFile _vertex_file;
+	ShaderFile _fragment_file;
+	// ShaderFile _geometry_file; // todo: geometry shaders?
+
 	std::unordered_map<std::string, int> _uniform_location_cache;
 	std::unordered_map<std::string, int> _uniform_block_index_cache;
-	unsigned int _rendering_id; // opengl program id
-	bool _debug_output;
+	unsigned int _rendering_id; // opengl id
+
+	bool _debug_output = false;
+	int block_error_count = 0;
 	
 public:
 	Shader(const std::string& vertex_path, const std::string& fragment_path);
@@ -41,8 +47,8 @@ public:
 	void unbind() const;
 	bool hot_reload_if_changed();
 	unsigned int get_renderer_id() const { return _rendering_id; }
-	bool get_debug_output() const { return _debug_output; }
 	void set_debug_output(bool debug) { _debug_output = debug; }
+	bool get_debug_output() const { return _debug_output; }
 
 	// uniform stuff
 	void set_uniform_float(const std::string& name, float f);
@@ -68,7 +74,6 @@ public:
 
 private:
 	ShaderProgramSource parse_shader(const std::string& vertex_path, const std::string& fragment_path);
-
 	unsigned int create_shader(const ShaderProgramSource& source);
 	unsigned int compile_shader(const std::string& source, unsigned int type);
 	int get_uniform_location(const std::string& name);
