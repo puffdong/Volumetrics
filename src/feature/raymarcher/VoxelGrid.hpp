@@ -68,7 +68,7 @@ public:
 	
 	
 private:
-	GLuint instanceVBO;
+	GLuint instanceVBO = 0;
 
 	void turn_on_corner_visualization(uint8_t value);
 	void init_instance_buffer();
