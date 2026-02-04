@@ -109,6 +109,37 @@ namespace ui {
         ImGui::SliderFloat("B##base_color", &ray_settings.base_color.z, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
     }
 
+    void perlin_noise_settings(PerlinNoiseTexture& texture) {
+        ImGui::Text("Perlin Noise Texture Settings");
+        ImGui::Text("Dimensions: %d x %d x %d", texture.width, texture.height, texture.depth);
+        ImGui::Text("Frequency: %.3f", texture.frequency);
+        ImGui::Text("Current Seed: %u", texture.seed);
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Click to copy");
+        }
+        if (ImGui::IsItemClicked()) {
+            ImGui::SetClipboardText(std::to_string(texture.seed).c_str());
+        }
+        ImGui::Separator();
+        
+        static unsigned int new_seed = 0;
+        
+        ImGui::InputScalar("Seed", ImGuiDataType_U32, &new_seed);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("0 = random seed");
+        
+        static float new_frequency = 0.05f;
+        ImGui::DragFloat("Frequency", &new_frequency, 0.01f, 0.01f, 10.0f, "%.3f");
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Controls the scale of the noise pattern");
+        
+        if (ImGui::Button("Regenerate Noise")) {
+            re_init_perlin(texture, new_frequency, new_seed);
+            generate_perlin(texture);
+            upload_perlin(texture);
+        }
+    }
+
     void voxel_grid_settings(VoxelGrid& grid) {
         {
             bool visible = grid.is_debug_view_visible();
@@ -180,6 +211,10 @@ namespace ui {
             }
             if (ImGui::BeginMenu("Raymarcher")) {
                 raymarch_settings(marcher, ray_settings);
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Perlin Noise")) {
+                perlin_noise_settings(marcher.get_perlin_texture());
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Voxel Grid")) {

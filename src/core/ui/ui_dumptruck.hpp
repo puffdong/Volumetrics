@@ -23,6 +23,8 @@ namespace ui {
     void object_settings(std::vector<Object*>& objects);
     
     void raymarch_settings(Raymarcher& marcher, RaymarchSettings& ray_settings);
+
+    void perlin_noise_settings(PerlinNoiseTexture& texture);
     
     void voxel_grid_settings(VoxelGrid& grid); // includes corner visualization toggle
     

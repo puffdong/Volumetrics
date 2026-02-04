@@ -1,21 +1,14 @@
 #include "raymarcher.hpp"
 #include <iostream>
-#include <chrono>
 #include "core/rendering/Shader.hpp"
 
 void Raymarcher::init(Shader* shader) {
     _shader = shader;
 
-    auto start = std::chrono::high_resolution_clock::now();
-    
     perlin_texture = PerlinNoiseTexture();
-    init_perlin(perlin_texture, 128, 128, 128, 42);
+    init_perlin(perlin_texture, 128, 128, 128, 0.05f,42);
     generate_perlin(perlin_texture);
     upload_perlin(perlin_texture);
-    
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << "Perlin noise generation took " << duration.count() << " ms" << std::endl;
 }
 
 void Raymarcher::tick(float delta) {

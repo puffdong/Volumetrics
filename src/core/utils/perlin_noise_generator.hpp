@@ -5,12 +5,14 @@
 #include <cmath>
 #include <thread>
 #include <iostream>
-#include <GL/glew.h> 
+#include <GL/glew.h>
+#include <chrono>
 
 struct PerlinNoiseTexture {
     int p[512];
     std::vector<float> noise_data;
     unsigned int seed;
+    float frequency = 0.05f;
 
     unsigned int texture_id = 0;
     int width;
@@ -30,10 +32,11 @@ namespace {
     }
 }
 
-inline void init_perlin(PerlinNoiseTexture& tex, int w, int h, int d, unsigned int seed) {
+inline void init_perlin(PerlinNoiseTexture& tex, int w, int h, int d, float frequency, unsigned int seed) {
     tex.width = w;
     tex.height = h;
     tex.depth = d;
+    tex.frequency = frequency;
     tex.texture_id = 0;
 
     if (seed == 0) {
@@ -49,39 +52,35 @@ inline void init_perlin(PerlinNoiseTexture& tex, int w, int h, int d, unsigned i
     for (int i = 0; i < 256; ++i) tex.p[256 + i] = tex.p[i]; // avoid overflow
 }
 
+inline void re_init_perlin(PerlinNoiseTexture& tex, float frequency, unsigned int seed) {
+    init_perlin(tex, tex.width, tex.height, tex.depth, frequency, seed);
+}
+
 inline void generate_perlin(PerlinNoiseTexture& tex) {
     tex.noise_data.resize(tex.width * tex.height * tex.depth);
 
-    unsigned int thread_count = std::thread::hardware_concurrency();
-    if (thread_count == 0) thread_count = 1;
-    
-    std::vector<std::thread> threads;
-    int slices_per_thread = tex.depth / thread_count;
-
-    std::cout << "Generating Perlin noise (" << thread_count << " threads, " << slices_per_thread << " slices per thread)" << std::endl;
-    
     auto generate_chunk = [&](int z_start, int z_end) {
-        const float frequency = 0.05f; // TODO: make this adjustable
+        const float frequency = tex.frequency;
         int idx = z_start * tex.width * tex.height;
-
+        
         for (int z = z_start; z < z_end; ++z) {
             const float zf_base = z * frequency;
             const int Z = static_cast<int>(std::floor(zf_base)) & 255;
             const float zf_frac = zf_base - std::floor(zf_base);
             const float w = fade(zf_frac);
-
+            
             for (int y = 0; y < tex.height; ++y) {
                 const float yf_base = y * frequency;
                 const int Y = static_cast<int>(std::floor(yf_base)) & 255;
                 const float yf_frac = yf_base - std::floor(yf_base);
                 const float v = fade(yf_frac);
-
+                
                 for (int x = 0; x < tex.width; ++x, ++idx) {
                     const float xf_base = x * frequency;
                     const int X = static_cast<int>(std::floor(xf_base)) & 255;
                     const float xf_frac = xf_base - std::floor(xf_base);
                     const float u = fade(xf_frac);
-
+                    
                     const int* p = tex.p; 
                     
                     const int a = p[X] + Y;
@@ -90,24 +89,33 @@ inline void generate_perlin(PerlinNoiseTexture& tex) {
                     const int ab = p[a + 1] + Z;
                     const int ba = p[b] + Z;
                     const int bb = p[b + 1] + Z;
-
+                    
                     const float x1 = lerp(grad(p[aa], xf_frac, yf_frac, zf_frac),
-                                          grad(p[ba], xf_frac - 1, yf_frac, zf_frac), u);
+                    grad(p[ba], xf_frac - 1, yf_frac, zf_frac), u);
                     const float x2 = lerp(grad(p[ab], xf_frac, yf_frac - 1, zf_frac),
-                                          grad(p[bb], xf_frac - 1, yf_frac - 1, zf_frac), u);
+                    grad(p[bb], xf_frac - 1, yf_frac - 1, zf_frac), u);
                     const float x3 = lerp(grad(p[aa + 1], xf_frac, yf_frac, zf_frac - 1),
-                                          grad(p[ba + 1], xf_frac - 1, yf_frac, zf_frac - 1), u);
+                    grad(p[ba + 1], xf_frac - 1, yf_frac, zf_frac - 1), u);
                     const float x4 = lerp(grad(p[ab + 1], xf_frac, yf_frac - 1, zf_frac - 1),
-                                          grad(p[bb + 1], xf_frac - 1, yf_frac - 1, zf_frac - 1), u);
-
+                    grad(p[bb + 1], xf_frac - 1, yf_frac - 1, zf_frac - 1), u);
+                    
                     const float y1 = lerp(x1, x2, v);
                     const float y2 = lerp(x3, x4, v);
-
+                    
                     tex.noise_data[idx] = (lerp(y1, y2, w) + 1.0f) * 0.5f;
                 }
             }
         }
     };
+
+    unsigned int thread_count = std::thread::hardware_concurrency();
+    if (thread_count == 0) thread_count = 1;
+    
+    std::vector<std::thread> threads;
+    int slices_per_thread = tex.depth / thread_count;
+
+    std::cout << "Generating Perlin noise (" << thread_count << " threads, " << slices_per_thread << " slices per thread) ... ";
+    auto start = std::chrono::high_resolution_clock::now();
 
     for (unsigned int i = 0; i < thread_count; ++i) {
         int z_start = i * slices_per_thread;
@@ -118,6 +126,10 @@ inline void generate_perlin(PerlinNoiseTexture& tex) {
     for (auto& t : threads) {
         if (t.joinable()) t.join();
     }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Done! (" << duration.count() << " ms)" << std::endl;
 }
 
 inline void upload_perlin(PerlinNoiseTexture& tex) {
