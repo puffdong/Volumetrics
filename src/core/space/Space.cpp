@@ -61,7 +61,7 @@ void Space::init_raymarcher_and_voxelgrid() {
     voxel_grid.init(resources);
 	voxel_grid.set_debug_visibility(false);
 	raymarcher = Raymarcher();
-	raymarcher.init(resources);
+	raymarcher.init(new Shader(resources.get_full_path("res://shaders/raymarching/raymarcher.vs"), resources.get_full_path("res://shaders/raymarching/raymarcher.fs")));
 }
 
 void Space::init_glass() {
@@ -131,10 +131,10 @@ void Space::enqueue_renderables() {
 	}
 	
 	voxel_grid.enqueue(renderer, resources);
-	raymarcher.enqueue(renderer, resources, camera.get_position(), sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
-	glass.enqueue(renderer, resources, this_frames_button_map);
-
+	raymarcher.enqueue(renderer, camera.get_position(), sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
+	
 	line_manager.enqueue(renderer);
+	glass.enqueue(renderer, resources, this_frames_button_map);
 
 	renderer.execute_pipeline(voxel_grid.is_debug_view_visible());
 }

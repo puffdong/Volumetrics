@@ -1,200 +1,143 @@
 #pragma once
-#include <iostream>
-#include <fstream>
-#include <cmath>
 #include <vector>
-#include <algorithm>
 #include <random>
-#include <GL/glew.h>
-#include "core/rendering/Renderer.hpp"
+#include <algorithm>
+#include <cmath>
+#include <thread>
+#include <iostream>
+#include <GL/glew.h> 
 
-class PerlinNoiseTexture {
-public:
-    PerlinNoiseTexture(int width, int height) : width(width), height(height) {
-        generate2DNoise();
-        generate2DTexture();
-    }
+struct PerlinNoiseTexture {
+    int p[512];
+    std::vector<float> noise_data;
+    unsigned int seed;
 
-    PerlinNoiseTexture(int width, int height, const std::string& filename) : width(width), height(height) {
-        generate2DNoise();
-        write2DNoiseToPPM(filename);
-    }
-
-    PerlinNoiseTexture(int width, int height, int depth) : width(width), height(height), depth(depth) {
-        generate3DNoise();
-        generate3DTexture();
-    }
-
-    GLuint getTextureID() const { return textureID; }
-
-private:
+    unsigned int texture_id = 0;
     int width;
     int height;
     int depth;
-    std::vector<float> noiseData;
-    GLuint textureID;
+};
 
-    float fade(float t) {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-
-    float lerp(float a, float b, float t) {
-        return a + t * (b - a);
-    }
-
-    float grad(int hash, float x, float y, float z = 0.0f) {
+namespace { 
+    inline float fade(float t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+    inline float lerp(float a, float b, float t) { return a + t * (b - a); }
+    
+    inline float grad(int hash, float x, float y, float z) {
         int h = hash & 15;
         float u = h < 8 ? x : y;
         float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
         return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
     }
+}
 
-    void generate2DNoise() {
-        std::vector<int> p(512);
-        for (int i = 0; i < 256; ++i) p[i] = i;
-        std::default_random_engine engine(std::random_device{}());
-        std::shuffle(p.begin(), p.begin() + 256, engine);
-        for (int i = 0; i < 256; ++i) p[256 + i] = p[i];
+inline void init_perlin(PerlinNoiseTexture& tex, int w, int h, int d, unsigned int seed) {
+    tex.width = w;
+    tex.height = h;
+    tex.depth = d;
+    tex.texture_id = 0;
 
-        noiseData.resize(width * height);
-        float frequency = 0.05f;
-        float amplitude = 1.0f;
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                float xf = x * frequency;
-                float yf = y * frequency;
-
-                int X = static_cast<int>(std::floor(xf)) & 255;
-                int Y = static_cast<int>(std::floor(yf)) & 255;
-
-                xf -= std::floor(xf);
-                yf -= std::floor(yf);
-
-                float u = fade(xf);
-                float v = fade(yf);
-
-                int aa = p[p[X] + Y];
-                int ab = p[p[X] + Y + 1];
-                int ba = p[p[X + 1] + Y];
-                int bb = p[p[X + 1] + Y + 1];
-
-                float gradAA = grad(aa, xf, yf);
-                float gradBA = grad(ba, xf - 1, yf);
-                float gradAB = grad(ab, xf, yf - 1);
-                float gradBB = grad(bb, xf - 1, yf - 1);
-
-                float lerpX1 = lerp(gradAA, gradBA, u);
-                float lerpX2 = lerp(gradAB, gradBB, u);
-                float result = lerp(lerpX1, lerpX2, v);
-
-                noiseData[y * width + x] = (result + 1.0f) * 0.5f; // normalize to [0, 1]
-            }
-        }
+    if (seed == 0) {
+        std::random_device rd;
+        tex.seed = rd();
+    } else {
+        tex.seed = seed;
     }
 
-    void generate3DNoise() {
-        std::vector<int> p(512);
-        for (int i = 0; i < 256; ++i) p[i] = i;
-        std::default_random_engine engine(std::random_device{}());
-        std::shuffle(p.begin(), p.begin() + 256, engine);
-        for (int i = 0; i < 256; ++i) p[256 + i] = p[i];
+    for (int i = 0; i < 256; ++i) tex.p[i] = i;
+    std::default_random_engine engine(tex.seed);
+    std::shuffle(tex.p, tex.p + 256, engine);
+    for (int i = 0; i < 256; ++i) tex.p[256 + i] = tex.p[i]; // avoid overflow
+}
 
-        noiseData.resize(width * height * depth);
-        float frequency = 0.05f;
-        for (int z = 0; z < depth; ++z) {
-            for (int y = 0; y < height; ++y) {
-                for (int x = 0; x < width; ++x) {
-                    float xf = x * frequency;
-                    float yf = y * frequency;
-                    float zf = z * frequency;
+inline void generate_perlin(PerlinNoiseTexture& tex) {
+    tex.noise_data.resize(tex.width * tex.height * tex.depth);
 
-                    int X = static_cast<int>(std::floor(xf)) & 255;
-                    int Y = static_cast<int>(std::floor(yf)) & 255;
-                    int Z = static_cast<int>(std::floor(zf)) & 255;
+    unsigned int thread_count = std::thread::hardware_concurrency();
+    if (thread_count == 0) thread_count = 1;
+    
+    std::vector<std::thread> threads;
+    int slices_per_thread = tex.depth / thread_count;
 
-                    xf -= std::floor(xf);
-                    yf -= std::floor(yf);
-                    zf -= std::floor(zf);
+    std::cout << "Generating Perlin noise (" << thread_count << " threads, " << slices_per_thread << " slices per thread)" << std::endl;
+    
+    auto generate_chunk = [&](int z_start, int z_end) {
+        const float frequency = 0.05f; // TODO: make this adjustable
+        int idx = z_start * tex.width * tex.height;
 
-                    float u = fade(xf);
-                    float v = fade(yf);
-                    float w = fade(zf);
+        for (int z = z_start; z < z_end; ++z) {
+            const float zf_base = z * frequency;
+            const int Z = static_cast<int>(std::floor(zf_base)) & 255;
+            const float zf_frac = zf_base - std::floor(zf_base);
+            const float w = fade(zf_frac);
 
-                    int aaa = p[p[p[X] + Y] + Z];
-                    int aba = p[p[p[X] + Y + 1] + Z];
-                    int aab = p[p[p[X] + Y] + Z + 1];
-                    int abb = p[p[p[X] + Y + 1] + Z + 1];
-                    int baa = p[p[p[X + 1] + Y] + Z];
-                    int bba = p[p[p[X + 1] + Y + 1] + Z];
-                    int bab = p[p[p[X + 1] + Y] + Z + 1];
-                    int bbb = p[p[p[X + 1] + Y + 1] + Z + 1];
+            for (int y = 0; y < tex.height; ++y) {
+                const float yf_base = y * frequency;
+                const int Y = static_cast<int>(std::floor(yf_base)) & 255;
+                const float yf_frac = yf_base - std::floor(yf_base);
+                const float v = fade(yf_frac);
 
-                    float gradAAA = grad(aaa, xf, yf, zf);
-                    float gradBAA = grad(baa, xf - 1, yf, zf);
-                    float gradABA = grad(aba, xf, yf - 1, zf);
-                    float gradBBA = grad(bba, xf - 1, yf - 1, zf);
-                    float gradAAB = grad(aab, xf, yf, zf - 1);
-                    float gradBAB = grad(bab, xf - 1, yf, zf - 1);
-                    float gradABB = grad(abb, xf, yf - 1, zf - 1);
-                    float gradBBB = grad(bbb, xf - 1, yf - 1, zf - 1);
+                for (int x = 0; x < tex.width; ++x, ++idx) {
+                    const float xf_base = x * frequency;
+                    const int X = static_cast<int>(std::floor(xf_base)) & 255;
+                    const float xf_frac = xf_base - std::floor(xf_base);
+                    const float u = fade(xf_frac);
 
-                    float lerpX1 = lerp(gradAAA, gradBAA, u);
-                    float lerpX2 = lerp(gradABA, gradBBA, u);
-                    float lerpX3 = lerp(gradAAB, gradBAB, u);
-                    float lerpX4 = lerp(gradABB, gradBBB, u);
+                    const int* p = tex.p; 
+                    
+                    const int a = p[X] + Y;
+                    const int b = p[X + 1] + Y;
+                    const int aa = p[a] + Z;
+                    const int ab = p[a + 1] + Z;
+                    const int ba = p[b] + Z;
+                    const int bb = p[b + 1] + Z;
 
-                    float lerpY1 = lerp(lerpX1, lerpX2, v);
-                    float lerpY2 = lerp(lerpX3, lerpX4, v);
+                    const float x1 = lerp(grad(p[aa], xf_frac, yf_frac, zf_frac),
+                                          grad(p[ba], xf_frac - 1, yf_frac, zf_frac), u);
+                    const float x2 = lerp(grad(p[ab], xf_frac, yf_frac - 1, zf_frac),
+                                          grad(p[bb], xf_frac - 1, yf_frac - 1, zf_frac), u);
+                    const float x3 = lerp(grad(p[aa + 1], xf_frac, yf_frac, zf_frac - 1),
+                                          grad(p[ba + 1], xf_frac - 1, yf_frac, zf_frac - 1), u);
+                    const float x4 = lerp(grad(p[ab + 1], xf_frac, yf_frac - 1, zf_frac - 1),
+                                          grad(p[bb + 1], xf_frac - 1, yf_frac - 1, zf_frac - 1), u);
 
-                    float result = lerp(lerpY1, lerpY2, w);
+                    const float y1 = lerp(x1, x2, v);
+                    const float y2 = lerp(x3, x4, v);
 
-                    noiseData[z * width * height + y * width + x] = (result + 1.0f) * 0.5f; // normalize to [0, 1]
+                    tex.noise_data[idx] = (lerp(y1, y2, w) + 1.0f) * 0.5f;
                 }
             }
         }
+    };
+
+    for (unsigned int i = 0; i < thread_count; ++i) {
+        int z_start = i * slices_per_thread;
+        int z_end = (i == thread_count - 1) ? tex.depth : (i + 1) * slices_per_thread;
+        threads.emplace_back(generate_chunk, z_start, z_end);
     }
 
-    void generate2DTexture() {
-        GLCall(glGenTextures(1, &textureID))
-            GLCall(glBindTexture(GL_TEXTURE_2D, textureID))
-            GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, noiseData.data()))
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT))
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT))
+    for (auto& t : threads) {
+        if (t.joinable()) t.join();
     }
+}
 
-    void generate3DTexture() {
-        GLCall(glGenTextures(1, &textureID))
-            GLCall(glBindTexture(GL_TEXTURE_3D, textureID))
-            GLCall(glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, width, height, depth, 0, GL_RED, GL_FLOAT, noiseData.data()))
-            GLCall(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR))
-            GLCall(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR))
-            GLCall(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT))
-            GLCall(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT))
-            GLCall(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_MIRRORED_REPEAT))
+inline void upload_perlin(PerlinNoiseTexture& tex) {
+    if (tex.texture_id != 0) glDeleteTextures(1, &tex.texture_id);
+
+    glGenTextures(1, &tex.texture_id);
+    glBindTexture(GL_TEXTURE_3D, tex.texture_id);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, tex.width, tex.height, tex.depth, 0, GL_RED, GL_FLOAT, tex.noise_data.data());
+    
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_MIRRORED_REPEAT);
+}
+
+inline void destroy_perlin(PerlinNoiseTexture& tex) {
+    if (tex.texture_id != 0) {
+        glDeleteTextures(1, &tex.texture_id);
+        tex.texture_id = 0;
     }
-
-    void write2DNoiseToPPM(const std::string& filename) const {
-        std::ofstream outFile(filename);
-        if (!outFile) {
-            std::cerr << "Failed to open file: " << filename << std::endl;
-            return;
-        }
-
-        outFile << "P3\n";
-        outFile << width << " " << height << "\n";
-        outFile << "255\n";
-
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                int value = static_cast<int>(noiseData[y * width + x] * 255);
-                outFile << value << " " << value << " " << value << "  ";
-            }
-            outFile << "\n";
-        }
-
-        outFile.close();
-    }
-
-};
+    tex.noise_data.clear();
+}

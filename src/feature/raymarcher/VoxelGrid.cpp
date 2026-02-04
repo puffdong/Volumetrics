@@ -23,7 +23,10 @@ VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, g
             }
         }
     }
-
+    
+    // Clear dirty flags after initial construction
+    _voxels_changed = false;
+    _instances_dirty = false;
 }
 
 void VoxelGrid::init(ResourceManager& resources) {
@@ -92,7 +95,8 @@ void VoxelGrid::init_instance_buffer() {
         }
     }
 
-    std::cout << instance_grid_indexes.size() << " <--- VOXEL GRID INSTANCE COUNT!" << std::endl;
+    std::cout << "VoxelGrid [" << width << "x" << height << "x" << depth << "] " 
+              << num_occupied_voxels << "/" << num_voxels << " occupied" << std::endl;
 
     GLuint vao = cube_model.vao;
     glBindVertexArray(vao);

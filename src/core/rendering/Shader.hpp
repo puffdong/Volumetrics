@@ -45,7 +45,7 @@ public:
 
 	void bind() const;
 	void unbind() const;
-	bool hot_reload_if_changed();
+	bool hot_reload_if_changed(); // returns true if shader was reloaded, Renderer depends on this behavior to trigger uniform re-uploads
 	unsigned int get_renderer_id() const { return _rendering_id; }
 	void set_debug_output(bool debug) { _debug_output = debug; }
 	bool get_debug_output() const { return _debug_output; }

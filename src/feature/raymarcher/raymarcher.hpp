@@ -1,8 +1,8 @@
 #pragma once
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "core/resources/ResourceManager.hpp"
 #include "core/rendering/Renderer.hpp"
+#include "core/utils/perlin_noise_generator.hpp"
 
 struct RaymarchSettings {
     int max_steps = 256;
@@ -21,24 +21,25 @@ struct RaymarchSettings {
 
 class Raymarcher {
 private:
-    Resource r_shader;
-    GLuint perlin3d;
-
-    float time = 0.0;
-    RaymarchSettings raymarch_settings;
-
+    Shader* _shader;
+    float _time = 0.0;
     bool _visible = true;
-
+    
+    RaymarchSettings raymarch_settings;
+    PerlinNoiseTexture perlin_texture;
+    
+    
 public:
     Raymarcher() = default;
-    void init(ResourceManager& resources);
+    void init(Shader* shader);
     void tick(float delta);
-    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
+    void enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
 
     void set_visibility(const bool v) { _visible = v; };
     bool is_visible() const { return _visible; };
     RaymarchSettings& get_raymarch_settings() { return raymarch_settings; };
+    PerlinNoiseTexture& get_perlin_texture() { return perlin_texture; };
 
 private:
-    void upload_uniforms(Renderer& renderer, Shader* shader, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
+    void upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
 };
