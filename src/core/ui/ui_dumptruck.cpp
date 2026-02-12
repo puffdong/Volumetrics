@@ -148,9 +148,9 @@ namespace ui {
             }
         }
         {
-            bool show_corners = grid.is_corner_visualization_enabled();
+            bool show_corners = grid.is_bounds_visualization_enabled();
             if (ImGui::Checkbox("Show Corner Voxels", &show_corners)) {
-                grid.set_corner_visualization_enabled(show_corners);
+                grid.set_bounds_visualization_enabled(show_corners);
             }
         }
         // Cell size slider (clamped 0.1f..50.0f)

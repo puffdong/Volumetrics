@@ -90,6 +90,9 @@ void Space::tick(float delta, ButtonMap bm)
 {
 	time += delta;
 	this_frames_button_map = bm;
+	if (bm.MousePointerActive) {
+		selection_ray_cast(bm.MousePosX, bm.MousePosY);
+	}
 
 	camera.tick(delta, bm);
 	sun.tick(delta);
@@ -98,7 +101,7 @@ void Space::tick(float delta, ButtonMap bm)
 		b->tick(delta);
 	}
 
-	voxel_grid.tick(delta);
+	voxel_grid.tick(delta, selection_ray_start, selection_ray_dir, bm.MousePointerActive, bm.MouseLeft);
 	raymarcher.tick(delta);
 
 	glass.tick(delta, bm);
@@ -130,8 +133,8 @@ void Space::enqueue_renderables() {
 		b->enqueue(renderer, resources, camera_pos, sun.get_direction(), sun.get_color());
 	}
 	
-	voxel_grid.enqueue(renderer, resources);
-	raymarcher.enqueue(renderer, camera.get_position(), sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
+	voxel_grid.enqueue(renderer, resources, camera_pos);
+	raymarcher.enqueue(renderer, camera_pos, sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
 	
 	line_manager.enqueue(renderer);
 	glass.enqueue(renderer, resources, this_frames_button_map);
@@ -168,12 +171,40 @@ void Space::remove_light(std::size_t index) {
 
 
 
-void Space::cast_ray() {
-	glm::vec3 view_dir = camera.get_front();
+void Space::cast_ray(float mouse_x, float mouse_y) {
+	glm::vec2 viewport_dims = renderer.get_viewport_size();
+	float x = (2.0f * mouse_x) / viewport_dims.x - 1.0f;
+    float y = 1.0f - (2.0f * mouse_y) / viewport_dims.y;
+
+    glm::vec4 ray_clip = glm::vec4(x, y, -1.0f, 1.0f);
+    glm::vec4 ray_eye = glm::inverse(renderer.get_proj()) * ray_clip;
+
+    ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
+
+    glm::vec3 ray_dir = glm::vec3(glm::inverse(renderer.get_view()) * ray_eye);
+    ray_dir = glm::normalize(ray_dir);
 	
 	glm::vec3 start = camera.get_position();
-	glm::vec3 end = start + view_dir * 25.0f;
+	glm::vec3 end = start + ray_dir * 25.0f;
 
-	// line_manager.add_line(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	line_manager.add_line(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
+
+void Space::selection_ray_cast(float mouse_x, float mouse_y) {
+	glm::vec2 viewport_dims = renderer.get_viewport_size();
+	float x = (2.0f * mouse_x) / viewport_dims.x - 1.0f;
+    float y = 1.0f - (2.0f * mouse_y) / viewport_dims.y;
+
+    glm::vec4 ray_clip = glm::vec4(x, y, -1.0f, 1.0f);
+    glm::vec4 ray_eye = glm::inverse(renderer.get_proj()) * ray_clip;
+
+    ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
+
+    glm::vec3 ray_dir = glm::vec3(glm::inverse(renderer.get_view()) * ray_eye);
+    ray_dir = glm::normalize(ray_dir);
+	
+	selection_ray_start = camera.get_position();;
+	selection_ray_dir = ray_dir;
+}
+
 

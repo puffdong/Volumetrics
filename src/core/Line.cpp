@@ -98,9 +98,7 @@ void Line::update_instance_buffer() {
     }
 }
 
-void Line::enqueue(Renderer& renderer) {
-    // std::cout << "Enqueueing " << num_lines << " lines for rendering." << std::endl;
-    
+void Line::enqueue(Renderer& renderer) { 
     if (num_lines == 0) return;
 
     if (!instances_initialized) {

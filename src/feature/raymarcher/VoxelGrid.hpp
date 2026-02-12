@@ -20,6 +20,7 @@ private:
 	std::vector<uint8_t> voxels;
 
 	Resource r_shader;
+	Shader* shader;
 	ModelGpuData cube_model;
 
 	unsigned int voxel_tex = 0;
@@ -27,7 +28,12 @@ private:
 	bool _instances_dirty = false;
 
 	bool _debug_visible = false;
-	bool _show_corners = false;
+	bool _show_bounds = false;
+
+	// for the lil selection box thingy!
+	bool render_selection_box = false;
+	glm::vec3 selection_pos;
+	Shader* selection_box_shader;
 	
 public:
 	VoxelGrid() = default;
@@ -35,8 +41,8 @@ public:
 	~VoxelGrid();
 
 	void init(ResourceManager& resources);
-    void tick(float delta);
-    void enqueue(Renderer& renderer, ResourceManager& resources);
+    void tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selection_ray_dir, bool mouse_pointer_active, bool mouse_clicked);
+    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos);
 	
 	void resize_grid(int w, int h, int d, bool preserve_data = false);
 	
@@ -44,10 +50,10 @@ public:
 	void set_cell_size(float size) { cell_size = size; };
 	void set_position(const glm::vec3& p) { position = p; };
 	void set_debug_visibility(const bool v) { _debug_visible = v; };
-	void set_corner_visualization_enabled(const bool v);
+	void set_bounds_visualization_enabled(const bool v);
 	
 	inline bool is_debug_view_visible() const { return _debug_visible; };
-	inline bool is_corner_visualization_enabled() const { return _show_corners; }
+	inline bool is_bounds_visualization_enabled() const { return _show_bounds; }
 
 
 	uint8_t get_voxel_value(int x, int y, int z);
@@ -65,12 +71,13 @@ public:
 	glm::vec3 get_voxel_world_pos(int x, int y, int z); // origin is at (0, 0, 0)
 	
 	void add_cube(glm::ivec3 position, int width, int height, int depth, uint8_t value);
+	void flood_fill(glm::ivec3 start_pos, uint8_t start_value);
 	
 	
 private:
 	GLuint instanceVBO = 0;
 
-	void turn_on_corner_visualization(uint8_t value);
+	void enqueue_bounds_visualization(Renderer& renderer);
 	void init_instance_buffer();
 	void re_init_instance_buffer();
 	void create_voxel_texture();

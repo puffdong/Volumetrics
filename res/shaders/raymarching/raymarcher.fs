@@ -78,10 +78,6 @@ float rayleigh(float cos_theta) {
     return (3.0f / (16.0f * 3.1415926538)) * (1 + cos_theta * cos_theta);
 }
 
-// g = anisotropy.
-// g = 0 -> isotropic (Rayleigh-esque)
-// g = 0.5 -> forward scattering (Smoke/Clouds)
-// g = 0.9 -> strong "Silver Lining"
 float henyey_greenstein(float cos_theta, float g) {
     float g2 = g * g;
     float num = 1.0 - g2;
@@ -92,11 +88,13 @@ float henyey_greenstein(float cos_theta, float g) {
     return (1.0 / (4.0 * 3.14159)) * num / pow(denom, 1.5);
 }
 
-float sample_density(vec3 sample_pos) {
-    float noise = texture(u_noise_texture, (sample_pos) * 0.05).r;
+float sample_density(vec3 sample_pos, uint voxel_value) {
+    vec3 wind_direction = normalize(vec3(1.0, 0.0, 1.0));
+    vec3 offset = wind_direction * u_time * 0.1; // animate noise with time and wind direction
+    float noise = texture(u_noise_texture, (sample_pos * 0.05) + offset).r;
     noise = smoothstep(0.1, 0.8, noise);
-       
-    return noise;
+    
+    return noise * (float(voxel_value) / 16.0); // normalize voxel value to [0, 1]
 }
 
 
@@ -110,14 +108,13 @@ float do_light_march(vec3 light_pos, vec3 light_dir) {
     for (int i = 0; i < u_max_light_steps; ++i) {
         vec3 ray_pos = light_pos + light_dir * distance_traveled;
 
-        // If you want volumetric even outside voxels, sample anyway.
         uint v = get_voxel(ray_pos);
         if (v != 0u) {
-            float density = sample_density(ray_pos);
+            float density = sample_density(ray_pos, v);
             optical_depth += density * sigma_t * u_light_step_size;
-        }
+        } 
+        distance_traveled += u_light_step_size;    
 
-        distance_traveled += u_light_step_size;
     }
 
     return exp(-optical_depth);
@@ -151,7 +148,7 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
         uint v = get_voxel(ray_pos); // snaps to closest voxel
 
         if (v != 0u) {
-            float density = sample_density(ray_pos);
+            float density = sample_density(ray_pos, v);
 
             collected_density += density * u_step_size;
 

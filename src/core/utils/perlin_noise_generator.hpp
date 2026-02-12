@@ -114,7 +114,7 @@ inline void generate_perlin(PerlinNoiseTexture& tex) {
     std::vector<std::thread> threads;
     int slices_per_thread = tex.depth / thread_count;
 
-    std::cout << "Generating Perlin noise (" << thread_count << " threads, " << slices_per_thread << " slices per thread) ... ";
+    std::cout << "Generating Perlin noise (" << thread_count << " threads, " << slices_per_thread << " slices per thread)... ";
     auto start = std::chrono::high_resolution_clock::now();
 
     for (unsigned int i = 0; i < thread_count; ++i) {

@@ -231,7 +231,7 @@ void Renderer::set_projection_matrix(float new_aspect_ratio, float new_fov, floa
 }
 
 void Renderer::set_fov(float fov) {
-    set_projection_matrix(aspect_ratio, fov, near, far); // jank but honestly, pretty lush
+    set_projection_matrix(aspect_ratio, fov, near, far); 
 }
 
 glm::vec2 Renderer::get_viewport_size() const {

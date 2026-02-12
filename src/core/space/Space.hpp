@@ -35,12 +35,15 @@ private:
 	Glass glass;
 	Line line_manager;
 	
+	
+	std::vector<Light> lights;
+	std::vector<Object*> light_spheres;
+	
 	float time = 0.0;
 	ButtonMap this_frames_button_map;
 
-	std::vector<Light> lights;
-	std::vector<Object*> light_spheres;
-
+	glm::vec3 selection_ray_dir;
+	glm::vec3 selection_ray_start;
 
 public:
 	Space(ResourceManager& resources, Renderer& renderer);
@@ -65,9 +68,14 @@ public:
 					  glm::vec3 direction, float volumetric_intensity, LightType type);
 	void remove_light(std::size_t index);
 
-	void cast_ray();
-
+	void cast_ray(float x, float y);
+	
 private:
+	
+	void selection_ray_cast(float x, float y);
+
+
+
 	void init_skybox();
 	void init_raymarcher_and_voxelgrid();
 	void init_glass();

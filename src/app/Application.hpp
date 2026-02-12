@@ -8,10 +8,6 @@
 #include <string>
 #include <stdexcept>
 
-// glm
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-
 // imgui
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -56,7 +52,7 @@ private:
 
     // callback func stuff
     double mouse_pos_x; double mouse_pos_y;
-    bool camera_control_mouse_active = true;
+    bool camera_control_mouse_active = false;
     bool  first_mouse = true;
     float last_x = 800.0f;
     float last_y = 450.0f;

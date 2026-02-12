@@ -6,11 +6,11 @@ Application::Application(const AppConfig& cfg) : resources(cfg.assets_root_path)
         std::cout << "glfw failed to initialize" << std::endl;
     }
     int initial_width, initial_height; 
-    if (cfg.platform == "Windows") { // bit jank... I don't understand what macos' resolution scaling is doing
-        glfwGetFramebufferSize(window, &initial_width, &initial_height); // hypothesis: macos returns 2x framebuffer when on "retina display"
+    if (cfg.platform == "Windows") { 
+        glfwGetFramebufferSize(window, &initial_width, &initial_height); 
     } else {
-        glfwGetWindowSize(window, &initial_width, &initial_height); // continued hypothesis: hack solution of getting window size yields the actual precieved size. 
-    }   // my mac is too sluggish to handle all the stuff in this project, can't have it 2x itself into oblivion
+        glfwGetWindowSize(window, &initial_width, &initial_height);  
+    }   
 
     pending_width = initial_width; 
     pending_height = initial_height;
@@ -56,13 +56,12 @@ bool Application::init_glfw(const AppConfig& cfg) {
     ImGuiIO& io = ImGui::GetIO();
     // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // disabled for now, its causing issues eh eh
 
-    // the callback logic is jank, but if it ain't broke don't fix... prolly gon regret this
     glfwSetWindowUserPointer(window, this); // to get glfwGetWindowUserPointer to work
     glfwSetKeyCallback(window, [](GLFWwindow* w, int key, int sc, int action, int mods){
         if (auto* self = static_cast<Application*>(glfwGetWindowUserPointer(w)))
         self->key_callback(w, key, sc, action, mods);
     });
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     glfwSetCursorPosCallback(window, [](GLFWwindow* w, double x, double y){
         if (auto* self = static_cast<Application*>(glfwGetWindowUserPointer(w)))
@@ -126,8 +125,15 @@ void Application::mouse_button_callback(GLFWwindow* window, int button, int acti
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);   // hide cursor and control it
         camera_control_mouse_active = true;
         first_mouse = true;
-    } else if ((button == GLFW_MOUSE_BUTTON_RIGHT) && (action == GLFW_PRESS) && (camera_control_mouse_active == true)) {
-        space.cast_ray();
+    } 
+    
+    if ((button == GLFW_MOUSE_BUTTON_RIGHT) && (action == GLFW_RELEASE) && (camera_control_mouse_active == true)) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);   // show cursor and stop controlling it
+        camera_control_mouse_active = false;
+    }
+
+    if ((button == GLFW_MOUSE_BUTTON_LEFT) && (action == GLFW_PRESS) && !camera_control_mouse_active) {
+        space.cast_ray(mouse_pos_x, mouse_pos_y);
     }
 
     if (action == GLFW_PRESS) {
