@@ -53,31 +53,8 @@ void VoxelGrid::tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selec
         _voxels_changed = false;
     }
 
-    if (mouse_pointer_active) {
-        render_selection_box = true;
-        selection_pos = selection_ray_start + selection_ray_dir * 15.f;
+    selection_box_tick(delta, selection_ray_start, selection_ray_dir, mouse_pointer_active, mouse_clicked);
 
-        // Convert world position to grid indices
-        glm::vec3 local_pos = selection_pos - position;
-        int grid_x = static_cast<int>(local_pos.x / cell_size);
-        int grid_y = static_cast<int>(local_pos.y / cell_size);
-        int grid_z = static_cast<int>(local_pos.z / cell_size);
-
-        if (grid_x >= 0 && grid_x < width &&
-            grid_y >= 0 && grid_y < height &&
-            grid_z >= 0 && grid_z < depth) {
-            selection_pos = get_voxel_world_pos(grid_x, grid_y, grid_z);
-            if (mouse_clicked) {
-                // uint8_t current_value = get_voxel_value(grid_x, grid_y, grid_z);
-                // uint8_t new_value = (current_value == 0u) ? 15u : 0u; 
-                set_voxel_value(grid_x, grid_y, grid_z, 15u);
-            }
-        } else {
-            render_selection_box = false;
-        }
-    } else {
-        render_selection_box = false;
-    }
 }
 
 void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos) {
@@ -133,6 +110,39 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec
     }
 }
 
+void VoxelGrid::selection_box_tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selection_ray_dir, bool mouse_pointer_active, bool mouse_clicked) {
+    if (!selection_box_enabled) {
+        render_selection_box = false;
+        return;
+    }
+
+    if (mouse_pointer_active) {
+        render_selection_box = true;
+        selection_pos = selection_ray_start + selection_ray_dir * 15.f;
+
+        // Convert world position to grid indices
+        glm::vec3 local_pos = selection_pos - position;
+        int grid_x = static_cast<int>(local_pos.x / cell_size);
+        int grid_y = static_cast<int>(local_pos.y / cell_size);
+        int grid_z = static_cast<int>(local_pos.z / cell_size);
+
+        if (grid_x >= 0 && grid_x < width &&
+            grid_y >= 0 && grid_y < height &&
+            grid_z >= 0 && grid_z < depth) {
+            selection_pos = get_voxel_world_pos(grid_x, grid_y, grid_z);
+            if (mouse_clicked) {
+                // uint8_t current_value = get_voxel_value(grid_x, grid_y, grid_z);
+                // uint8_t new_value = (current_value == 0u) ? 15u : 0u; 
+                set_voxel_value(grid_x, grid_y, grid_z, 15u);
+            }
+        } else {
+            render_selection_box = false;
+        }
+    } else {
+        render_selection_box = false;
+    }
+}
+
 void VoxelGrid::init_instance_buffer() {
     num_occupied_voxels = 0;
 
@@ -148,7 +158,7 @@ void VoxelGrid::init_instance_buffer() {
             }
         }
     }
-
+    
     std::cout << "VoxelGrid [" << width << "x" << height << "x" << depth << "] " 
               << num_occupied_voxels << "/" << num_voxels << " occupied" << std::endl;
 

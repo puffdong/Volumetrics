@@ -23,12 +23,12 @@ uniform mat4 u_mvp;
 uniform sampler2D u_texture1;
 
 uniform vec3 u_sun_dir;
-uniform vec3 u_sun_color;
+uniform vec4 u_sun_color; // .w = intensity
 uniform vec3 u_camera_pos;
 uniform int u_light_count;
 
 // light properties
-const vec3 AMBIENT = vec3(0.0); // more of a scene property? should be chucked into the light_block tbh, its CRITICAL knowledge dontyathink?
+const vec3 AMBIENT = vec3(0.0);
 
 // material properties
 const float MATERIAL_DIFFUSE = 1.0;

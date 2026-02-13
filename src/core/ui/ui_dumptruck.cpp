@@ -153,6 +153,12 @@ namespace ui {
                 grid.set_bounds_visualization_enabled(show_corners);
             }
         }
+        {
+            bool show_selection_box = grid.is_selection_box_enabled();
+            if (ImGui::Checkbox("Show Selection Box", &show_selection_box)) {
+                grid.set_selection_box_enabled(show_selection_box);
+            }
+        }
         // Cell size slider (clamped 0.1f..50.0f)
         {
             float cell_size = grid.get_cell_size();
@@ -232,28 +238,35 @@ namespace ui {
     }
     
     void light_settings(Space& space, Sun& sun, std::vector<Light>& lights) {
-        if (ImGui::BeginMenu("Sun")) {
-            bool moving = sun.get_moving();
-            if (ImGui::Checkbox("Moving", &moving)) {
-                sun.set_moving(moving);
-            }
-            float speed = sun.get_speed();
-            if (ImGui::SliderFloat("Speed", &speed, 0.01f, 3.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-                sun.set_speed(speed);
-            }
-            float height = sun.get_hmm();
-            if (ImGui::SliderFloat("Height", &height, -3.0f, 3.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-                sun.set_hmm(height);
-            }
-            ImGui::Separator();
+        ImGui::Text("Sun");
+        bool moving = sun.is_moving();
+        if (ImGui::Checkbox("Moving", &moving)) {
+            sun.set_moving(moving);
+        }
 
-            glm::vec4 color = sun.get_color();
-            ImGui::SliderFloat("R##sun_color", &color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("G##sun_color", &color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            ImGui::SliderFloat("B##sun_color", &color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-            sun.set_color(color);
+        float speed = sun.get_speed();
+        if (ImGui::SliderFloat("Speed", &speed, 0.0f, 180.0f, "%.2f deg/s", ImGuiSliderFlags_AlwaysClamp)) {
+            sun.set_speed(speed);
+        }
+        ImGui::Separator();
 
-            ImGui::EndMenu();
+        float pitch = sun.get_pitch();
+        float yaw = sun.get_yaw();
+        bool changed = false;
+        changed |= ImGui::SliderFloat("Pitch", &pitch, -89.9f, 89.9f, "%.1f deg", ImGuiSliderFlags_AlwaysClamp);
+        changed |= ImGui::SliderFloat("Yaw", &yaw, -180.0f, 180.0f, "%.1f deg", ImGuiSliderFlags_AlwaysClamp);
+        if (changed) {
+            sun.set_angles(pitch, yaw);
+        }
+        ImGui::Separator();
+
+        glm::vec4 color = sun.get_color();
+        ImGui::DragFloat3("Color##sun_color", &color.r, 0.01f, 0.0f, 1.0f, "%.2f");
+        sun.set_color(color);
+        ImGui::Separator();
+        float intensity = sun.get_intensity();
+        if (ImGui::DragFloat("Intensity##sun_intensity", &intensity, 0.1f, 0.0f, 1000.0f, "%.2f")) {
+            sun.set_intensity(intensity);
         }
 
         ImGui::Separator();

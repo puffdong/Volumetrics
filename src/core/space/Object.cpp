@@ -49,7 +49,7 @@ glm::mat4 Object::get_model_matrix() const {
     return m;
 }
 
-void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color) {
+void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color) {
     if (auto shader = resources.get_shader(r_shader.id)) {
         glm::mat4 proj = renderer.get_proj();
         glm::mat4 view = renderer.get_view();
@@ -58,7 +58,7 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 c
         (*shader)->bind();
         (*shader)->set_uniform_vec3("u_camera_pos", camera_pos);
         (*shader)->set_uniform_vec3("u_sun_dir", sun_dir);
-        (*shader)->set_uniform_vec3("u_sun_color", sun_color);
+        (*shader)->set_uniform_vec4("u_sun_color", sun_color);
         (*shader)->set_uniform_mat4("u_mvp", proj * view * model);
         (*shader)->set_uniform_mat4("u_proj", renderer.get_proj());
         (*shader)->set_uniform_mat4("u_model", model);

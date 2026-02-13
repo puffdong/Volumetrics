@@ -31,6 +31,7 @@ private:
 	bool _show_bounds = false;
 
 	// for the lil selection box thingy!
+	bool selection_box_enabled = false;
 	bool render_selection_box = false;
 	glm::vec3 selection_pos;
 	Shader* selection_box_shader;
@@ -43,18 +44,20 @@ public:
 	void init(ResourceManager& resources);
     void tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selection_ray_dir, bool mouse_pointer_active, bool mouse_clicked);
     void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos);
+
+	void selection_box_tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selection_ray_dir, bool mouse_pointer_active, bool mouse_clicked);
 	
 	void resize_grid(int w, int h, int d, bool preserve_data = false);
-	
 	void set_voxel_value(int x, int y, int z, uint8_t value);
 	void set_cell_size(float size) { cell_size = size; };
 	void set_position(const glm::vec3& p) { position = p; };
 	void set_debug_visibility(const bool v) { _debug_visible = v; };
 	void set_bounds_visualization_enabled(const bool v);
+	void set_selection_box_enabled(const bool v) { selection_box_enabled = v; };
 	
 	inline bool is_debug_view_visible() const { return _debug_visible; };
 	inline bool is_bounds_visualization_enabled() const { return _show_bounds; }
-
+	inline bool is_selection_box_enabled() const { return selection_box_enabled; }
 
 	uint8_t get_voxel_value(int x, int y, int z);
     glm::vec3 get_scale() const { return scale; };

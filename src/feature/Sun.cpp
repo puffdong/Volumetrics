@@ -1,33 +1,77 @@
 #include "Sun.hpp"
 #include "core/rendering/Renderer.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include <cmath>
 #include <vector>
 
-Sun::Sun() = default;
+Sun::Sun() {
+    set_direction(direction);
+}
 
 Sun::~Sun() {
+    if (shader) {
+        delete shader;
+        shader = nullptr;
+    }
     if (vao) glDeleteVertexArrays(1, &vao);
     if (vbo) glDeleteBuffers(1, &vbo);
     if (ebo) glDeleteBuffers(1, &ebo);
 }
 
 void Sun::init(ResourceManager& resources) {
-    r_shader = resources.load_shader("res://shaders/sun.vs", "res://shaders/sun.fs");
+    shader = new Shader(resources.get_full_path("res://shaders/sun.vs"), resources.get_full_path("res://shaders/sun.fs"));
     init_billboard_model();
 }
 
 void Sun::tick(float delta) {
-    float y = hmm; 
-    
-    if (_moving) {
-        _time += delta * _speed;
+    if (moving) {
+        yaw += speed * delta;
+        direction_dirty = true;
     }
 
-    float x = std::sin(_time);
-    float z = std::cos(_time);
+    if (!direction_dirty) {
+        return;
+    }
+    update_direction_from_angles();
+}
 
-    direction = glm::vec3(x, y, z);
-    direction = glm::normalize(direction);
+void Sun::set_direction(const glm::vec3& dir) {
+    const float len = glm::length(dir);
+    direction = (len > 0.0001f) ? (dir / len) : glm::vec3(0.0f, 1.0f, 0.0f);
+
+    pitch = glm::degrees(std::asin(glm::clamp(direction.y, -1.0f, 1.0f))); // update the pitch
+    yaw = glm::degrees(std::atan2(direction.z, direction.x)); // and yaw when setting a new direction
+    direction_dirty = false;
+}
+
+void Sun::set_pitch(float value) {
+    pitch = glm::clamp(value, -89.9f, 89.9f);
+    direction_dirty = true;
+}
+
+void Sun::set_yaw(float value) {
+    yaw = value;
+    direction_dirty = true;
+}
+
+void Sun::set_angles(float pitch_value, float yaw_value) {
+    pitch = glm::clamp(pitch_value, -89.9f, 89.9f);
+    yaw = yaw_value;
+    direction_dirty = true;
+}
+
+void Sun::update_direction_from_angles() {
+    const float pitch_rad = glm::radians(pitch);
+    const float yaw_rad = glm::radians(yaw);
+
+    glm::vec3 new_direction;
+    new_direction.x = std::cos(pitch_rad) * std::cos(yaw_rad);
+    new_direction.y = std::sin(pitch_rad);
+    new_direction.z = std::cos(pitch_rad) * std::sin(yaw_rad);
+
+    const float len = glm::length(new_direction);
+    direction = (len > 0.0001f) ? (new_direction / len) : glm::vec3(0.0f, 1.0f, 0.0f);
+    direction_dirty = false;
 }
 
 void Sun::init_billboard_model() {
@@ -35,11 +79,11 @@ void Sun::init_billboard_model() {
     const float width = 15.0f;
     
     std::vector<float> vertices = {
-    // Positions                            // Normals            // UVs
-    -width / 2.0f, 0.0f, -depth / 2.0f,     0.0f, 1.0f, 0.0f,     0.0f, 0.0f,
-     width / 2.0f, 0.0f, -depth / 2.0f,     0.0f, 1.0f, 0.0f,     1.0f, 0.0f,
-     width / 2.0f, 0.0f,  depth / 2.0f,     0.0f, 1.0f, 0.0f,     1.0f, 1.0f,
-    -width / 2.0f, 0.0f,  depth / 2.0f,     0.0f, 1.0f, 0.0f,     0.0f, 1.0f
+    // Positions                            // UVs
+    -width / 2.0f, 0.0f, -depth / 2.0f,     0.0f, 0.0f,
+     width / 2.0f, 0.0f, -depth / 2.0f,     1.0f, 0.0f,
+     width / 2.0f, 0.0f,  depth / 2.0f,     1.0f, 1.0f,
+    -width / 2.0f, 0.0f,  depth / 2.0f,     0.0f, 1.0f
     };
 
     std::vector<unsigned int> indices = { 2, 1, 0, 0, 3, 2 };
@@ -56,24 +100,19 @@ void Sun::init_billboard_model() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    GLsizei stride = 8 * sizeof(float); 
+    GLsizei stride = 5 * sizeof(float); 
     glEnableVertexAttribArray(0); 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(1); 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(2); 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
     
     glBindVertexArray(0);
 
     index_count = static_cast<GLsizei>(indices.size());
 }
 
-void Sun::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos) {
-    auto shader_ptr = resources.get_shader(r_shader.id);
-    if (!shader_ptr) return;
-    
-    auto* shader = *shader_ptr;
+void Sun::enqueue(Renderer& renderer, glm::vec3 camera_pos) {
+    if (!shader) return;
     
     glm::vec3 sun_pos = camera_pos + (glm::normalize(direction) * sun_distance);
 

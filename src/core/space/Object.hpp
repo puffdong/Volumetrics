@@ -33,7 +33,7 @@ public:
     
     void init(ResourceManager& resources, const std::string& name = "");
     void tick(float delta);
-    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color);
+    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color);
 
     // getters n' setters
     UUID<Object> get_id() const { return _id; };

@@ -127,7 +127,7 @@ void Space::enqueue_renderables() {
 	}
 
 	skybox.enqueue(renderer, resources, camera_pos);
-	sun.enqueue(renderer, resources, camera_pos);
+	sun.enqueue(renderer, camera_pos);
 
 	for (auto& b : objects) {
 		b->enqueue(renderer, resources, camera_pos, sun.get_direction(), sun.get_color());
@@ -169,8 +169,6 @@ void Space::remove_light(std::size_t index) {
 	lights.erase(lights.begin() + static_cast<std::ptrdiff_t>(index));
 }
 
-
-
 void Space::cast_ray(float mouse_x, float mouse_y) {
 	glm::vec2 viewport_dims = renderer.get_viewport_size();
 	float x = (2.0f * mouse_x) / viewport_dims.x - 1.0f;
@@ -187,7 +185,7 @@ void Space::cast_ray(float mouse_x, float mouse_y) {
 	glm::vec3 start = camera.get_position();
 	glm::vec3 end = start + ray_dir * 25.0f;
 
-	line_manager.add_line(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	// line_manager.add_line(start, end, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)); // todo: add a button to clear the lines
 }
 
 void Space::selection_ray_cast(float mouse_x, float mouse_y) {
@@ -203,7 +201,7 @@ void Space::selection_ray_cast(float mouse_x, float mouse_y) {
     glm::vec3 ray_dir = glm::vec3(glm::inverse(renderer.get_view()) * ray_eye);
     ray_dir = glm::normalize(ray_dir);
 	
-	selection_ray_start = camera.get_position();;
+	selection_ray_start = camera.get_position();
 	selection_ray_dir = ray_dir;
 }
 

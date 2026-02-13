@@ -15,7 +15,7 @@ void Raymarcher::tick(float delta) {
     _time += delta;
 }
 
-void Raymarcher::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size) {
+void Raymarcher::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size) {
     if (!_visible) return;
 
     _shader->hot_reload_if_changed();
@@ -36,7 +36,7 @@ void Raymarcher::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun
     renderer.submit(RenderPass::Volumetrics, cmd);
 }
 
-void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size) {
+void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size) {
         glm::mat4 proj = renderer.get_proj();
         glm::mat4 view = renderer.get_view();
         glm::mat4 inverted_proj_view = glm::inverse(proj * view);
@@ -45,7 +45,7 @@ void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::
         _shader->set_uniform_mat4("u_invprojview", inverted_proj_view);
         _shader->set_uniform_vec3("u_camera_pos", camera_pos);
         _shader->set_uniform_vec3("u_sun_dir", sun_dir);
-        _shader->set_uniform_vec3("u_sun_color", sun_color);
+        _shader->set_uniform_vec4("u_sun_color", sun_color); // .w = intensity
         _shader->set_uniform_float("u_time", _time);
         _shader->set_uniform_vec2("u_resolution", renderer.get_viewport_size());
 

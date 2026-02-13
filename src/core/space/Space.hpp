@@ -55,7 +55,6 @@ public:
 	void enqueue_renderables();
 	
 	Camera& get_camera() { return camera; };
-	Sun& get_sun() { return sun; };
 	const ButtonMap& get_button_map() const { return this_frames_button_map; };
 
 	void create_object(glm::vec3 position = glm::vec3(0.0f), 

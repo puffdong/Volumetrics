@@ -33,7 +33,7 @@ public:
     Raymarcher() = default;
     void init(Shader* shader);
     void tick(float delta);
-    void enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
+    void enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
 
     void set_visibility(const bool v) { _visible = v; };
     bool is_visible() const { return _visible; };
@@ -41,5 +41,5 @@ public:
     PerlinNoiseTexture& get_perlin_texture() { return perlin_texture; };
 
 private:
-    void upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec3 sun_color, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
+    void upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
 };

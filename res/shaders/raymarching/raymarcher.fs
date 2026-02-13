@@ -17,8 +17,9 @@ layout(std140) uniform b_light_block {
 };
 
 uniform int u_light_count;
+
 uniform vec3 u_sun_dir;
-uniform vec3 u_sun_color;
+uniform vec4 u_sun_color; // .w = intensity 
 uniform mat4 u_invprojview;
 
 // standard uniforms
@@ -54,16 +55,14 @@ uniform float u_extincion_coefficient;
 uniform float u_anisotropy;
 uniform float u_sun_intensity;
 
-
-
 uint voxel_value_at(ivec3 cell) {
     if (any(lessThan(cell, ivec3(0))) || any(greaterThanEqual(cell, u_grid_dim))) return 0u;
     return texelFetch(u_voxels, cell, 0).r;
 }
 
 ivec3 world_to_cell(vec3 p) {
-    vec3 local = (p - u_grid_origin + vec3(u_cell_size / 2)) / u_cell_size; // the added vec3(// HALF OF CELL_SIZE //) makes it line up with the debug view
-    return ivec3(floor(local)); // yet it feels inherently wrong. prolly debug is the one that is off
+    vec3 local = (p - u_grid_origin + vec3(u_cell_size / 2)) / u_cell_size;
+    return ivec3(floor(local));
 }
 
 float occupancy_at_world(vec3 p) {
@@ -94,10 +93,8 @@ float sample_density(vec3 sample_pos, uint voxel_value) {
     float noise = texture(u_noise_texture, (sample_pos * 0.05) + offset).r;
     noise = smoothstep(0.1, 0.8, noise);
     
-    return noise * (float(voxel_value) / 16.0); // normalize voxel value to [0, 1]
+    return noise;
 }
-
-
 
 float do_light_march(vec3 light_pos, vec3 light_dir) {
     float distance_traveled = 0.0;
@@ -154,7 +151,7 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
 
             float light_transmittance = do_light_march(ray_pos, sun_vec);
 
-            vec3 Li = u_sun_color * u_sun_intensity * light_transmittance;
+            vec3 Li = u_sun_color.rgb * u_sun_intensity * light_transmittance;
             
             light_energy += transmittance * density * sigma_s * phase * Li * u_step_size;
 
@@ -167,7 +164,7 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
 
         } 
         if (distance_traveled > scene_distance) break; // hmm maybe this can be used to determine max steps dynamically?
-        distance_traveled += u_step_size;
+        distance_traveled += u_step_size; // adaptive step size based on cell size
         
     }
 
