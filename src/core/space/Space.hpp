@@ -66,14 +66,10 @@ public:
 	void add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
 					  glm::vec3 direction, float volumetric_intensity, LightType type);
 	void remove_light(std::size_t index);
-
 	void cast_ray(float x, float y);
 	
-private:
-	
+private:	
 	void selection_ray_cast(float x, float y);
-
-
 
 	void init_skybox();
 	void init_raymarcher_and_voxelgrid();

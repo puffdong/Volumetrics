@@ -202,7 +202,7 @@ namespace ui {
     }
 
 
-    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass, std::vector<Object*>& objects)
+    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass, Line& line_manager, std::vector<Object*>& objects)
     {
         ImGui::PushID(&marcher);
 
@@ -229,6 +229,13 @@ namespace ui {
             }
             if (ImGui::BeginMenu("Glass")) {
                 glass_settings(glass);
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Other")) {
+                if (ImGui::BeginMenu("Lines")) {
+                    line_settings(line_manager);
+                    ImGui::EndMenu();
+                }
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
@@ -303,6 +310,15 @@ namespace ui {
                 glm::vec3(1.0f), 50.0f, 
                 glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point
             );
+        }
+    }
+
+    void line_settings(Line& line_manager) {
+        if (ImGui::Button("Clear Lines")) {
+            line_manager.clear_lines();
+        }
+        if (ImGui::Button("Clear All Lines")) {
+            line_manager.clear_all_lines();
         }
     }
 

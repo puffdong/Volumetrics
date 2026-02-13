@@ -77,13 +77,12 @@ void Space::init_lights() {
 }
 
 void Space::init_lines() {
-	// world grid lines (currently parallell to all axis at 0)
 	line_manager = Line();
 	line_manager.init(resources.get_full_path("res://shaders/line.vs"), resources.get_full_path("res://shaders/line.fs"));
-	std::vector<LinePrimitive> world_grid_lines = {{glm::vec3(256.f, 0.0f, 0.0f), glm::vec3(-256.0f, 0.0f, 0.0f), glm::vec4(0.86f, 0.08f, 0.24f, 1.0f)}, // X : R (crimson red)
-	{glm::vec3(0.f, 256.0f, 0.0f), glm::vec3(0.0f, -256.0f, 0.0f), glm::vec4(0.196f, 0.754f, 0.196f, 1.0f)}, // Y : G (forest green)
-	{glm::vec3(0.f, 0.0f, 256.0f), glm::vec3(0.0f, 0.0f, -256.0f), glm::vec4(0.118f, 0.565f, 1.0f, 1.0f)}};  // Z : B (dodger blue)
-	line_manager.add_lines(world_grid_lines);
+	std::vector<LinePrimitive> world_grid_lines = {{glm::vec3(512.f, 0.0f, 0.0f), glm::vec3(-512.0f, 0.0f, 0.0f), glm::vec4(0.86f, 0.08f, 0.24f, 1.0f)},    // X : R (crimson red)
+												   {glm::vec3(0.f, 512.0f, 0.0f), glm::vec3(0.0f, -512.0f, 0.0f), glm::vec4(0.196f, 0.754f, 0.196f, 1.0f)}, // Y : G (forest green)
+												   {glm::vec3(0.f, 0.0f, 512.0f), glm::vec3(0.0f, 0.0f, -512.0f), glm::vec4(0.118f, 0.565f, 1.0f, 1.0f)}};  // Z : B (dodger blue)
+	line_manager.add_lines(world_grid_lines, true);
 }
 
 void Space::tick(float delta, ButtonMap bm)
@@ -107,7 +106,7 @@ void Space::tick(float delta, ButtonMap bm)
 	glass.tick(delta, bm);
         
 	ui::stats_overlay(camera, renderer);
-    ui::settings_panel(*this, raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, lights, glass, objects);
+	ui::settings_panel(*this, raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, lights, glass, line_manager, objects);
 
 	const std::size_t count = std::min(lights.size(), light_spheres.size());
 	for (std::size_t i = 0; i < count; ++i) {
