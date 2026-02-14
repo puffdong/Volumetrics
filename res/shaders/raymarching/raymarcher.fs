@@ -93,7 +93,7 @@ float sample_density(vec3 sample_pos, uint voxel_value) {
     float noise = texture(u_noise_texture, (sample_pos * 0.05) + offset).r;
     noise = smoothstep(0.1, 0.8, noise);
     
-    return noise;
+    return noise * (float(voxel_value) / 255.0);
 }
 
 float do_light_march(vec3 light_pos, vec3 light_dir) {

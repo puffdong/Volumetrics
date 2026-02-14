@@ -148,15 +148,15 @@ namespace ui {
             }
         }
         {
-            bool show_corners = grid.is_bounds_visualization_enabled();
-            if (ImGui::Checkbox("Show Corner Voxels", &show_corners)) {
-                grid.set_bounds_visualization_enabled(show_corners);
-            }
-        }
-        {
             bool show_selection_box = grid.is_selection_box_enabled();
             if (ImGui::Checkbox("Show Selection Box", &show_selection_box)) {
                 grid.set_selection_box_enabled(show_selection_box);
+            }
+            uint8_t selection_value = grid.get_selection_value();
+            int display_value = static_cast<int>(selection_value);
+            // ImGui::SameLine();
+            if (ImGui::DragInt("Selection Value", &display_value, 1, 0, 255)) {
+                grid.set_selection_value(static_cast<uint8_t>(display_value));
             }
         }
         // Cell size slider (clamped 0.1f..50.0f)

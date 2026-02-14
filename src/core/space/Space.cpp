@@ -57,7 +57,7 @@ void Space::init_skybox() {
 }
 
 void Space::init_raymarcher_and_voxelgrid() {
-	voxel_grid = VoxelGrid(30, 30, 30, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f)); 
+	voxel_grid = VoxelGrid(100, 100, 100, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f)); 
     voxel_grid.init(resources);
 	voxel_grid.set_debug_visibility(false);
 	raymarcher = Raymarcher();
@@ -132,7 +132,7 @@ void Space::enqueue_renderables() {
 		b->enqueue(renderer, resources, camera_pos, sun.get_direction(), sun.get_color());
 	}
 	
-	voxel_grid.enqueue(renderer, resources, camera_pos);
+	voxel_grid.enqueue(renderer, camera_pos, sun.get_direction(), sun.get_color());
 	raymarcher.enqueue(renderer, camera_pos, sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
 	
 	line_manager.enqueue(renderer);
