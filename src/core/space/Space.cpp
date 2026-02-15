@@ -21,7 +21,7 @@ Space::~Space() {
 }
 
 void Space::init_space() {
-	camera.set_position(glm::vec3(0.0f, 10.0f, 0.0f));
+	camera.set_position(glm::vec3(0.0f, 20.0f, 40.0f));
 
 	init_skybox();
 	init_raymarcher_and_voxelgrid();
@@ -29,7 +29,6 @@ void Space::init_space() {
 	init_lights();
 	init_lines();
 
-	
 	// THIS IS STINKY;
 	Object* base_ground = new Object(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs");
 	base_ground->init(resources, "Ground Plane");
@@ -45,6 +44,14 @@ void Space::init_space() {
 	create_object(glm::vec3(-18.0f, 5.0f, 28.0f), glm::vec3(0.0f), glm::vec3(3.5f), sphere_path, "Sphere 2");
 	create_object(glm::vec3(35.0f, 2.0f, 14.0f), glm::vec3(0.0f), glm::vec3(2.0f), sphere_path, "Sphere 3");
 	create_object(glm::vec3(17.0f, 3.5f, -2.0f), glm::vec3(0.0f), glm::vec3(7.0f), sphere_path, "Sphere 4");
+	// for (int i = 0; i < 20; ++i) { // testing the shadows
+	// 	float x = (rand() % 200 - 100) * 1.2f;
+	// 	float y = (rand() % 40);
+	// 	float z = (rand() % 200 - 100) * 1.2f;
+	// 	float scale = 0.5f + (rand() % 100) * 0.05f;
+		
+	// 	create_object(glm::vec3(x, y, z), glm::vec3(0.f), glm::vec3(scale), sphere_path, "Sphere " + std::to_string(i + 5));
+	// }
 }
 
 void Space::init_skybox() {
@@ -57,7 +64,8 @@ void Space::init_skybox() {
 }
 
 void Space::init_raymarcher_and_voxelgrid() {
-	voxel_grid = VoxelGrid(100, 100, 100, 0, 1.5f, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.f)); 
+	const float cell_size = 1.5f;
+	voxel_grid = VoxelGrid(100, 50, 100, 0, cell_size, glm::vec3(-50.0 * cell_size, 0.0, -50.0 * cell_size), glm::vec3(1.f)); 
     voxel_grid.init(resources);
 	voxel_grid.set_debug_visibility(false);
 	raymarcher = Raymarcher();
@@ -118,7 +126,10 @@ void Space::enqueue_renderables() {
 	glm::mat4 view_matrix = camera.get_view_matrix();
 	glm::vec3 camera_pos = camera.get_position();
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
-	
+	renderer.set_camera_pos(camera_pos);
+	renderer.update_light_matrix(-sun.get_direction(), glm::vec3(0.0f));
+	renderer.begin_frame();
+
 	// lights
 	renderer.submit_lighting_data(lights);
 	for (auto& light_sphere : light_spheres) { // the light objects (hard to see em otherwise)

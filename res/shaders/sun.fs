@@ -12,6 +12,6 @@ void main()
 	if (dist > 0.5) discard; // circle!
 
 	vec4 color = u_sun_color;
-	color.a *= smoothstep(0.5, 0.3, dist);
+	color.a = smoothstep(0.5, 0.3, dist);
 	o_color = color;
 }

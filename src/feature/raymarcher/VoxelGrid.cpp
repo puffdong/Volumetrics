@@ -9,7 +9,7 @@ VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, g
     _num_voxels = h * w * d;
     _voxels = std::vector<uint8_t>(_num_voxels, static_cast<uint8_t>(init_value));
 
-    flood_fill(glm::ivec3(50, 50, 50), 15.0f, 255u);
+    flood_fill(glm::ivec3(50, 15, 50), 15.0f, 255u);
 
     _voxels_changed = false;
     _instances_dirty = false;
@@ -48,7 +48,7 @@ void VoxelGrid::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_
     _shader->set_uniform_vec3("u_grid_origin", _position);
     _shader->set_uniform_float("u_voxel_size", _cell_size);
 
-    TextureBinding bind{ _voxel_tex, GL_TEXTURE_3D, 5, "u_voxels" };
+    TextureBinding bind{ _voxel_tex, GL_TEXTURE_3D, 6, "u_voxels" };
 
     RenderCommand cmd{};
     cmd.vao        = _cube_model.vao;
@@ -73,7 +73,6 @@ void VoxelGrid::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_
         _selection_box_shader->set_uniform_mat4("u_model", model);
         _selection_box_shader->set_uniform_mat4("u_proj", renderer.get_proj());
         _selection_box_shader->set_uniform_mat4("u_view", renderer.get_view());
-        _selection_box_shader->set_uniform_vec3("u_camera_pos", camera_pos);
         _selection_box_shader->set_uniform_vec3("u_sun_dir", sun_direction);
         _selection_box_shader->set_uniform_vec3("u_sun_color", sun_color);
 

@@ -1,5 +1,6 @@
 #include "Object.hpp"
 #include "core/rendering/Texture.hpp"
+#include <GL/glew.h>
 #include <iostream>
 
 Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale,
@@ -26,6 +27,7 @@ void Object::init(ResourceManager& resources, const std::string& name) {
 
     auto shader_path = r_shader.asset_path;
     r_shader = resources.load_shader(shader_path, shader_path.substr(0, shader_path.find_last_of('.'))+".fs");
+    shader = resources.get_shader(r_shader.id).value_or(nullptr);
 
     // not used for now 
     // if (r_texture.asset_path != "") { 
@@ -50,34 +52,53 @@ glm::mat4 Object::get_model_matrix() const {
 }
 
 void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color) {
-    if (auto shader = resources.get_shader(r_shader.id)) {
-        glm::mat4 proj = renderer.get_proj();
-        glm::mat4 view = renderer.get_view();
-        glm::mat4 model = get_model_matrix();
-        (*shader)->hot_reload_if_changed();
-        (*shader)->bind();
-        (*shader)->set_uniform_vec3("u_camera_pos", camera_pos);
-        (*shader)->set_uniform_vec3("u_sun_dir", sun_dir);
-        (*shader)->set_uniform_vec4("u_sun_color", sun_color);
-        (*shader)->set_uniform_mat4("u_mvp", proj * view * model);
-        (*shader)->set_uniform_mat4("u_proj", renderer.get_proj());
-        (*shader)->set_uniform_mat4("u_model", model);
-        (*shader)->set_uniform_mat4("u_view", view);
+    glm::mat4 proj = renderer.get_proj();
+    glm::mat4 view = renderer.get_view();
+    glm::mat4 model = get_model_matrix();
+    glm::mat3 normal_matrix = glm::transpose(glm::inverse(glm::mat3(model)));
+    
+    shader->hot_reload_if_changed();
+    shader->bind();
+    
+    // Set material uniforms
+    shader->set_uniform_vec4("u_diffuse_color", material.diffuse_color);
+    shader->set_uniform_vec4("u_specular_color", material.specular_color);
+    shader->set_uniform_vec4("u_material_params", material.params);
+    shader->set_uniform_int("u_is_selected", _selected ? 1 : 0);
+    shader->set_uniform_vec3("u_sun_dir", sun_dir);
+    shader->set_uniform_vec4("u_sun_color", sun_color);
+    shader->set_uniform_mat4("u_mvp", proj * view * model);
+    shader->set_uniform_mat4("u_proj", renderer.get_proj());
+    shader->set_uniform_mat4("u_view", view);
+    shader->set_uniform_mat3("u_normal_matrix", normal_matrix);
 
-        ModelGpuData gpu_model = resources.get_model_gpu_data(r_model.id);
+    // what about toggling casting but still wanna recieve shadows?!
+    shader->set_uniform_mat4("u_light_space_matrix", renderer.get_light_space_matrix());
 
-        // STILL GOTTA HANDLE TEXTURE STUFF BUT IDC RIGHT NOW, WE MOVING FAST AND SWIFT, OUT WITH OLD, IN WITH NEW
-        RenderCommand cmd{};
-        cmd.vao = gpu_model.vao;
-        cmd.draw_type = DrawType::Elements;
-        cmd.count = gpu_model.index_count;
-        cmd.shader = (*shader);
-        cmd.attach_lights = true;
+    TextureBinding shadow_bind{ renderer.get_shadow_map_texture_id(), GL_TEXTURE_2D, 5, "u_shadow_map" };
 
-        renderer.submit(RenderPass::Forward, cmd);
-    } else {
-        std::cout << "Shader for resource ID: " << r_shader.id.value() << " not found!" << "\n";
-        return;
+    ModelGpuData gpu_model = resources.get_model_gpu_data(r_model.id);
+    
+    RenderCommand cmd{};
+    cmd.vao = gpu_model.vao;
+    cmd.draw_type = DrawType::Elements;
+    cmd.count = gpu_model.index_count;
+    cmd.shader = shader;
+    cmd.textures.push_back(shadow_bind);
+    cmd.model_matrix = model;
+    cmd.attach_lights = true;
+
+    renderer.submit(RenderPass::Forward, cmd);
+
+    if (_cast_shadows) {
+        RenderCommand shadow_cmd{};
+        shadow_cmd.vao = gpu_model.vao;
+        shadow_cmd.draw_type = DrawType::Elements;
+        shadow_cmd.count = gpu_model.index_count;
+        shadow_cmd.shader = renderer.get_shadow_shader(); // todo: renderer has it... prolly need to revamp the pipeline a bit...
+        shadow_cmd.attach_lights = false;
+        shadow_cmd.model_matrix = model;
+        renderer.submit(RenderPass::Shadow, shadow_cmd);
     }
 }
 

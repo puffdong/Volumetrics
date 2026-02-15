@@ -1,5 +1,6 @@
 #include "ui_dumptruck.hpp"
 #include "core/space/Space.hpp"
+#include <iostream>
 
 #define PI 3.14159265358979323846f
 
@@ -38,11 +39,18 @@ namespace ui {
             ImGui::PushID(obj->get_id());
 
             std::string title = obj->get_name();
-            if (ImGui::BeginMenu(title.c_str())) {
-                // Position (xyz)
+            bool open =ImGui::BeginMenu(title.c_str());
+            bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
+            obj->set_selected(hovered);
+
+            if (open) {
+                // Transform section
+                ImGui::Text("Transform");
+                ImGui::Separator();
+                
                 glm::vec3 p = obj->get_position();
                 float pos[3] = { p.x, p.y, p.z };
-                if (ImGui::DragFloat3("Position", pos, 0.1f, -50.0f, 50.0f, "%.3f")) {
+                if (ImGui::DragFloat3("Position", pos, 0.1f, -1000.0f, 1000.0f, "%.3f")) {
                     obj->set_position({ pos[0], pos[1], pos[2] });
                 }
 
@@ -59,6 +67,34 @@ namespace ui {
                                        ImGuiSliderFlags_AlwaysClamp)) {
                     obj->set_scale({ s[0], s[1], s[2] });
                 }
+
+                ImGui::Separator();
+                
+                // Material section
+                ImGui::Text("Material");
+                ImGui::Separator();
+                
+                Material& mat = obj->get_material();
+                
+                ImGui::Text("Diffuse");
+                ImGui::ColorEdit3("Color##diffuse", &mat.diffuse_color.r);
+                ImGui::SliderFloat("Strength##diffuse", &mat.diffuse_color.a, 0.0f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                
+                ImGui::Separator();
+                
+                ImGui::Text("Specular");
+                ImGui::ColorEdit3("Color##specular", &mat.specular_color.r);
+                ImGui::SliderFloat("Strength##specular", &mat.specular_color.a, 0.0f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                
+                ImGui::Separator();
+                
+                ImGui::SliderFloat("Shininess", &mat.params.x, 1.0f, 256.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("Higher = sharper specular highlights");
+                
+                // todo: do this! Your future you is gonna love it.
+                // ImGui::SliderFloat("Metallic", &mat.params.y, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                // ImGui::SliderFloat("Roughness", &mat.params.z, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
                 ImGui::EndMenu();
             }
@@ -159,10 +195,10 @@ namespace ui {
                 grid.set_selection_value(static_cast<uint8_t>(display_value));
             }
         }
-        // Cell size slider (clamped 0.1f..50.0f)
+        // Cell size slider (clamped 0.01f..25.0f)
         {
             float cell_size = grid.get_cell_size();
-            if (ImGui::SliderFloat("Cell size", &cell_size, 0.1f, 10.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+            if (ImGui::SliderFloat("Cell size", &cell_size, 0.1f, 25.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                 grid.set_cell_size(cell_size);
             }
         }
@@ -170,7 +206,7 @@ namespace ui {
         // Position sliders (X, Y, Z)
         {
             glm::vec3 p = grid.get_position();
-            if (ImGui::DragFloat3("Position##grid_pos", &p.x, 0.1f, -50.0f, 50.0f, "%.3f")) {
+            if (ImGui::DragFloat3("Position##grid_pos", &p.x, 0.1f, -1000.0f, 1000.0f, "%.3f")) {
                 grid.set_position(p);
             }
         }
@@ -272,7 +308,7 @@ namespace ui {
         sun.set_color(color);
         ImGui::Separator();
         float intensity = sun.get_intensity();
-        if (ImGui::DragFloat("Intensity##sun_intensity", &intensity, 0.1f, 0.0f, 1000.0f, "%.2f")) {
+        if (ImGui::DragFloat("Intensity##sun_intensity", &intensity, 0.01f, 0.0f, 1000.0f, "%.2f")) {
             sun.set_intensity(intensity);
         }
 
@@ -285,12 +321,12 @@ namespace ui {
             std::string label = "Light " + std::to_string(i + 1);
             if (ImGui::BeginMenu(label.c_str())) {
                 ImGui::Text("%s Settings:", label.c_str());
-                ImGui::DragFloat3("Position##light_pos", &light.position.x, 0.1f, -50.0f, 50.0f, "%.2f");
-                ImGui::SliderFloat("Radius##light_radius", &light.radius, 0.1f, 100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-                ImGui::SliderFloat("R##light_color", &light.color.r, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-                ImGui::SliderFloat("G##light_color", &light.color.g, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-                ImGui::SliderFloat("B##light_color", &light.color.b, 0.0f, 10.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-                ImGui::SliderFloat("Intensity##light_intensity", &light.intensity, 0.0f, 500.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::DragFloat3("Position##light_pos", &light.position.x, 0.1f, -1000.0f, 1000.0f, "%.2f");
+                ImGui::SliderFloat("Radius##light_radius", &light.radius, 0.1f, 200.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SliderFloat("R##light_color", &light.color.r, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SliderFloat("G##light_color", &light.color.g, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SliderFloat("B##light_color", &light.color.b, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::SliderFloat("Intensity##light_intensity", &light.intensity, 0.0f, 1000.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
                 ImGui::Separator();
                 if (ImGui::Button("Remove Light")) {

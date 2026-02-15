@@ -4,6 +4,7 @@
 
 void Raymarcher::init(Shader* shader) {
     _shader = shader;
+    _shader->set_debug_output(true);
 
     perlin_texture = PerlinNoiseTexture();
     init_perlin(perlin_texture, 128, 128, 128, 0.05f,42);
@@ -22,8 +23,8 @@ void Raymarcher::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun
     _shader->bind();
     upload_uniforms(renderer, camera_pos, sun_dir, sun_color, grid_dim, grid_origin, cell_size);
 
-    TextureBinding perlin_noise{ perlin_texture.texture_id, GL_TEXTURE_3D, 5, "u_noise_texture" };
-    TextureBinding vox_tex{ voxel_tex, GL_TEXTURE_3D, 6, "u_voxels" };
+    TextureBinding perlin_noise{ perlin_texture.texture_id, GL_TEXTURE_3D, 8, "u_noise_texture" };
+    TextureBinding vox_tex{ voxel_tex, GL_TEXTURE_3D, 7, "u_voxels" };
 
     RenderCommand cmd{};
     cmd.draw_type = DrawType::FullscreenQuad;
@@ -43,7 +44,6 @@ void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::
 
         // standard uniforms
         _shader->set_uniform_mat4("u_invprojview", inverted_proj_view);
-        _shader->set_uniform_vec3("u_camera_pos", camera_pos);
         _shader->set_uniform_vec3("u_sun_dir", sun_dir);
         _shader->set_uniform_vec4("u_sun_color", sun_color); // .w = intensity
         _shader->set_uniform_float("u_time", _time);

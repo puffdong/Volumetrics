@@ -18,7 +18,6 @@ private:
     LightManager light_manager;
     Shader* composite_shader;
     Shader* copy_present_shader;
-
     RenderState current {};
 
     int viewport_width;
@@ -30,6 +29,9 @@ private:
 	float aspect_ratio = 16.f / 9.0f;
 	glm::mat4 proj;
     glm::mat4 view;
+    glm::vec3 camera_pos = glm::vec3(0.0f);
+
+    glm::vec3 sun_dir = glm::normalize(glm::vec3(1.0f));
 
 public: 
     Renderer() = default;
@@ -47,6 +49,7 @@ public:
     void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 1.0f, float far_plane = 512.0f);
     void set_fov(float fov);
     void set_view(glm::mat4 v) { view = v; };
+    void set_camera_pos(const glm::vec3& pos);
     
     glm::vec2 get_viewport_size() const;
 
@@ -85,4 +88,19 @@ private:
     
     unsigned int volumetric_fbo = 0;
     unsigned int volumetric_color = 0;
+
+public:
+    // Shadow map stuff
+    glm::mat4 get_light_space_matrix() const { return light_space_matrix; }
+    unsigned int get_shadow_map_texture_id() const { return shadow_map; }
+    Shader* get_shadow_shader() const { return shadow_shader; }
+    void update_light_matrix(glm::vec3 direction, glm::vec3 target);
+    
+private:
+    void init_shadow_resources();
+    Shader* shadow_shader;
+    int shadow_resolution = 4096;
+    unsigned int shadow_fbo = 0;
+    unsigned int shadow_map = 0;
+    glm::mat4 light_space_matrix = glm::mat4(1.0f);
 };

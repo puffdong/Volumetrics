@@ -48,6 +48,17 @@ bool Application::init_glfw(const AppConfig& cfg) {
         return false;
     }
 
+    if (cfg.platform == "Windows") { // so tired of opening the window on top of the code
+        int monitor_count;
+        GLFWmonitor** monitors = glfwGetMonitors(&monitor_count);
+        if (monitor_count >= 2) {
+            int xpos, ypos;
+            glfwGetMonitorPos(monitors[1], &xpos, &ypos);
+            const GLFWvidmode* mode = glfwGetVideoMode(monitors[1]);
+            glfwSetWindowPos(window, xpos + (mode->width - initial_width) / 2, ypos + (mode->height - initial_height) / 2);
+        }
+    }
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // sync with refresh rate
 
@@ -274,8 +285,6 @@ int Application::run() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
-        renderer.begin_frame();
 
         button_map.MousePosX = mouse_pos_x; // needed a quick an dirty way to get mouse pointer pos through.
         button_map.MousePosY = mouse_pos_y;
