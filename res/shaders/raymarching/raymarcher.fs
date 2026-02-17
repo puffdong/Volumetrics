@@ -20,12 +20,14 @@ uniform int u_light_count;
 
 uniform vec3 u_sun_dir;
 uniform vec4 u_sun_color; // .w = intensity 
-uniform mat4 u_invprojview;
+uniform mat4 u_light_space_matrix;
+uniform sampler2D u_shadow_map;
 
 // standard uniforms
 uniform float u_time;
 uniform vec2 u_resolution;
 uniform vec3 u_camera_pos;
+uniform mat4 u_invprojview;
 
 // textures
 uniform sampler2D u_scene_depth;
@@ -65,6 +67,11 @@ ivec3 world_to_cell(vec3 p) {
     return ivec3(floor(local));
 }
 
+bool is_inside_grid(vec3 world_pos) {
+    ivec3 cell = world_to_cell(world_pos);
+    return !any(lessThan(cell, ivec3(0))) && !any(greaterThanEqual(cell, u_grid_dim));
+}
+
 float occupancy_at_world(vec3 p) {
     return float(voxel_value_at(world_to_cell(p)) > 0u);
 }
@@ -96,6 +103,44 @@ float sample_density(vec3 sample_pos, uint voxel_value) {
     return noise * (float(voxel_value) / 255.0);
 }
 
+float check_sun_shadow(vec3 world_pos) {
+    vec4 pos_ls = u_light_space_matrix * vec4(world_pos, 1.0);
+    vec3 proj_coords = pos_ls.xyz / pos_ls.w;
+    proj_coords = proj_coords * 0.5 + 0.5;
+    
+    if (proj_coords.z > 1.0 || any(lessThan(proj_coords.xy, vec2(0)))) {
+        return 1.0;
+    }
+    
+    float bias = 0.0015;
+    float depth = texture(u_shadow_map, proj_coords.xy).r;
+    return proj_coords.z - bias <= depth ? 1.0 : 0.0;
+}
+
+float do_sunlight_march(vec3 start_pos, vec3 sun_dir) {
+    if (check_sun_shadow(start_pos) < 0.5) {
+        return 0.0;
+    }
+
+    float distance_traveled = 0.0;
+    float optical_depth = 0.0;
+
+    float sigma_t = u_scattering_coefficient + u_absorption_coefficient;
+
+    for (int i = 0; i < u_max_light_steps; ++i) {
+        vec3 ray_pos = start_pos + sun_dir * distance_traveled;
+
+        uint v = get_voxel(ray_pos);
+        if (v != 0u) {
+            float density = sample_density(ray_pos, v);
+            optical_depth += density * sigma_t * u_light_step_size;
+        } 
+        distance_traveled += u_light_step_size;    
+    }
+
+    return exp(-optical_depth);
+}
+
 float do_light_march(vec3 light_pos, vec3 light_dir) {
     float distance_traveled = 0.0;
     float optical_depth = 0.0;
@@ -111,7 +156,6 @@ float do_light_march(vec3 light_pos, vec3 light_dir) {
             optical_depth += density * sigma_t * u_light_step_size;
         } 
         distance_traveled += u_light_step_size;    
-
     }
 
     return exp(-optical_depth);
@@ -139,9 +183,14 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
     vec3 point_light_color = point_light.color_intensity.xyz;
     float point_light_intensity = point_light.color_intensity.w;
 
+    // float iteration = 0.0; // for debugging step count
+
     for (int i = 0; i < u_max_steps; ++i) {
         
         vec3 ray_pos = ray_origin + ray_direction * distance_traveled;
+        if (!is_inside_grid(ray_pos)) {
+            break; // outside of volume, stop marching
+        }
         uint v = get_voxel(ray_pos); // snaps to closest voxel
 
         if (v != 0u) {
@@ -149,7 +198,7 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
 
             collected_density += density * u_step_size;
 
-            float light_transmittance = do_light_march(ray_pos, sun_vec);
+            float light_transmittance = do_sunlight_march(ray_pos, sun_vec);
 
             vec3 Li = u_sun_color.rgb * u_sun_intensity * light_transmittance;
             
@@ -163,9 +212,9 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
             }
 
         } 
-        if (distance_traveled > scene_distance) break; // hmm maybe this can be used to determine max steps dynamically?
-        distance_traveled += u_step_size; // adaptive step size based on cell size
-        
+        if (distance_traveled > scene_distance) break;
+        distance_traveled += u_step_size;
+        // iteration += 1.0;
     }
 
     vec3 ambient = u_base_color;
@@ -173,6 +222,7 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
     vec3 final_color = ambient * transmittance + light_energy;
 
     return vec4(final_color, clamp(collected_density, 0.0, 1.0));
+    // return vec4(vec3(iteration / float(u_max_steps)), 1.0);
 }
 
 float linearize_depth(float depth) {
@@ -190,7 +240,6 @@ void main() {
     float scene_depth = texture(u_scene_depth, v_uv).r;
     float raymarch_depth = texture(u_raymarch_depth, v_uv).r;
 
-    // check for if marching is needed
     if (raymarch_depth >= scene_depth) {
         o_color = vec4(0.0); // behind scene, early out
         return;
@@ -201,18 +250,12 @@ void main() {
         return;
     }
 
-    // doing it this way was just wrong but it worked before... gave us the weird rings tho so the new method is better
-    // float scene_dist = linearize_depth(scene_depth);
-    // float start_dist = linearize_depth(raymarch_depth);
-
-    // doing it this way removes the "bug" of having the volume disappear at the edges of the screen at far away distances
-    // it does however cause flickering and weird artifacts...
     vec3 scene_pos = reconstruct_world(v_uv, scene_depth);
     vec3 start_pos = reconstruct_world(v_uv, raymarch_depth);
 
     float start_dist = length(start_pos - v_origin);
     float scene_dist = length(scene_pos - v_origin);
-
+    
     vec3 ray_direction = normalize(v_ray);
     vec4 result = do_raymarch(v_origin, ray_direction, start_dist, scene_dist);
     

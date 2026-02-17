@@ -23,13 +23,16 @@ void Raymarcher::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun
     _shader->bind();
     upload_uniforms(renderer, camera_pos, sun_dir, sun_color, grid_dim, grid_origin, cell_size);
 
+    TextureBinding shadow_bind{ renderer.get_shadow_map_texture_id(), GL_TEXTURE_2D, 5, "u_shadow_map" };
     TextureBinding perlin_noise{ perlin_texture.texture_id, GL_TEXTURE_3D, 8, "u_noise_texture" };
     TextureBinding vox_tex{ voxel_tex, GL_TEXTURE_3D, 7, "u_voxels" };
+    
 
     RenderCommand cmd{};
     cmd.draw_type = DrawType::FullscreenQuad;
     cmd.shader = _shader;
     cmd.state.depth_write = false;
+    cmd.textures.push_back(shadow_bind);
     cmd.textures.push_back(perlin_noise);
     cmd.textures.push_back(vox_tex);
     cmd.attach_lights = true;
@@ -48,6 +51,7 @@ void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::
         _shader->set_uniform_vec4("u_sun_color", sun_color); // .w = intensity
         _shader->set_uniform_float("u_time", _time);
         _shader->set_uniform_vec2("u_resolution", renderer.get_viewport_size());
+        _shader->set_uniform_mat4("u_light_space_matrix", renderer.get_light_space_matrix());
 
         // depth textures
         _shader->set_uniform_int("u_scene_depth", 2);

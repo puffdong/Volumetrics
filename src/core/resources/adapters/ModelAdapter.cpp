@@ -1,3 +1,4 @@
+#define TINYOBJLOADER_IMPLEMENTATION
 #include "ModelAdapter.hpp"
 
 #include <GL/glew.h>

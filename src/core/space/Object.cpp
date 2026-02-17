@@ -1,6 +1,4 @@
 #include "Object.hpp"
-#include "core/rendering/Texture.hpp"
-#include <GL/glew.h>
 #include <iostream>
 
 Object::Object(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale,

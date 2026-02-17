@@ -65,7 +65,6 @@ bool Application::init_glfw(const AppConfig& cfg) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // disabled for now, its causing issues eh eh
 
     glfwSetWindowUserPointer(window, this); // to get glfwGetWindowUserPointer to work
     glfwSetKeyCallback(window, [](GLFWwindow* w, int key, int sc, int action, int mods){
@@ -298,7 +297,7 @@ int Application::run() {
         float delta_time = current_time - last_time;
         last_time = current_time;
         space.tick(delta_time, button_map);
-        space.enqueue_renderables(); // moved the render call into space for now... 
+        space.enqueue_renderables();
         
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

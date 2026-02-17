@@ -9,7 +9,7 @@ VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, g
     _num_voxels = h * w * d;
     _voxels = std::vector<uint8_t>(_num_voxels, static_cast<uint8_t>(init_value));
 
-    flood_fill(glm::ivec3(50, 15, 50), 15.0f, 255u);
+    flood_fill(glm::ivec3(20, 15, 20), 15.0f, 255u);
 
     _voxels_changed = false;
     _instances_dirty = false;

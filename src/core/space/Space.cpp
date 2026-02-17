@@ -65,7 +65,7 @@ void Space::init_skybox() {
 
 void Space::init_raymarcher_and_voxelgrid() {
 	const float cell_size = 1.5f;
-	voxel_grid = VoxelGrid(100, 50, 100, 0, cell_size, glm::vec3(-50.0 * cell_size, 0.0, -50.0 * cell_size), glm::vec3(1.f)); 
+	voxel_grid = VoxelGrid(40, 40, 40, 0, cell_size, glm::vec3(-20.0 * cell_size, 0.0, -20.0 * cell_size), glm::vec3(1.f)); 
     voxel_grid.init(resources);
 	voxel_grid.set_debug_visibility(false);
 	raymarcher = Raymarcher();
