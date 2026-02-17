@@ -30,14 +30,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src
 )
 
-# Precompiled header (optional)
-if(EXISTS "${CMAKE_SOURCE_DIR}/src/pch.hpp")
-    message(STATUS "Precompiled Headers: using ${CMAKE_SOURCE_DIR}/src/pch.hpp")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src/pch.hpp")
-else()
-    message(STATUS "Precompiled Header: no src/pch.hpp found; skipping precompiled headers")
-endif()
-
 if(WIN32)
     message(STATUS "Configuring for Windows")
     if(MSVC)
