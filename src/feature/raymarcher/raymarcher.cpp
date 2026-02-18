@@ -70,7 +70,6 @@ void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::
         _shader->set_uniform_vec3("u_base_color", raymarch_settings.base_color);
         _shader->set_uniform_float("u_absorption_coefficient", raymarch_settings.absorption_coefficient);
         _shader->set_uniform_float("u_scattering_coefficient", raymarch_settings.scattering_coefficient);
-        _shader->set_uniform_float("u_extincion_coefficient", raymarch_settings.extincion_coefficient);
         _shader->set_uniform_float("u_anisotropy", raymarch_settings.anisotropy);
-        _shader->set_uniform_float("u_sun_intensity", raymarch_settings.sun_intensity);
+        _shader->set_uniform_float("u_sun_intensity_multiplier", raymarch_settings.sun_intensity_multiplier);
 }

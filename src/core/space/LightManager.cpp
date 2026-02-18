@@ -32,7 +32,7 @@ std::vector<GpuLight> LightManager::convert_to_gpu_lights(const std::vector<Ligh
         GpuLight g{};
         g.position_radius = glm::vec4(l.position, l.radius); // pos, radius
         g.color_intensity = glm::vec4(l.color, l.intensity); // color, intensity
-        g.misc = glm::vec4(l.volumetric_intensity, static_cast<float>(l.type), 0.0f, 0.0f); // volumetric instensity, type, padding, padding
+        g.misc = glm::vec4(l.volumetric_multiplier, static_cast<float>(l.type), 0.0f, 0.0f); // volumetric multiplier, type, padding, padding
         result.push_back(g);
     }
 

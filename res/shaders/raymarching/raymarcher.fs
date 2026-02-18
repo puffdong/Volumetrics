@@ -9,7 +9,7 @@ in vec3 v_ray;
 struct Light {
     vec4 position_radius; // position, radius
     vec4 color_intensity; // color, intensity
-    vec4 misc;            // volumetric_intensity, type (0 = point, 1 = directional), padding padding
+    vec4 misc;            // volumetric_multiplier, type (0 = point, 1 = directional), padding padding
 };
 
 layout(std140) uniform b_light_block {
@@ -55,11 +55,14 @@ uniform float u_absorption_coefficient;
 uniform float u_scattering_coefficient;
 uniform float u_extincion_coefficient;
 uniform float u_anisotropy;
-uniform float u_sun_intensity;
+uniform float u_sun_intensity_multiplier;
 
-uint voxel_value_at(ivec3 cell) {
-    if (any(lessThan(cell, ivec3(0))) || any(greaterThanEqual(cell, u_grid_dim))) return 0u;
-    return texelFetch(u_voxels, cell, 0).r;
+uint voxel_value_at(ivec3 cell) { // removing the boundary check increases performance
+    return texelFetch(u_voxels, cell, 0).r; // opengl takes care of clamping out-of-bounds
+}
+
+float get_voxel_value_float(ivec3 cell) {
+    return float(texelFetch(u_voxels, cell, 0).r) / 255.0;
 }
 
 ivec3 world_to_cell(vec3 p) {
@@ -98,7 +101,7 @@ float sample_density(vec3 sample_pos, uint voxel_value) {
     vec3 wind_direction = normalize(vec3(1.0, 0.0, 1.0));
     vec3 offset = wind_direction * u_time * 0.1; // animate noise with time and wind direction
     float noise = texture(u_noise_texture, (sample_pos * 0.05) + offset).r;
-    noise = smoothstep(0.1, 0.8, noise);
+    noise = smoothstep(0.1, 0.8, noise); // below 0.1 -> 0.0, above 0.8 -> 1.0
     
     return noise * (float(voxel_value) / 255.0);
 }
@@ -141,26 +144,6 @@ float do_sunlight_march(vec3 start_pos, vec3 sun_dir) {
     return exp(-optical_depth);
 }
 
-float do_light_march(vec3 light_pos, vec3 light_dir) {
-    float distance_traveled = 0.0;
-    float optical_depth = 0.0;
-
-    float sigma_t = u_scattering_coefficient + u_absorption_coefficient;
-
-    for (int i = 0; i < u_max_light_steps; ++i) {
-        vec3 ray_pos = light_pos + light_dir * distance_traveled;
-
-        uint v = get_voxel(ray_pos);
-        if (v != 0u) {
-            float density = sample_density(ray_pos, v);
-            optical_depth += density * sigma_t * u_light_step_size;
-        } 
-        distance_traveled += u_light_step_size;    
-    }
-
-    return exp(-optical_depth);
-}
-
 vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, float scene_distance) {
     float distance_traveled = start_distance + 0.01; // added offset to ensure we start inside a voxel
 
@@ -174,7 +157,11 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
     float cos_theta = dot(sun_vec, ray_direction);
     float phase = henyey_greenstein(cos_theta, u_anisotropy);
 
-    float collected_density = 0.0;
+    vec3 ambient_light = u_base_color; // treated as light hitting from all directions
+    vec3 ambient_intensity = vec3(0.1); // todo: make this a uniform
+
+    vec3 sun_color = u_sun_color.rgb;
+    float sun_intensity = u_sun_color.w * u_sun_intensity_multiplier;
 
     Light point_light = u_lights[0];
 
@@ -189,39 +176,41 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
         
         vec3 ray_pos = ray_origin + ray_direction * distance_traveled;
         if (!is_inside_grid(ray_pos)) {
-            break; // outside of volume, stop marching
+            break; // outside of grid volume, stop marching
         }
         uint v = get_voxel(ray_pos); // snaps to closest voxel
 
         if (v != 0u) {
             float density = sample_density(ray_pos, v);
 
-            collected_density += density * u_step_size;
-
-            float light_transmittance = do_sunlight_march(ray_pos, sun_vec);
-
-            vec3 Li = u_sun_color.rgb * u_sun_intensity * light_transmittance;
+            // calculate sunlight contribution
+            float sun_transmittance = do_sunlight_march(ray_pos, sun_vec);
+            vec3 sun_light = sun_color * sun_intensity * sun_transmittance * phase;
             
-            light_energy += transmittance * density * sigma_s * phase * Li * u_step_size;
+            // calculate point light contribution
+            // todo
 
-            transmittance *= exp(-density * sigma_t * u_step_size);
+            vec3 incoming_light = sun_light + ambient_light * ambient_intensity; // combine all light
+
+            float step_attenuation = exp(-density * sigma_t * u_step_size);
+            float integrated_light = (1.0 + step_attenuation) * 0.5;
+
+            light_energy += transmittance * (density * sigma_s * incoming_light * u_step_size) * integrated_light; // Accumulate
+
+            transmittance *= step_attenuation; // Attenuate
 
             if (transmittance < 0.01) {
                 transmittance = 0.0;
                 break;
             }
+        }
 
-        } 
-        if (distance_traveled > scene_distance) break;
         distance_traveled += u_step_size;
+        if (distance_traveled > scene_distance) break;
         // iteration += 1.0;
     }
 
-    vec3 ambient = u_base_color;
-    vec3 cloud_color = vec3(light_energy);
-    vec3 final_color = ambient * transmittance + light_energy;
-
-    return vec4(final_color, clamp(collected_density, 0.0, 1.0));
+    return vec4(light_energy, 1.0 - transmittance);
     // return vec4(vec3(iteration / float(u_max_steps)), 1.0);
 }
 

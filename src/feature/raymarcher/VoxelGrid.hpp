@@ -37,7 +37,7 @@ private:
 	
 public:
 	VoxelGrid() = default;
-	VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, glm::vec3 pos, glm::vec3 scale);
+	VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, glm::vec3 pos);
 	~VoxelGrid();
 
 	void init(ResourceManager& resources);
@@ -60,8 +60,6 @@ public:
 
 
 	uint8_t get_voxel_value(int x, int y, int z);
-    glm::vec3 get_scale() const { return _scale; };
-    void set_scale(const glm::vec3& s) { _scale = s; };
 	glm::vec3 get_position() const { return _position; };
 
 	void update_voxel_data();
@@ -74,6 +72,7 @@ public:
 	glm::vec3 get_voxel_world_pos(int x, int y, int z); // origin is at (0, 0, 0)
 	
 	void flood_fill(glm::ivec3 origin, float radius, uint8_t start_value);
+	void flood_fill2(glm::ivec3 origin, float radius, uint8_t start_value, float threshold_ratio, float decay_power, float cutoff);
 	
 	
 private:

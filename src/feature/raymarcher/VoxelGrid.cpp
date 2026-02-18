@@ -3,13 +3,18 @@
 #include <cmath>
 #include <iostream>
 
-VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, glm::vec3 pos, glm::vec3 scale)
-    : _width(w), _height(h), _depth(d), _cell_size(cell_size), _num_occupied_voxels(0), _position(pos), _scale(scale)
+VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, glm::vec3 pos)
+    : _width(w), _height(h), _depth(d), _cell_size(cell_size), _num_occupied_voxels(0), _position(pos)
 {   
     _num_voxels = h * w * d;
     _voxels = std::vector<uint8_t>(_num_voxels, static_cast<uint8_t>(init_value));
 
+
     flood_fill(glm::ivec3(20, 15, 20), 15.0f, 255u);
+
+    // new vs old method; 
+    // flood_fill2(glm::ivec3(20, 15, 20), 25.0f, 255u, 0.5f, 4.0f, 0.01f); // the last 50% will be smoothed out
+    // flood_fill(glm::ivec3(55, 15, 20), 25.0f, 255u); // simple flood fill for testing
 
     _voxels_changed = false;
     _instances_dirty = false;
@@ -408,6 +413,94 @@ void VoxelGrid::flood_fill(glm::ivec3 origin, float radius, uint8_t start_value)
 
                 float t = 1.0f - (dist * inv_radius);
                 t = glm::clamp(t, 0.0f, 1.0f);
+                float value_f = t * static_cast<float>(start_value);
+                uint8_t value = static_cast<uint8_t>(std::round(value_f));
+                set_voxel_value(x, y, z, value);
+            }
+        }
+    }
+}
+
+// Added parameters:
+// threshold_ratio: 0.0 to 1.0. (e.g., 0.7 means the last 30% is smoothed)
+// decay_power: Controls the curve of the tail. 2.0 is a standard soft falloff.
+void VoxelGrid::flood_fill2(glm::ivec3 origin, float radius, uint8_t start_value, float threshold_ratio, float decay_power, float cutoff) {
+    if (radius < 0.0f) return;
+
+    // Handle tiny radius immediately
+    if (radius < 0.001f) {
+        set_voxel_value(origin.x, origin.y, origin.z, start_value);
+        return;
+    }
+
+    float radius_grid = radius / _cell_size;
+    int radius_int = static_cast<int>(std::ceil(radius_grid));
+
+    // Bounding box checks
+    int min_x = std::max(0, origin.x - radius_int);
+    int max_x = std::min(_width - 1, origin.x + radius_int);
+    int min_y = std::max(0, origin.y - radius_int);
+    int max_y = std::min(_height - 1, origin.y + radius_int);
+    int min_z = std::max(0, origin.z - radius_int);
+    int max_z = std::min(_depth - 1, origin.z + radius_int);
+
+    if (min_x > max_x || min_y > max_y || min_z > max_z) return;
+
+    float inv_radius = 1.0f / radius_grid;
+
+    // Clamp threshold to avoid divide-by-zero errors later
+    threshold_ratio = glm::clamp(threshold_ratio, 0.0f, 0.99f);
+    
+    // Pre-calculate the intensity at the transition point.
+    // In the linear model (1 - x), the value at the threshold is simply (1.0 - threshold).
+    float value_at_threshold = 1.0f - threshold_ratio;
+    float range_of_tail = 1.0f - threshold_ratio;
+
+    for (int z = min_z; z <= max_z; z++) {
+        for (int y = min_y; y <= max_y; y++) {
+            for (int x = min_x; x <= max_x; x++) {
+                float dx = static_cast<float>(x - origin.x);
+                float dy = static_cast<float>(y - origin.y);
+                float dz = static_cast<float>(z - origin.z);
+                
+                // Using squared distance check is generally faster than sqrt
+                // but we need the actual dist for the gradient calc.
+                float dist_sq = dx * dx + dy * dy + dz * dz;
+                float radius_sq = radius_grid * radius_grid;
+
+                if (dist_sq > radius_sq) continue;
+
+                float dist = std::sqrt(dist_sq);
+                float normalized_dist = dist * inv_radius; // 0.0 (center) to 1.0 (edge)
+
+                float t = 0.0f;
+
+                if (normalized_dist <= threshold_ratio) {
+                    // --- ZONE 1: LINEAR ---
+                    // Standard linear falloff
+                    t = 1.0f - normalized_dist;
+                } else {
+                    // --- ZONE 2: SMOOTH TAIL ---
+                    // 1. Calculate how far we are into the "tail" zone (0.0 to 1.0)
+                    float tail_progress = (normalized_dist - threshold_ratio) / range_of_tail;
+
+                    // 2. Apply smoothing. 
+                    // We want to go from 1.0 down to 0.0 smoothly.
+                    // Using pow(1.0 - x, power) creates a curve that flattens as it nears 0.
+                    // This creates that "soft landing" effect.
+                    float smooth_factor = std::pow(1.0f - tail_progress, decay_power);
+
+                    // 3. Scale it to match the intensity where the linear part ended
+                    t = value_at_threshold * smooth_factor;
+                }
+
+                t = glm::clamp(t, 0.0f, 1.0f);
+
+                if (t < cutoff) {
+                    continue; // Skip very low values to optimize
+                }
+                
+                // Convert to uint8 and set
                 float value_f = t * static_cast<float>(start_value);
                 uint8_t value = static_cast<uint8_t>(std::round(value_f));
                 set_voxel_value(x, y, z, value);

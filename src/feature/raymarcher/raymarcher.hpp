@@ -5,18 +5,17 @@
 #include "core/utils/perlin_noise_generator.hpp"
 
 struct RaymarchSettings {
-    int max_steps = 256;
-    float step_size = 0.15f; 
-    int max_light_steps = 16;
-    float light_step_size = 0.6f;
+    int max_steps = 128;
+    float step_size = 0.75f; 
+    int max_light_steps = 8;
+    float light_step_size = 1.5f; // previously at 0.6f, higher values seem to work better?
 
     glm::vec3 base_color = glm::vec3(0.05f, 0.05f, 0.05f);
     float absorption_coefficient = 1.0f;
     float scattering_coefficient = 0.6f;
-    float extincion_coefficient = 1.6f;
 
     float anisotropy = 0.35f; // for the HG phase function
-    float sun_intensity = 20.f;
+    float sun_intensity_multiplier = 20.f;
 };
 
 class Raymarcher {
