@@ -83,18 +83,12 @@ uint get_voxel(vec3 pos) {
     return voxel_value_at(world_to_cell(pos));
 }
 
-float rayleigh(float cos_theta) {
-    return (3.0f / (16.0f * 3.1415926538)) * (1 + cos_theta * cos_theta);
-}
-
 float henyey_greenstein(float cos_theta, float g) {
     float g2 = g * g;
     float num = 1.0 - g2;
     float denom = 1.0 + g2 - 2.0 * g * cos_theta;
     
-    // The power of 1.5 is computationally expensive, sometimes folks use approximations, 
-    // but keep it for now for accuracy.
-    return (1.0 / (4.0 * 3.14159)) * num / pow(denom, 1.5);
+    return (1.0 / (4.0 * 3.14159)) * num / (denom * sqrt(denom));
 }
 
 float sample_density(vec3 sample_pos, uint voxel_value) {
@@ -102,7 +96,6 @@ float sample_density(vec3 sample_pos, uint voxel_value) {
     vec3 offset = wind_direction * u_time * 0.1; // animate noise with time and wind direction
     float noise = texture(u_noise_texture, (sample_pos * 0.05) + offset).r;
     noise = smoothstep(0.1, 0.8, noise); // below 0.1 -> 0.0, above 0.8 -> 1.0
-    
     return noise * (float(voxel_value) / 255.0);
 }
 

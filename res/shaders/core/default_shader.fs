@@ -66,8 +66,7 @@ void main()
         float shadow = 0.0;
         if (proj_coords.z <= 1.0) {
             float bias = 0.0015; // 0.0065;
-            float texel = 1.0 / float(textureSize(u_shadow_map, 0).x);
-            float closest = texture(u_shadow_map, proj_coords.xy + texel).r;
+            float closest = texture(u_shadow_map, proj_coords.xy).r;
             shadow += proj_coords.z - bias > closest ? 1.0 : 0.0;
         }
         float visibility = 1.0 - shadow;
@@ -117,5 +116,6 @@ void main()
     }
 
     vec3 result_color = total_color;
+    
     o_color = vec4(result_color, 1.0);
 }

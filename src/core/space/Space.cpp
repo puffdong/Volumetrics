@@ -21,7 +21,7 @@ Space::~Space() {
 }
 
 void Space::init_space() {
-	camera.set_position(glm::vec3(0.0f, 20.0f, 40.0f));
+	camera.set_position(glm::vec3(0.0f, 11.0f, 37.5f));
 
 	init_skybox();
 	init_raymarcher_and_voxelgrid();
@@ -65,7 +65,7 @@ void Space::init_skybox() {
 
 void Space::init_raymarcher_and_voxelgrid() {
 	const float cell_size = 1.5f;
-	const glm::vec3 pos = glm::vec3(-20.0f, 0.0f, -20.0f) * cell_size;
+	const glm::vec3 pos = glm::vec3(-30.0f, -14.45f, -22.3f);// * cell_size;
 	voxel_grid = VoxelGrid(80, 40, 40, 0, cell_size, pos); 
     voxel_grid.init(resources);
 	voxel_grid.set_debug_visibility(false);
@@ -114,7 +114,7 @@ void Space::tick(float delta, ButtonMap bm)
 
 	glass.tick(delta, bm);
         
-	ui::stats_overlay(camera, renderer);
+	// ui::stats_overlay(camera, renderer);
 	ui::settings_panel(*this, raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, lights, glass, line_manager, objects);
 
 	const std::size_t count = std::min(lights.size(), light_spheres.size());

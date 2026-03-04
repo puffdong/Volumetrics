@@ -23,6 +23,16 @@ float linearize_depth(float depth) {
 }
 
 void main() {
+    // vec4 scene_color = texture(u_src_color, v_uv);
+    // vec4 volum_color = texture(u_volum_color, v_uv);
+    // if (volum_color.a > 0.01) {
+    //     o_color = vec4(volum_color.rgb, 1.0);
+    // } else {
+    //     o_color = scene_color;
+    // }
+    // return;
+    
+
     float scene_depth = texture(u_scene_depth, v_uv).r;
     float raymarch_depth = texture(u_raymarch_depth, v_uv).r;
 

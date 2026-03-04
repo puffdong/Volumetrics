@@ -72,7 +72,6 @@ public:
 	glm::vec3 get_voxel_world_pos(int x, int y, int z); // origin is at (0, 0, 0)
 	
 	void flood_fill(glm::ivec3 origin, float radius, uint8_t start_value);
-	void flood_fill2(glm::ivec3 origin, float radius, uint8_t start_value, float threshold_ratio, float decay_power, float cutoff);
 	
 	
 private:
