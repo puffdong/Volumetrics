@@ -41,35 +41,40 @@ void Raymarcher::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun
 }
 
 void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size) {
-        glm::mat4 proj = renderer.get_proj();
-        glm::mat4 view = renderer.get_view();
-        glm::mat4 inverted_proj_view = glm::inverse(proj * view);
+    glm::mat4 proj = renderer.get_proj();
+    glm::mat4 view = renderer.get_view();
+    glm::mat4 inverted_proj_view = glm::inverse(proj * view);
+    glm::mat4 inv_view = glm::inverse(view);
+    glm::vec3 camera_forward = glm::normalize(glm::vec3(inv_view * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
 
-        // standard uniforms
-        _shader->set_uniform_mat4("u_invprojview", inverted_proj_view);
-        _shader->set_uniform_vec3("u_sun_dir", sun_dir);
-        _shader->set_uniform_vec4("u_sun_color", sun_color); // .w = intensity
-        _shader->set_uniform_float("u_time", _time);
-        _shader->set_uniform_vec2("u_resolution", renderer.get_viewport_size());
-        _shader->set_uniform_mat4("u_light_space_matrix", renderer.get_light_space_matrix());
+    // standard uniforms
+    _shader->set_uniform_mat4("u_invprojview", inverted_proj_view);
+    _shader->set_uniform_vec3("u_camera_forward", camera_forward);
+    _shader->set_uniform_vec3("u_sun_dir", sun_dir);
+    _shader->set_uniform_vec4("u_sun_color", sun_color); // .w = intensity
+    _shader->set_uniform_float("u_time", _time);
+    _shader->set_uniform_vec2("u_resolution", renderer.get_viewport_size());
+    _shader->set_uniform_mat4("u_light_space_matrix", renderer.get_light_space_matrix());
+    _shader->set_uniform_float("u_near_plane", renderer.get_near());
+    _shader->set_uniform_float("u_far_plane", renderer.get_far());
 
-        // depth textures
-        _shader->set_uniform_int("u_scene_depth", 2);
-        _shader->set_uniform_int("u_raymarch_depth", 3);
+    // depth textures
+    _shader->set_uniform_int("u_scene_depth", 2);
+    _shader->set_uniform_int("u_raymarch_depth", 3);
 
-        // voxel grid params
-        _shader->set_uniform_ivec3("u_grid_dim", grid_dim);
-        _shader->set_uniform_vec3("u_grid_origin", grid_origin);
-        _shader->set_uniform_float("u_cell_size", cell_size);
+    // voxel grid params
+    _shader->set_uniform_ivec3("u_grid_dim", grid_dim);
+    _shader->set_uniform_vec3("u_grid_origin", grid_origin);
+    _shader->set_uniform_float("u_cell_size", cell_size);
 
-        // raymarch parameters
-        _shader->set_uniform_int("u_max_steps", raymarch_settings.max_steps);
-        _shader->set_uniform_float("u_step_size", raymarch_settings.step_size);
-        _shader->set_uniform_int("u_max_light_steps", raymarch_settings.max_light_steps);
-        _shader->set_uniform_float("u_light_step_size", raymarch_settings.light_step_size);
-        _shader->set_uniform_vec3("u_base_color", raymarch_settings.base_color);
-        _shader->set_uniform_float("u_absorption_coefficient", raymarch_settings.absorption_coefficient);
-        _shader->set_uniform_float("u_scattering_coefficient", raymarch_settings.scattering_coefficient);
-        _shader->set_uniform_float("u_anisotropy", raymarch_settings.anisotropy);
-        _shader->set_uniform_float("u_sun_intensity_multiplier", raymarch_settings.sun_intensity_multiplier);
+    // raymarch parameters
+    _shader->set_uniform_int("u_max_steps", raymarch_settings.max_steps);
+    _shader->set_uniform_float("u_step_size", raymarch_settings.step_size);
+    _shader->set_uniform_int("u_max_light_steps", raymarch_settings.max_light_steps);
+    _shader->set_uniform_float("u_light_step_size", raymarch_settings.light_step_size);
+    _shader->set_uniform_vec3("u_base_color", raymarch_settings.base_color);
+    _shader->set_uniform_float("u_absorption_coefficient", raymarch_settings.absorption_coefficient);
+    _shader->set_uniform_float("u_scattering_coefficient", raymarch_settings.scattering_coefficient);
+    _shader->set_uniform_float("u_anisotropy", raymarch_settings.anisotropy);
+    _shader->set_uniform_float("u_sun_intensity_multiplier", raymarch_settings.sun_intensity_multiplier);
 }

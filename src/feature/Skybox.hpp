@@ -7,7 +7,8 @@
 class Space; //fwd decl
 
 struct Skybox {
-	Resource r_shader;
+    Shader* shader = nullptr;
+
 	Res::Model r_model;
 
 	GLuint skybox_tex;

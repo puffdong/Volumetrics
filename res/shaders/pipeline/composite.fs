@@ -2,7 +2,6 @@
 in vec2 v_uv;
 out vec4 o_color;
 
-// Inputs
 uniform float u_near;
 uniform float u_far;
 
@@ -23,16 +22,6 @@ float linearize_depth(float depth) {
 }
 
 void main() {
-    // vec4 scene_color = texture(u_src_color, v_uv);
-    // vec4 volum_color = texture(u_volum_color, v_uv);
-    // if (volum_color.a > 0.01) {
-    //     o_color = vec4(volum_color.rgb, 1.0);
-    // } else {
-    //     o_color = scene_color;
-    // }
-    // return;
-    
-
     float scene_depth = texture(u_scene_depth, v_uv).r;
     float raymarch_depth = texture(u_raymarch_depth, v_uv).r;
 
@@ -48,6 +37,4 @@ void main() {
         // out_rgb = clamp(out_rgb, 0.0, 1.0); // Psst... hdr support would be cool to do!
         o_color = vec4(out_rgb, 1.0);
     }
-
-
 }

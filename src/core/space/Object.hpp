@@ -28,11 +28,12 @@ private:
     bool _active = true;
     bool _selected = false;
     
-    Resource r_shader;
+    std::string _shader_path;
+    std::string _model_path;
+    std::string _texture_path; // about to be depracated one I get the model loading system working
     Shader* shader = nullptr;
 
     Res::Model r_model;
-    Resource r_texture;
     
     Material_old material; // Material properties for rendering
 

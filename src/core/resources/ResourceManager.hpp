@@ -11,7 +11,7 @@ namespace Res {
     struct Model {
         ModelID id;
         std::string name;
-        std::string asset_path;
+        std::string file_extension;
     };
 }    
 
@@ -20,43 +20,30 @@ struct ModelResource {
     std::string name;
     std::string asset_path;
     std::string file_path;
+    std::string file_extension;
 
     ModelGpuData gpu_data;
+    ModelGpuData2 gpu_data_2;
+
+    int ref_count = 0; // for future use when we implement resource unloading, currently unused
 };
 
-using ResourceID = UUID<Resource>;
-
-enum class ResourceType { Shader, Texture, Model, None };
-
-struct Resource {
-    ResourceID id;
-    std::string asset_path = "";
-    ResourceType type = ResourceType::None;
-};
-
-class ResourceManager {    
+class ResourceManager {
 private:
     std::string root_path;
     std::string asset_handle;
 
-    std::unordered_map<ResourceID, Resource, uuid_hash<Resource>> resource_map;
-    std::unordered_map<ResourceID, std::unique_ptr<Shader>, uuid_hash<Resource>> shader_map;
-
-    std::unordered_map<ModelID, ModelResource, uuid_hash<Res::Model>> model_map;
+    std::unordered_map<ModelID, ModelResource, uuid_hash<Res::Model>> _model_map;
+    std::unordered_map<std::string, ModelID> _model_path_to_model_id_cache;
 
 
 public:
     ResourceManager(const std::string& assets_root_path, const std::string& assets_handle = "res://");
     std::string get_full_path(const std::string& asset_path);
     
-    Resource load_shader(const std::string& vertex_asset_path, const std::string& fragment_asset_path);
-    
-    std::optional<Shader*> get_shader(UUID<Resource> resource_id);
-    
     Res::Model load_model(const std::string& asset_path);
     Res::Model upload_model(ModelGpuData data);
-    ModelGpuData get_model_gpu_data(const ModelID res_id);
-
-private:
-    ResourceID generate_new_id();
+    
+    const ModelGpuData& get_model_gpu_data(const Res::Model& resource); // are references to things in unordered_maps stable?
+    const ModelGpuData2& get_model_gpu_data_2(const Res::Model& resource);
 };

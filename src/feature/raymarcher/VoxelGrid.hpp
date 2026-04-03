@@ -21,7 +21,10 @@ private:
 
 	Shader* _shader = nullptr;
 	Shader* _selection_box_shader = nullptr;
-	ModelGpuData _cube_model;
+
+	Res::Model r_model;
+	unsigned int _cube_model_vao = 0;
+	unsigned int _cube_model_index_count = 0;
 
 	unsigned int _voxel_tex = 0;
 	bool _voxels_changed = false;
@@ -42,7 +45,7 @@ public:
 
 	void init(ResourceManager& resources);
     void tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selection_ray_dir, bool mouse_pointer_active, bool mouse_clicked);
-    void enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_direction, glm::vec4 sun_color);
+    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_direction, glm::vec4 sun_color);
 
 	void selection_box_tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selection_ray_dir, bool mouse_pointer_active, bool mouse_clicked);
 	

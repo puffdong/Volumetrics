@@ -27,6 +27,7 @@ uniform sampler2D u_shadow_map;
 uniform float u_time;
 uniform vec2 u_resolution;
 uniform vec3 u_camera_pos;
+uniform vec3 u_camera_forward;
 uniform mat4 u_invprojview;
 
 // textures
@@ -212,12 +213,6 @@ float linearize_depth(float depth) {
     return (2.0 * u_near_plane * u_far_plane) / (u_far_plane + u_near_plane - z * (u_far_plane - u_near_plane));
 }
 
-vec3 reconstruct_world(vec2 uv, float depth) {
-    vec4 ndc = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-    vec4 w = u_invprojview * ndc;
-    return w.xyz / w.w;
-}
-
 void main() {
     float scene_depth = texture(u_scene_depth, v_uv).r;
     float raymarch_depth = texture(u_raymarch_depth, v_uv).r;
@@ -232,13 +227,13 @@ void main() {
         return;
     }
 
-    vec3 scene_pos = reconstruct_world(v_uv, scene_depth);
-    vec3 start_pos = reconstruct_world(v_uv, raymarch_depth);
-
-    float start_dist = length(start_pos - v_origin);
-    float scene_dist = length(scene_pos - v_origin);
-    
     vec3 ray_direction = normalize(v_ray);
+    float view_alignment = dot(ray_direction, normalize(u_camera_forward));
+
+    // Convert view-space depth to distance along this world-space ray.
+    float start_dist = linearize_depth(raymarch_depth) / view_alignment;
+    float scene_dist = linearize_depth(scene_depth) / view_alignment;
+
     vec4 result = do_raymarch(v_origin, ray_direction, start_dist, scene_dist);
     
     o_color = result;

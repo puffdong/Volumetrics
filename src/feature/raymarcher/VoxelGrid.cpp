@@ -16,11 +16,14 @@ VoxelGrid::VoxelGrid(int w, int h, int d, uint8_t init_value, float cell_size, g
 }
 
 void VoxelGrid::init(ResourceManager& resources) {
-    _shader = new Shader(resources.get_full_path("res:://shaders/VoxelShaders/VoxelDebug.vs"), resources.get_full_path("res:://shaders/VoxelShaders/VoxelDebug.fs"));
-    _selection_box_shader = new Shader(resources.get_full_path("res:://shaders/core/default_shader.vs"), resources.get_full_path("res:://shaders/core/default_shader.fs"));
+    _shader = new Shader(resources.get_full_path("res://shaders/VoxelShaders/VoxelDebug.vs"), resources.get_full_path("res://shaders/VoxelShaders/VoxelDebug.fs"));
+    _selection_box_shader = new Shader(resources.get_full_path("res://shaders/core/default_shader.vs"), resources.get_full_path("res://shaders/core/default_shader.fs"));
 
-    Res::Model r_model = resources.load_model("res://models/VoxelModels/defaultCube.obj");
-    _cube_model = resources.get_model_gpu_data(r_model.id);
+    r_model = resources.load_model("res://models/cube.obj");
+    auto model_gpu_data = resources.get_model_gpu_data(r_model);
+    _cube_model_vao = model_gpu_data.vao;
+    _cube_model_index_count = model_gpu_data.index_count;
+
     init_instance_buffer();
     create_voxel_texture();
 }
@@ -39,7 +42,7 @@ void VoxelGrid::tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selec
 
 }
 
-void VoxelGrid::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_direction, glm::vec4 sun_color) {
+void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_direction, glm::vec4 sun_color) {
     _shader->hot_reload_if_changed();
     _shader->bind();
     _shader->set_uniform_mat4("u_proj", renderer.get_proj());
@@ -51,10 +54,10 @@ void VoxelGrid::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_
     TextureBinding bind{ _voxel_tex, GL_TEXTURE_3D, 6, "u_voxels" };
 
     RenderCommand cmd{};
-    cmd.vao        = _cube_model.vao;
+    cmd.vao        = _cube_model_vao;
     cmd.draw_type   = DrawType::ElementsInstanced;
     cmd.primitive = GL_TRIANGLES;
-    cmd.count      = _cube_model.index_count;
+    cmd.count      = _cube_model_index_count;
     cmd.instance_count = _num_occupied_voxels;
     cmd.shader     = _shader;
     cmd.attach_lights = true;
@@ -77,9 +80,10 @@ void VoxelGrid::enqueue(Renderer& renderer, glm::vec3 camera_pos, glm::vec3 sun_
         _selection_box_shader->set_uniform_vec3("u_sun_color", sun_color);
 
         RenderCommand cmd{};
-        cmd.vao = _cube_model.vao;
+        auto cube_model_gpu_data = resources.get_model_gpu_data(r_model);
+        cmd.vao = _cube_model_vao;
         cmd.draw_type = DrawType::Elements;
-        cmd.count = _cube_model.index_count;
+        cmd.count = _cube_model_index_count;
         cmd.shader = _selection_box_shader;
         cmd.attach_lights = true;
 
@@ -136,8 +140,7 @@ void VoxelGrid::init_instance_buffer() {
     std::cout << "VoxelGrid [" << _width << "x" << _height << "x" << _depth << "] " 
               << _num_occupied_voxels << "/" << _num_voxels << " occupied" << std::endl;
 
-    GLuint vao = _cube_model.vao;
-    glBindVertexArray(vao);
+    glBindVertexArray(_cube_model_vao);
 
     if (_instance_vbo == 0) {
         glGenBuffers(1, &_instance_vbo);

@@ -255,22 +255,22 @@ namespace ModelAdapter {
         if (!err.empty()) std::cerr << "glTF Err: " << err << "\n";
         if (!ret) throw std::runtime_error("Failed to load glTF: " + file_path);
 
-        ModelGpuData2 result;
-        result.name = std::filesystem::path(file_path).stem().string();
-        result.aabb_min = glm::vec3(std::numeric_limits<float>::max());
-        result.aabb_max = glm::vec3(-std::numeric_limits<float>::max());
+        ModelGpuData2 gpu_model;
+        gpu_model.name = std::filesystem::path(file_path).stem().string();
+        gpu_model.aabb_min = glm::vec3(std::numeric_limits<float>::max());
+        gpu_model.aabb_max = glm::vec3(-std::numeric_limits<float>::max());
 
         // --- STEP 1: Upload all BufferViews to OpenGL instantly ---
         // glTF organizes data into BufferViews. A BufferView maps perfectly to an OpenGL VBO/EBO.
-        result.shared_buffers.resize(model.bufferViews.size());
-        glGenBuffers(static_cast<GLsizei>(model.bufferViews.size()), result.shared_buffers.data());
+        gpu_model.shared_buffers.resize(model.bufferViews.size());
+        glGenBuffers(static_cast<GLsizei>(model.bufferViews.size()), gpu_model.shared_buffers.data());
 
         for (size_t i = 0; i < model.bufferViews.size(); ++i) {
             const tinygltf::BufferView& bufferView = model.bufferViews[i];
             const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
 
             // We bind it as GL_ARRAY_BUFFER for now. OpenGL lets us use it as an EBO later if needed.
-            glBindBuffer(GL_ARRAY_BUFFER, result.shared_buffers[i]);
+            glBindBuffer(GL_ARRAY_BUFFER, gpu_model.shared_buffers[i]);
             glBufferData(GL_ARRAY_BUFFER, 
                          bufferView.byteLength, 
                          &buffer.data[bufferView.byteOffset], 
@@ -306,7 +306,7 @@ namespace ModelAdapter {
             glGenerateMipmap(GL_TEXTURE_2D);
 
             gl_textures[i] = tex_id;
-            result.loaded_textures.push_back(tex_id); // Save it so we can clean it up on destruction
+            gpu_model.loaded_textures.push_back(tex_id); // Save it so we can clean it up on destruction
         }
 
         // --- NEW STEP: Parse Materials ---
@@ -329,7 +329,7 @@ namespace ModelAdapter {
                 engine_mat.base_color_texture = gl_textures[tex_index];
             }
 
-            result.materials.push_back(engine_mat);
+            gpu_model.materials.push_back(engine_mat);
         }
 
         // --- STEP 2: Configure VAOs for each Primitive ---
@@ -357,7 +357,7 @@ namespace ModelAdapter {
                     const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
 
                     // Bind the previously uploaded buffer as our EBO
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result.shared_buffers[accessor.bufferView]);
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_model.shared_buffers[accessor.bufferView]);
                     
                     engine_primitive.index_count = static_cast<int>(accessor.count);
                     engine_primitive.index_type = accessor.componentType; // E.g., GL_UNSIGNED_SHORT
@@ -374,7 +374,7 @@ namespace ModelAdapter {
                     const tinygltf::Accessor& accessor = model.accessors[attrib.second];
                     const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
 
-                    glBindBuffer(GL_ARRAY_BUFFER, result.shared_buffers[accessor.bufferView]);
+                    glBindBuffer(GL_ARRAY_BUFFER, gpu_model.shared_buffers[accessor.bufferView]);
 
                     int size = GetNumComponents(accessor.type);
                     
@@ -395,15 +395,15 @@ namespace ModelAdapter {
                     if (attrib.first == "POSITION" && accessor.minValues.size() == 3 && accessor.maxValues.size() == 3) {
                         glm::vec3 p_min(accessor.minValues[0], accessor.minValues[1], accessor.minValues[2]);
                         glm::vec3 p_max(accessor.maxValues[0], accessor.maxValues[1], accessor.maxValues[2]);
-                        result.aabb_min = glm::min(result.aabb_min, p_min);
-                        result.aabb_max = glm::max(result.aabb_max, p_max);
+                        gpu_model.aabb_min = glm::min(gpu_model.aabb_min, p_min);
+                        gpu_model.aabb_max = glm::max(gpu_model.aabb_max, p_max);
                     }
                 }
 
                 glBindVertexArray(0); // Unbind VAO
                 engine_mesh.primitives.push_back(engine_primitive);
             }
-            result.meshes.push_back(engine_mesh);
+            gpu_model.meshes.push_back(engine_mesh);
         }
 
         // --- STEP 3: Process the Scene Graph ---
@@ -419,10 +419,10 @@ namespace ModelAdapter {
             
             // Loop through all the root nodes in the scene and start the recursive walk
             for (int root_node_index : scene.nodes) {
-                process_node(model, root_node_index, identity_matrix, result);
+                process_node(model, root_node_index, identity_matrix, gpu_model);
             }
         }
 
-        return result;
+        return gpu_model;
     }
 }

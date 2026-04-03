@@ -56,10 +56,10 @@ void Space::init_space() {
 	// 	create_object(glm::vec3(x, y, z), glm::vec3(0.f), glm::vec3(scale), sphere_path, "Sphere " + std::to_string(i + 5));
 	// }
 
-	auto* new_object = new Object(glm::vec3(52.0f, 3.5f, -10.0f), glm::vec3(0.0f), glm::vec3(2.0f, 15.0f, 20.0f), "res://shaders/core/default_shader.vs", "res://models/VoxelModels/defaultCube.obj");
+	auto* new_object = new Object(glm::vec3(52.0f, 3.5f, -10.0f), glm::vec3(0.0f), glm::vec3(2.0f, 15.0f, 20.0f), "res://shaders/core/default_shader.vs", "res://models/cube.obj");
 	new_object->init(resources, "Default Cube");
 	objects.push_back(new_object);
-	auto* new_object2 = new Object(glm::vec3(37.0f, 3.5f, -28.0f), glm::vec3(0.0f), glm::vec3(20.0f, 15.0f, 2.0f), "res://shaders/core/default_shader.vs", "res://models/VoxelModels/defaultCube.obj");
+	auto* new_object2 = new Object(glm::vec3(37.0f, 3.5f, -28.0f), glm::vec3(0.0f), glm::vec3(20.0f, 15.0f, 2.0f), "res://shaders/core/default_shader.vs", "res://models/cube.obj");
 	new_object2->init(resources, "Default Cube 2");
 	objects.push_back(new_object2);
 }
@@ -106,7 +106,7 @@ void Space::init_lines() {
 
 void Space::init_gltf_models() {
 	gltf_model_shader = new Shader(resources.get_full_path("res://shaders/core/default_shader.vs"), resources.get_full_path("res://shaders/core/default_shader.fs"));
-	std::string model_path = "res://models/gltf2/fortune_teller_table.glb";
+	std::string model_path = "res://models/crystal_ball_table/fortune_teller_table.glb";
 	std::string model_path2 = "res://models/Sponza/glTF/Sponza.gltf";
 	std::string full_model_path = resources.get_full_path(model_path2);
 	ModelGpuData2 model_data = ModelAdapter::load_gltf(full_model_path);
@@ -235,11 +235,11 @@ void Space::enqueue_renderables() {
 		b->enqueue(renderer, resources, camera_pos, sun.get_direction(), sun.get_color());
 	}
 	
-	voxel_grid.enqueue(renderer, camera_pos, sun.get_direction(), sun.get_color());
+	voxel_grid.enqueue(renderer, resources, camera_pos, sun.get_direction(), sun.get_color());
 	raymarcher.enqueue(renderer, camera_pos, sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
 	
 	line_manager.enqueue(renderer);
-	glass.enqueue(renderer, resources, this_frames_button_map);
+	glass.enqueue(renderer, this_frames_button_map);
 
 	draw_gltf_models();
 	renderer.execute_pipeline(voxel_grid.is_debug_view_visible());

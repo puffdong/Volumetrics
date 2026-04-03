@@ -7,7 +7,7 @@
 class Glass {
 private:
     glm::vec2 position;
-    Resource r_shader;
+    Shader* shader = nullptr;
     bool _visible = true;
 
 public: 
@@ -15,7 +15,7 @@ public:
 
     void init(ResourceManager& resources);
     void tick(float delta, const ButtonMap& button_map);
-    void enqueue(Renderer& renderer, ResourceManager& resources, const ButtonMap& button_map);
+    void enqueue(Renderer& renderer, const ButtonMap& button_map);
     
     void set_visibility(const bool v) { _visible = v; };
     bool is_visible() const { return _visible; };
