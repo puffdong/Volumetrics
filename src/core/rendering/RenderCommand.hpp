@@ -31,6 +31,8 @@ struct RenderCommand
     GLenum primitive          = GL_TRIANGLES;
     GLsizei count             = 0;
     GLsizei instance_count    = 1;
+    GLenum index_type         = GL_UNSIGNED_INT; // gltf stuff
+    size_t index_offset       = 0;               // more gltf stuff
     Shader* shader            = nullptr;
     glm::mat4 model_matrix    = glm::mat4(1.0f); // u_model
     std::vector<TextureBinding> textures;

@@ -26,6 +26,8 @@ uniform mat4 u_model_matrix;
 uniform mat4 u_world_matrix;
 uniform mat4 u_mvp;
 uniform sampler2D u_texture1;
+uniform sampler2D u_diffuse_texture;
+uniform bool u_use_diffuse_texture;
 
 uniform vec3 u_sun_dir;
 uniform vec4 u_sun_color; // .w = intensity
@@ -47,6 +49,9 @@ void main()
     
     // unpack material properties
     vec3 mat_diffuse_color = u_diffuse_color.rgb;
+    if (u_use_diffuse_texture) {
+        mat_diffuse_color *= texture(u_diffuse_texture, v_tex_coord).rgb;
+    }
     float mat_diffuse = u_diffuse_color.a;
     vec3 mat_specular_color = u_specular_color.rgb;
     float mat_specular = u_specular_color.a;

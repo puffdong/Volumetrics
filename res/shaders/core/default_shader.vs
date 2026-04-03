@@ -23,5 +23,5 @@ void main()
 	v_tex_coord = a_tex_coord;
 	v_frag_pos = vec3(u_model * vec4(a_pos, 1.0));
 	v_frag_pos_ls = u_light_space_matrix * vec4(v_frag_pos, 1.0);
-	gl_Position = u_mvp * vec4(a_pos, 1.0f);
+	gl_Position = u_proj * u_view * u_model * vec4(a_pos, 1.0f);
 }

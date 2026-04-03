@@ -74,7 +74,7 @@ namespace ui {
                 ImGui::Text("Material");
                 ImGui::Separator();
                 
-                Material& mat = obj->get_material();
+                Material_old& mat = obj->get_material();
                 
                 ImGui::Text("Diffuse");
                 ImGui::ColorEdit3("Color##diffuse", &mat.diffuse_color.r);

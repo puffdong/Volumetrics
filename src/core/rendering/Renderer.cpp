@@ -522,7 +522,7 @@ void Renderer::execute_command(const RenderCommand& c)
 
     case DrawType::Elements:
         glBindVertexArray(c.vao);
-        glDrawElements(c.primitive, c.count, GL_UNSIGNED_INT, 0);
+        glDrawElements(c.primitive, c.count, c.index_type, reinterpret_cast<void*>(c.index_offset));
         break;
 
     case DrawType::ArraysInstanced:

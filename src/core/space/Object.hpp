@@ -8,7 +8,7 @@
 
 // Material properties for rendering
 // Matches the layout in the shader's b_material_block
-struct Material {
+struct Material_old {
     glm::vec4 diffuse_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);  // rgb + diffuse strength
     glm::vec4 specular_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.6f); // rgb + specular strength
     glm::vec4 params = glm::vec4(64.0f, 0.0f, 0.0f, 0.0f);        // shininess, metallic, roughness, padding
@@ -34,7 +34,7 @@ private:
     Res::Model r_model;
     Resource r_texture;
     
-    Material material; // Material properties for rendering
+    Material_old material; // Material properties for rendering
 
 public:
     Object(glm::vec3 pos = glm::vec3(0.f),
@@ -73,7 +73,7 @@ public:
     void set_model(Res::Model res);
     
     // Material access
-    Material& get_material() { return material; }
-    const Material& get_material() const { return material; }
-    void set_material(const Material& mat) { material = mat; }
+    Material_old& get_material() { return material; }
+    const Material_old& get_material() const { return material; }
+    void set_material(const Material_old& mat) { material = mat; }
 };
