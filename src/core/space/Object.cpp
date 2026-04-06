@@ -39,6 +39,8 @@ glm::mat4 Object::get_model_matrix() const {
 }
 
 void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color) {
+    if (!_visible) return;
+
     glm::mat4 proj = renderer.get_proj();
     glm::mat4 view = renderer.get_view();
     glm::mat4 model = get_model_matrix();
@@ -62,28 +64,56 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 c
 
     TextureBinding shadow_bind{ renderer.get_shadow_map_texture_id(), GL_TEXTURE_2D, 5, "u_shadow_map" };
 
-    auto gpu_model = resources.get_model_gpu_data(r_model);
-    
-    RenderCommand cmd{};
-    cmd.vao = gpu_model.vao;
-    cmd.draw_type = DrawType::Elements;
-    cmd.count = gpu_model.index_count;
-    cmd.shader = shader;
-    cmd.textures.push_back(shadow_bind);
-    cmd.model_matrix = model;
-    cmd.attach_lights = true;
+    const auto& gpu_model = resources.get_model_gpu_data(r_model);
 
-    renderer.submit(RenderPass::Forward, cmd);
+    for (const auto& instance : gpu_model.instances) {
+        const Mesh& mesh = gpu_model.meshes[instance.mesh_index];
+        const glm::mat4 world_model = model * instance.transform;
+        const glm::mat3 world_normal_matrix = glm::transpose(glm::inverse(glm::mat3(world_model)));
+        shader->set_uniform_mat4("u_mvp", proj * view * world_model);
+        shader->set_uniform_mat3("u_normal_matrix", world_normal_matrix);
 
-    if (_cast_shadows) {
-        RenderCommand shadow_cmd{};
-        shadow_cmd.vao = gpu_model.vao;
-        shadow_cmd.draw_type = DrawType::Elements;
-        shadow_cmd.count = gpu_model.index_count;
-        shadow_cmd.shader = renderer.get_shadow_shader(); // todo: streamline this, why append the shader in which the renderer already owns?
-        shadow_cmd.attach_lights = false;
-        shadow_cmd.model_matrix = model;
-        renderer.submit(RenderPass::Shadow, shadow_cmd);
+        for (const auto& primitive : mesh.primitives) {
+            RenderCommand cmd{};
+            cmd.vao = primitive.vao;
+            cmd.draw_type = primitive.index_count > 0 ? DrawType::Elements : DrawType::Arrays;
+            cmd.count = primitive.index_count > 0 ? primitive.index_count : primitive.vertex_count;
+            cmd.index_type = primitive.index_type;
+            cmd.index_offset = primitive.index_byte_offset;
+            cmd.shader = shader;
+            cmd.textures.push_back(shadow_bind);
+            cmd.model_matrix = world_model;
+            cmd.attach_lights = true;
+
+            // Default to object-level material when no per-primitive glTF material is present.
+            shader->set_uniform_int("u_use_diffuse_texture", 0);
+            shader->set_uniform_vec4("u_diffuse_color", material.diffuse_color);
+
+            if (primitive.material_index >= 0 && primitive.material_index < static_cast<int>(gpu_model.materials.size())) {
+                const auto& mat = gpu_model.materials[primitive.material_index];
+                shader->set_uniform_vec4("u_diffuse_color", mat.base_color_factor);
+
+                if (mat.base_color_texture != 0) {
+                    cmd.textures.push_back({ mat.base_color_texture, GL_TEXTURE_2D, 8, "u_diffuse_texture" });
+                    shader->set_uniform_int("u_use_diffuse_texture", 1);
+                }
+            }
+
+            renderer.submit(RenderPass::Forward, cmd);
+
+            if (_cast_shadows) {
+                RenderCommand shadow_cmd{};
+                shadow_cmd.vao = primitive.vao;
+                shadow_cmd.draw_type = primitive.index_count > 0 ? DrawType::Elements : DrawType::Arrays;
+                shadow_cmd.count = primitive.index_count > 0 ? primitive.index_count : primitive.vertex_count;
+                shadow_cmd.index_type = primitive.index_type;
+                shadow_cmd.index_offset = primitive.index_byte_offset;
+                shadow_cmd.shader = renderer.get_shadow_shader(); // todo: streamline this, why append the shader in which the renderer already owns?
+                shadow_cmd.attach_lights = false;
+                shadow_cmd.model_matrix = world_model;
+                renderer.submit(RenderPass::Shadow, shadow_cmd);
+            }
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 #include "ui_dumptruck.hpp"
 #include "core/space/Space.hpp"
 #include <iostream>
+#include <unordered_map>
 
 #define PI 3.14159265358979323846f
 
@@ -38,14 +39,27 @@ namespace ui {
             }
             ImGui::PushID(obj->get_id());
 
+            bool is_visible = obj->is_visible();
             std::string title = obj->get_name();
-            bool open =ImGui::BeginMenu(title.c_str());
+            if (!is_visible) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+            }
+            bool open = ImGui::BeginMenu(title.c_str());
+            if (!is_visible) {
+                ImGui::PopStyleColor();
+            }
             bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
             obj->set_selected(hovered);
 
             if (open) {
                 // Transform section
                 ImGui::Text("Transform");
+                ImGui::Separator();
+
+                bool visible = obj->is_visible();
+                if (ImGui::Checkbox("Visible", &visible)) {
+                    obj->set_visibility(visible);
+                }
                 ImGui::Separator();
                 
                 glm::vec3 p = obj->get_position();
@@ -56,16 +70,36 @@ namespace ui {
 
                 glm::vec3 r = obj->get_rotation();
                 float rot[3] = { r.x, r.y, r.z };
-                if (ImGui::SliderFloat3("Rotation", rot, -PI, PI, "%.3f",
-                                        ImGuiSliderFlags_AlwaysClamp)) {
+                if (ImGui::DragFloat3("Rotation", rot, 0.01f, -PI, PI, "%.3f",
+                                      ImGuiSliderFlags_AlwaysClamp)) {
                     obj->set_rotation({ rot[0], rot[1], rot[2] });
                 }
 
                 glm::vec3 scale = obj->get_scale();
                 float s[3] = { scale.x, scale.y, scale.z };
-                if (ImGui::SliderFloat3("Scale", s, 0.01f, 10.0f, "%.3f",
-                                       ImGuiSliderFlags_AlwaysClamp)) {
+                if (ImGui::DragFloat3("Scale", s, 0.01f, 0.01f, 10.0f, "%.3f",
+                                     ImGuiSliderFlags_AlwaysClamp)) {
                     obj->set_scale({ s[0], s[1], s[2] });
+                }
+
+                static std::unordered_map<uint64_t, float> uniform_scale_values;
+                const uint64_t obj_id = obj->get_id().value();
+                float& uniform_scale = uniform_scale_values[obj_id];
+                if (uniform_scale <= 0.0f) {
+                    uniform_scale = 1.0f;
+                }
+
+                const float previous_uniform_scale = uniform_scale;
+                if (ImGui::DragFloat("Uniform Scale", &uniform_scale, 0.01f, 0.01f, 10.0f, "%.3f",
+                                    ImGuiSliderFlags_AlwaysClamp)) {
+                    if (previous_uniform_scale > 0.0f) {
+                        const float ratio = uniform_scale / previous_uniform_scale;
+                        glm::vec3 current_scale = obj->get_scale();
+                        obj->set_scale(current_scale * ratio);
+                    }
+                }
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    uniform_scale = 1.0f;
                 }
 
                 ImGui::Separator();
@@ -78,17 +112,17 @@ namespace ui {
                 
                 ImGui::Text("Diffuse");
                 ImGui::ColorEdit3("Color##diffuse", &mat.diffuse_color.r);
-                ImGui::SliderFloat("Strength##diffuse", &mat.diffuse_color.a, 0.0f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::DragFloat("Strength##diffuse", &mat.diffuse_color.a, 0.01f, 0.0f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
                 
                 ImGui::Separator();
                 
                 ImGui::Text("Specular");
                 ImGui::ColorEdit3("Color##specular", &mat.specular_color.r);
-                ImGui::SliderFloat("Strength##specular", &mat.specular_color.a, 0.0f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::DragFloat("Strength##specular", &mat.specular_color.a, 0.01f, 0.0f, 2.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
                 
                 ImGui::Separator();
                 
-                ImGui::SliderFloat("Shininess", &mat.params.x, 1.0f, 256.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::DragFloat("Shininess", &mat.params.x, 0.5f, 1.0f, 256.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("Higher = sharper specular highlights");
                 

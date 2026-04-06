@@ -27,10 +27,6 @@ private:
 
 	std::vector<Object*> objects;
 
-	// gltf models
-	std::vector<ModelGpuData2> new_models; 
-	Shader* gltf_model_shader = nullptr;
-
 
 	Camera camera;
 	Skybox skybox;
@@ -81,6 +77,4 @@ private:
 	void init_glass();
 	void init_lights();
 	void init_lines();
-	void init_gltf_models();
-	void draw_gltf_models();
 };

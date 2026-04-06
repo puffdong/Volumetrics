@@ -31,15 +31,19 @@ namespace ModelGenerator {
         }
 
         ModelGpuData gpu_data;
+        gpu_data.name = "Generated Flat Ground";
 
-        glGenVertexArrays(1, &gpu_data.vao);
-        glGenBuffers(1, &gpu_data.vbo);
-        glGenBuffers(1, &gpu_data.ebo);
+        GLuint vao = 0;
+        GLuint vbo = 0;
+        GLuint ebo = 0;
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
+        glGenBuffers(1, &ebo);
 
-        glBindVertexArray(gpu_data.vao);
-        glBindBuffer(GL_ARRAY_BUFFER, gpu_data.vbo);
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpu_data.ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
         GLsizei stride = 8 * sizeof(float);
@@ -52,7 +56,26 @@ namespace ModelGenerator {
 
         glBindVertexArray(0);
 
-        gpu_data.index_count = static_cast<GLsizei>(indices.size());
+        Primitive primitive;
+        primitive.vao = vao;
+        primitive.index_count = static_cast<int>(indices.size());
+        primitive.vertex_count = static_cast<int>(vertices.size() / 8);
+        primitive.index_type = GL_UNSIGNED_INT;
+        primitive.index_byte_offset = 0;
+
+        Mesh mesh;
+        mesh.name = "Ground";
+        mesh.primitives.push_back(primitive);
+
+        MeshInstance instance;
+        instance.mesh_index = 0;
+        instance.transform = glm::mat4(1.0f);
+
+        gpu_data.meshes.push_back(std::move(mesh));
+        gpu_data.instances.push_back(instance);
+        gpu_data.shared_buffers.push_back(vbo);
+        gpu_data.shared_buffers.push_back(ebo);
+
         return gpu_data;
     }
 

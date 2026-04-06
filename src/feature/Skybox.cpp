@@ -56,11 +56,17 @@ void Skybox::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 c
 	tex.uniform_name = "u_texture";
 
 	auto model_gpu = resources.get_model_gpu_data(r_model);
+	if (model_gpu.meshes.empty() || model_gpu.meshes[0].primitives.empty()) {
+		return;
+	}
+	const Primitive& primitive = model_gpu.meshes[0].primitives[0];
 
 	RenderCommand cmd{};
-	cmd.vao        = model_gpu.vao;
-	cmd.draw_type   = DrawType::Elements;
-	cmd.count      = model_gpu.index_count;
+	cmd.vao = primitive.vao;
+	cmd.draw_type = primitive.index_count > 0 ? DrawType::Elements : DrawType::Arrays;
+	cmd.count = primitive.index_count > 0 ? primitive.index_count : primitive.vertex_count;
+	cmd.index_type = primitive.index_type;
+	cmd.index_offset = primitive.index_byte_offset;
 	cmd.shader     = shader;
 	cmd.state.depth_test  = false;
 	cmd.state.depth_write = false;

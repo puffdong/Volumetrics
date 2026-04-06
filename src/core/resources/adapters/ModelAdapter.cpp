@@ -31,8 +31,9 @@ namespace ModelAdapter {
         };
     } // anonymous namespace
 
+
     // Helper to calculate the node's matrix and apply the parent's matrix
-    void process_node(const tinygltf::Model& model, int node_index, const glm::mat4& parent_matrix, ModelGpuData2& result) {
+    void process_node(const tinygltf::Model& model, int node_index, const glm::mat4& parent_matrix, ModelGpuData& result) {
         const tinygltf::Node& node = model.nodes[node_index];
         glm::mat4 local_matrix(1.0f);
 
@@ -219,14 +220,27 @@ namespace ModelAdapter {
         glBindVertexArray(0);
 
         ModelGpuData model;
-        model.name     = std::filesystem::path(file_path).stem().string();
+        model.name = std::filesystem::path(file_path).stem().string();
 
-        model.vao          = vao;
-        model.vbo          = vbo;
-        model.ebo          = ebo;
-        model.index_count  = static_cast<int>(indices.size());
-        model.vertex_count = static_cast<int>(vertices.size() / 8);
+        Primitive primitive;
+        primitive.vao = vao;
+        primitive.index_count = static_cast<int>(indices.size());
+        primitive.vertex_count = static_cast<int>(vertices.size() / 8);
+        primitive.index_type = GL_UNSIGNED_INT;
+        primitive.index_byte_offset = 0;
 
+        Mesh mesh;
+        mesh.name = model.name;
+        mesh.primitives.push_back(primitive);
+
+        MeshInstance instance;
+        instance.mesh_index = 0;
+        instance.transform = glm::mat4(1.0f);
+
+        model.meshes.push_back(std::move(mesh));
+        model.instances.push_back(instance);
+        model.shared_buffers.push_back(vbo);
+        model.shared_buffers.push_back(ebo);
         model.aabb_min = aabb_min;
         model.aabb_max = aabb_max;
 
@@ -242,7 +256,7 @@ namespace ModelAdapter {
         return 1;
     }
 
-    ModelGpuData2 load_gltf(const std::string& file_path) {
+    ModelGpuData load_gltf(const std::string& file_path) {
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
         std::string err, warn;
@@ -255,7 +269,7 @@ namespace ModelAdapter {
         if (!err.empty()) std::cerr << "glTF Err: " << err << "\n";
         if (!ret) throw std::runtime_error("Failed to load glTF: " + file_path);
 
-        ModelGpuData2 gpu_model;
+        ModelGpuData gpu_model;
         gpu_model.name = std::filesystem::path(file_path).stem().string();
         gpu_model.aabb_min = glm::vec3(std::numeric_limits<float>::max());
         gpu_model.aabb_max = glm::vec3(-std::numeric_limits<float>::max());
@@ -393,6 +407,7 @@ namespace ModelAdapter {
 
                     // 3. Extract AABB (glTF mandates min/max values exist on the POSITION accessor)
                     if (attrib.first == "POSITION" && accessor.minValues.size() == 3 && accessor.maxValues.size() == 3) {
+                        engine_primitive.vertex_count = static_cast<int>(accessor.count);
                         glm::vec3 p_min(accessor.minValues[0], accessor.minValues[1], accessor.minValues[2]);
                         glm::vec3 p_max(accessor.maxValues[0], accessor.maxValues[1], accessor.maxValues[2]);
                         gpu_model.aabb_min = glm::min(gpu_model.aabb_min, p_min);

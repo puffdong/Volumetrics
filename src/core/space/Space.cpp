@@ -5,9 +5,7 @@
 #include "core/rendering/Renderer.hpp"
 #include "core/ui/ui_dumptruck.hpp"
 
-#include "core/resources/adapters/ModelAdapter.hpp"
 #include "core/utils/ModelGenerator.hpp"
-#include "glm/gtx/string_cast.hpp"
 
 Space::Space(ResourceManager& resources, Renderer& renderer)
  : resources(resources), renderer(renderer)
@@ -30,7 +28,6 @@ void Space::init_space() {
 	init_glass();
 	init_lights();
 	init_lines();
-	init_gltf_models();
 
 	// THIS IS STINKY;
 	Object* base_ground = new Object(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f), glm::vec3(1.f), "res://shaders/core/default_shader.vs");
@@ -47,6 +44,8 @@ void Space::init_space() {
 	create_object(glm::vec3(-18.0f, 5.0f, 28.0f), glm::vec3(0.0f), glm::vec3(3.5f), sphere_path, "Sphere 2");
 	create_object(glm::vec3(35.0f, 2.0f, 14.0f), glm::vec3(0.0f), glm::vec3(2.0f), sphere_path, "Sphere 3");
 	create_object(glm::vec3(17.0f, 3.5f, -2.0f), glm::vec3(0.0f), glm::vec3(7.0f), sphere_path, "Sphere 4");
+	// create_object(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), "res://models/Sponza/glTF/Sponza.gltf", "Sponza");
+	create_object(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), "res://models/crystal_ball_table/fortune_teller_table.glb", "Fortune Table");
 	// for (int i = 0; i < 20; ++i) { // testing the shadows
 	// 	float x = (rand() % 200 - 100) * 1.2f;
 	// 	float y = (rand() % 40);
@@ -104,87 +103,6 @@ void Space::init_lines() {
 	line_manager.add_lines(world_grid_lines, true);
 }
 
-void Space::init_gltf_models() {
-	gltf_model_shader = new Shader(resources.get_full_path("res://shaders/core/default_shader.vs"), resources.get_full_path("res://shaders/core/default_shader.fs"));
-	std::string model_path = "res://models/crystal_ball_table/fortune_teller_table.glb";
-	std::string model_path2 = "res://models/Sponza/glTF/Sponza.gltf";
-	std::string full_model_path = resources.get_full_path(model_path2);
-	ModelGpuData2 model_data = ModelAdapter::load_gltf(full_model_path);
-	new_models.push_back(std::move(model_data));
-	std::cout << "Loaded glTF model with " << new_models[0].meshes.size() << " meshes and " << new_models[0].instances.size() << " instances." << std::endl;
-}
-
-void Space::draw_gltf_models() {
-	glm::mat4 proj = renderer.get_proj();
-    glm::mat4 view = renderer.get_view();
-    glm::mat3 normal_matrix = glm::transpose(glm::inverse(glm::mat3(glm::mat4(1.0f)))); // set it to identity for
-    
-    gltf_model_shader->hot_reload_if_changed();
-    gltf_model_shader->bind();
-    
-    // Set material uniforms
-    gltf_model_shader->set_uniform_vec4("u_diffuse_color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    gltf_model_shader->set_uniform_vec4("u_specular_color", glm::vec4(1.0f, 1.0f, 1.0f, 0.6f));
-    gltf_model_shader->set_uniform_vec4("u_material_params", glm::vec4(64.0f, 0.0f, 0.0f, 0.0f));
-    gltf_model_shader->set_uniform_int("u_is_selected", 0);
-    gltf_model_shader->set_uniform_vec3("u_sun_dir", sun.get_direction());
-    gltf_model_shader->set_uniform_vec4("u_sun_color", sun.get_color());
-    // gltf_model_shader->set_uniform_mat4("u_mvp", proj * view * model);
-    gltf_model_shader->set_uniform_mat4("u_proj", renderer.get_proj());
-    gltf_model_shader->set_uniform_mat4("u_view", view);
-    gltf_model_shader->set_uniform_mat3("u_normal_matrix", normal_matrix);
-    gltf_model_shader->set_uniform_mat4("u_light_space_matrix", renderer.get_light_space_matrix());
-
-    TextureBinding shadow_bind{ renderer.get_shadow_map_texture_id(), GL_TEXTURE_2D, 5, "u_shadow_map" };
-
-	const auto& loaded_model = new_models[0];
-	for (const auto& instance : loaded_model.instances) {
-		const Mesh& mesh = loaded_model.meshes[instance.mesh_index];
-
-		for (const auto& primitive : mesh.primitives) {
-			RenderCommand cmd;
-			cmd.textures.push_back(shadow_bind);
-			cmd.vao = primitive.vao;
-			cmd.shader = gltf_model_shader;
-			cmd.draw_type = DrawType::Elements;
-			cmd.count = primitive.index_count;
-			cmd.index_type = primitive.index_type;
-			cmd.index_offset = primitive.index_byte_offset;
-			glm::mat3 normal_matrix = glm::transpose(glm::inverse(glm::mat3(instance.transform)));
-			gltf_model_shader->set_uniform_mat3("u_normal_matrix", normal_matrix);
-			cmd.model_matrix = instance.transform; // The global transform we calculated!
-			// cmd.state.cull_face = false;
-			cmd.attach_lights = true;
-
-			// --- NEW: Bind the Material ---
-            if (primitive.material_index >= 0) {
-                const auto& mat = loaded_model.materials[primitive.material_index];
-                
-                // If we have a texture, add it to the command's texture bindings
-                if (mat.base_color_texture != 0) {
-                    // Assuming your TextureBinding takes: { id, target, texture_unit, uniform_name }
-                    cmd.textures.push_back({ mat.base_color_texture, GL_TEXTURE_2D, 8, "u_diffuse_texture" });
-                    
-                    // Tell the shader we ARE using a texture
-                    gltf_model_shader->set_uniform_int("u_use_diffuse_texture", 1);
-                } else {
-                    // Tell the shader we are NOT using a texture
-                    gltf_model_shader->set_uniform_int("u_use_diffuse_texture", 0);
-                }
-                
-                // Always pass the base color factor (tint)
-                gltf_model_shader->set_uniform_vec4("u_diffuse_color", mat.base_color_factor);
-            } else {
-				// No material, use defaults
-				gltf_model_shader->set_uniform_int("u_use_diffuse_texture", 0);
-				gltf_model_shader->set_uniform_vec4("u_diffuse_color", glm::vec4(1.0f));
-			}
-
-			renderer.submit(RenderPass::Forward, cmd);
-		}
-	}
-}
-
 void Space::tick(float delta, ButtonMap bm)
 {
 	time += delta;
@@ -240,8 +158,6 @@ void Space::enqueue_renderables() {
 	
 	line_manager.enqueue(renderer);
 	glass.enqueue(renderer, this_frames_button_map);
-
-	draw_gltf_models();
 	renderer.execute_pipeline(voxel_grid.is_debug_view_visible());
 }
 

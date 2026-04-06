@@ -20,9 +20,12 @@ void VoxelGrid::init(ResourceManager& resources) {
     _selection_box_shader = new Shader(resources.get_full_path("res://shaders/core/default_shader.vs"), resources.get_full_path("res://shaders/core/default_shader.fs"));
 
     r_model = resources.load_model("res://models/cube.obj");
-    auto model_gpu_data = resources.get_model_gpu_data(r_model);
-    _cube_model_vao = model_gpu_data.vao;
-    _cube_model_index_count = model_gpu_data.index_count;
+    const auto& model_gpu_data = resources.get_model_gpu_data(r_model);
+    if (!model_gpu_data.meshes.empty() && !model_gpu_data.meshes[0].primitives.empty()) {
+        const Primitive& primitive = model_gpu_data.meshes[0].primitives[0];
+        _cube_model_vao = primitive.vao;
+        _cube_model_index_count = primitive.index_count;
+    }
 
     init_instance_buffer();
     create_voxel_texture();
@@ -80,7 +83,6 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec
         _selection_box_shader->set_uniform_vec3("u_sun_color", sun_color);
 
         RenderCommand cmd{};
-        auto cube_model_gpu_data = resources.get_model_gpu_data(r_model);
         cmd.vao = _cube_model_vao;
         cmd.draw_type = DrawType::Elements;
         cmd.count = _cube_model_index_count;

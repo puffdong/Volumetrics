@@ -38,7 +38,7 @@ Res::Model ResourceManager::load_model(const std::string& asset_path) {
     if (file_extension == ".obj") {
         model.gpu_data = ModelAdapter::load_obj(file_path);
     } else if (file_extension == ".gltf" || file_extension == ".glb") {
-        model.gpu_data_2 = ModelAdapter::load_gltf(file_path);
+        model.gpu_data = ModelAdapter::load_gltf(file_path);
     } else {
         std::cerr << "Unsupported model format: " << file_extension << std::endl;
         // Handle unsupported format, maybe throw an exception or return an error code
@@ -77,8 +77,4 @@ Res::Model ResourceManager::upload_model(ModelGpuData data) {
 
 const ModelGpuData& ResourceManager::get_model_gpu_data(const Res::Model& resource) {
     return _model_map[resource.id].gpu_data;
-}
-
-const ModelGpuData2& ResourceManager::get_model_gpu_data_2(const Res::Model& resource) {
-    return _model_map[resource.id].gpu_data_2;
 }
