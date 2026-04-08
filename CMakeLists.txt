@@ -6,13 +6,13 @@ file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS
 )
 
 set(IMGUI_SOURCES
-    ${CMAKE_SOURCE_DIR}/Dependencies/imgui/imgui.cpp
-    ${CMAKE_SOURCE_DIR}/Dependencies/imgui/imgui_draw.cpp
-    ${CMAKE_SOURCE_DIR}/Dependencies/imgui/imgui_tables.cpp
-    ${CMAKE_SOURCE_DIR}/Dependencies/imgui/imgui_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/Dependencies/imgui/imgui_demo.cpp
-    ${CMAKE_SOURCE_DIR}/Dependencies/imgui/backends/imgui_impl_glfw.cpp
-    ${CMAKE_SOURCE_DIR}/Dependencies/imgui/backends/imgui_impl_opengl3.cpp
+    ${CMAKE_SOURCE_DIR}/external/imgui/imgui.cpp
+    ${CMAKE_SOURCE_DIR}/external/imgui/imgui_draw.cpp
+    ${CMAKE_SOURCE_DIR}/external/imgui/imgui_tables.cpp
+    ${CMAKE_SOURCE_DIR}/external/imgui/imgui_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/external/imgui/imgui_demo.cpp
+    ${CMAKE_SOURCE_DIR}/external/imgui/backends/imgui_impl_glfw.cpp
+    ${CMAKE_SOURCE_DIR}/external/imgui/backends/imgui_impl_opengl3.cpp
 )
 
 add_executable(${PROJECT_NAME}
@@ -23,10 +23,13 @@ add_executable(${PROJECT_NAME}
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/Dependencies
-    ${CMAKE_SOURCE_DIR}/Dependencies/glm
-    ${CMAKE_SOURCE_DIR}/Dependencies/imgui
-    ${CMAKE_SOURCE_DIR}/Dependencies/imgui/backends
+    ${CMAKE_SOURCE_DIR}/external
+    ${CMAKE_SOURCE_DIR}/external/tinygltf
+    ${CMAKE_SOURCE_DIR}/external/tinyobjloader
+    ${CMAKE_SOURCE_DIR}/external/stb
+    ${CMAKE_SOURCE_DIR}/external/glm
+    ${CMAKE_SOURCE_DIR}/external/imgui
+    ${CMAKE_SOURCE_DIR}/external/imgui/backends
     ${CMAKE_SOURCE_DIR}/src
 )
 
@@ -37,12 +40,12 @@ if(WIN32)
         target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS GLEW_STATIC)
     endif()
     target_include_directories(${PROJECT_NAME} PRIVATE
-        ${CMAKE_SOURCE_DIR}/Dependencies/GLFW/include
-        ${CMAKE_SOURCE_DIR}/Dependencies/GLEW/include
+        ${CMAKE_SOURCE_DIR}/external/GLFW/include
+        ${CMAKE_SOURCE_DIR}/external/GLEW/include
     )
     target_link_libraries(${PROJECT_NAME} PRIVATE
-        ${CMAKE_SOURCE_DIR}/Dependencies/GLFW/lib-vc2022/glfw3.lib
-        ${CMAKE_SOURCE_DIR}/Dependencies/GLEW/lib/Release/x64/glew32s.lib
+        ${CMAKE_SOURCE_DIR}/external/GLFW/lib-vc2022/glfw3.lib
+        ${CMAKE_SOURCE_DIR}/external/GLEW/lib/Release/x64/glew32s.lib
         opengl32
         gdi32 user32 kernel32
     )

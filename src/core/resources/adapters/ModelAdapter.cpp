@@ -9,7 +9,7 @@
 #include "tiny_gltf.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <iostream>
 #include <unordered_map>
@@ -60,7 +60,7 @@ namespace ModelAdapter {
 
             // Build the local matrix: T * R * S
             glm::mat4 mat_t = glm::translate(glm::mat4(1.0f), translation);
-            glm::mat4 mat_r = glm::toMat4(rotation);
+            glm::mat4 mat_r = glm::mat4_cast(rotation);
             glm::mat4 mat_s = glm::scale(glm::mat4(1.0f), scale);
             local_matrix = mat_t * mat_r * mat_s;
         }
