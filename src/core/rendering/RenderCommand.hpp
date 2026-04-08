@@ -1,5 +1,6 @@
 #pragma once
-#include "Shader.hpp"
+#include "core/resources/Resource.hpp"
+#include "core/rendering/Shader.hpp"
 #include "glm/glm.hpp"
 
 enum class DrawType { Arrays, Elements, ArraysInstanced, ElementsInstanced, FullscreenQuad };
@@ -34,6 +35,7 @@ struct RenderCommand
     GLenum index_type         = GL_UNSIGNED_INT; // gltf stuff
     size_t index_offset       = 0;               // more gltf stuff
     Shader* shader            = nullptr;
+
     glm::mat4 model_matrix    = glm::mat4(1.0f); // u_model
     std::vector<TextureBinding> textures;
     RenderState state;

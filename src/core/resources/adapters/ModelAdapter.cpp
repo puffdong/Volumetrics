@@ -306,7 +306,7 @@ namespace ModelAdapter {
             glGenTextures(1, &tex_id);
             glBindTexture(GL_TEXTURE_2D, tex_id);
 
-            // Basic texture parameters (Repeat, Linear filtering)
+            // TODO: READ SAMPLER PROPERTIES
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -315,7 +315,6 @@ namespace ModelAdapter {
             // Determine if it's RGB or RGBA based on the component count (3 or 4)
             GLenum format = (image.component == 4) ? GL_RGBA : GL_RGB;
 
-            // Upload the pixel data provided by tinygltf
             glTexImage2D(GL_TEXTURE_2D, 0, format, image.width, image.height, 0, format, GL_UNSIGNED_BYTE, &image.image[0]);
             glGenerateMipmap(GL_TEXTURE_2D);
 
