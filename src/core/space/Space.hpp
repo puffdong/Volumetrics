@@ -36,7 +36,7 @@ private:
 	Glass glass;
 	Line line_manager;
 	
-	
+	LightingData lighting_data;
 	std::vector<Light> lights;
 	std::vector<Object*> light_spheres;
 	
@@ -65,7 +65,7 @@ public:
 							 const std::string& name = "");
 
 	void add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
-					  glm::vec3 direction, float volumetric_intensity, LightType type);
+					  glm::vec3 direction, float angle, float volumetric_intensity, LightType type);
 	void remove_light(std::size_t index);
 	void cast_ray(float x, float y);
 	

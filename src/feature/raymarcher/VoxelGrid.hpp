@@ -45,7 +45,7 @@ public:
 
 	void init(ResourceManager& resources);
     void tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selection_ray_dir, bool mouse_pointer_active, bool mouse_clicked);
-    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_direction, glm::vec4 sun_color);
+    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos);
 
 	void selection_box_tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selection_ray_dir, bool mouse_pointer_active, bool mouse_clicked);
 	

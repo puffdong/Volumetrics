@@ -6,7 +6,6 @@ layout(location = 2) in vec2 a_tex_coord;
 uniform mat4 u_proj;
 uniform mat4 u_view;
 uniform mat4 u_model;
-uniform mat4 u_mvp;
 uniform mat3 u_normal_matrix;
 uniform mat4 u_light_space_matrix;
 

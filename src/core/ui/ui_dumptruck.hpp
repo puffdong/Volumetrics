@@ -29,9 +29,9 @@ namespace ui {
     
     void voxel_grid_settings(VoxelGrid& grid); // includes corner visualization toggle
     
-    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass, Line& line_manager, std::vector<Object*>& objects);
+    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, LightingData& lighting_data, std::vector<Light>& lights, Glass& glass, Line& line_manager, std::vector<Object*>& objects);
 
-    void light_settings(Space& space, Sun& sun, std::vector<Light>& lights);
+    void light_settings(Space& space, Sun& sun, LightingData& lighting_data, std::vector<Light>& lights);
 
     void line_settings(Line& line_manager);
 

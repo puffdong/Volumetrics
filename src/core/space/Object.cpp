@@ -38,7 +38,7 @@ glm::mat4 Object::get_model_matrix() const {
     return m;
 }
 
-void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_dir, glm::vec4 sun_color) {
+void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos) {
     if (!_visible) return;
 
     glm::mat4 proj = renderer.get_proj();
@@ -54,9 +54,6 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 c
     shader->set_uniform_vec4("u_specular_color", material.specular_color);
     shader->set_uniform_vec4("u_material_params", material.params);
     shader->set_uniform_int("u_is_selected", _selected ? 1 : 0);
-    shader->set_uniform_vec3("u_sun_dir", sun_dir);
-    shader->set_uniform_vec4("u_sun_color", sun_color);
-    shader->set_uniform_mat4("u_mvp", proj * view * model);
     shader->set_uniform_mat4("u_proj", renderer.get_proj());
     shader->set_uniform_mat4("u_view", view);
     shader->set_uniform_mat3("u_normal_matrix", normal_matrix);

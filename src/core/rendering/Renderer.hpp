@@ -42,7 +42,7 @@ public:
 
     void begin_frame();
     void submit(RenderPass pass, const RenderCommand& cmd);
-    void submit_lighting_data(std::vector<Light> lights); // this sucks because we are copying crap
+    void submit_lighting_data(const LightingData& lighting_data, const std::vector<Light>& lights); // this sucks because we are copying crap
     void execute_pipeline(bool voxel_grid_debug_view = false);
     void flush(RenderPass pass);
     
@@ -68,6 +68,12 @@ private:
     std::vector<RenderCommand> queues[int(RenderPass::UI)+1];
     void apply_state(RenderState s);
     void execute_command(const RenderCommand& cmd);
+
+    // individual passes
+    void run_shadow_pass();
+    void run_raymarch_bounds_pass(bool voxel_grid_debug_view = false);
+    void run_volumetrics_pass();
+    void run_composite_pass();
 
     std::vector<Light> current_frame_light_list;
 

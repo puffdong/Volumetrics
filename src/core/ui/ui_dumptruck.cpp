@@ -271,7 +271,7 @@ namespace ui {
     }
 
 
-    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, std::vector<Light>& lights, Glass& glass, Line& line_manager, std::vector<Object*>& objects)
+    void settings_panel(Space& space, Raymarcher& marcher, RaymarchSettings& ray_settings, VoxelGrid& grid, Sun& sun, LightingData& lighting_data, std::vector<Light>& lights, Glass& glass, Line& line_manager, std::vector<Object*>& objects)
     {
         ImGui::PushID(&marcher);
 
@@ -281,7 +281,7 @@ namespace ui {
                 ImGui::EndMenu();
             }            
             if (ImGui::BeginMenu("Lights")) {
-                light_settings(space, sun, lights);
+                light_settings(space, sun, lighting_data, lights);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Raymarcher")) {
@@ -313,7 +313,7 @@ namespace ui {
         ImGui::PopID();
     }
     
-    void light_settings(Space& space, Sun& sun, std::vector<Light>& lights) {
+    void light_settings(Space& space, Sun& sun, LightingData& lighting_data, std::vector<Light>& lights) {
         ImGui::Text("Sun");
         bool moving = sun.is_moving();
         if (ImGui::Checkbox("Moving", &moving)) {
@@ -324,7 +324,6 @@ namespace ui {
         if (ImGui::SliderFloat("Speed", &speed, 0.0f, 180.0f, "%.2f deg/s", ImGuiSliderFlags_AlwaysClamp)) {
             sun.set_speed(speed);
         }
-        ImGui::Separator();
 
         float pitch = sun.get_pitch();
         float yaw = sun.get_yaw();
@@ -334,16 +333,20 @@ namespace ui {
         if (changed) {
             sun.set_angles(pitch, yaw);
         }
-        ImGui::Separator();
 
         glm::vec4 color = sun.get_color();
         ImGui::DragFloat3("Color##sun_color", &color.r, 0.01f, 0.0f, 1.0f, "%.2f");
         sun.set_color(color);
-        ImGui::Separator();
         float intensity = sun.get_intensity();
         if (ImGui::DragFloat("Intensity##sun_intensity", &intensity, 0.01f, 0.0f, 1000.0f, "%.2f")) {
             sun.set_intensity(intensity);
         }
+
+        ImGui::Separator();
+        
+        ImGui::Text("Ambient");
+        ImGui::DragFloat3("Color##ambient_color", &lighting_data.ambient_color.r, 0.01f, 0.0f, 1.0f, "%.2f");
+        ImGui::DragFloat("Intensity##ambient_intensity", &lighting_data.ambient_intensity, 0.01f, 0.0f, 1000.0f, "%.2f");
 
         ImGui::Separator();
 
@@ -378,7 +381,7 @@ namespace ui {
             space.add_light(
                 glm::vec3(0.0f, 5.0f, 0.0f), 50.0f,
                 glm::vec3(1.0f), 50.0f, 
-                glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point
+                glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, 1.0f, LightType::Point
             );
         }
     }

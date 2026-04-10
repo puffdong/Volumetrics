@@ -9,8 +9,8 @@
 
 Space::Space(ResourceManager& resources, Renderer& renderer)
  : resources(resources), renderer(renderer)
-{	
-	
+{
+
 }
 
 Space::~Space() {
@@ -45,7 +45,7 @@ void Space::init_space() {
 	create_object(glm::vec3(35.0f, 2.0f, 14.0f), glm::vec3(0.0f), glm::vec3(2.0f), sphere_path, "Sphere 3");
 	create_object(glm::vec3(17.0f, 3.5f, -2.0f), glm::vec3(0.0f), glm::vec3(7.0f), sphere_path, "Sphere 4");
 	// create_object(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), "res://models/Sponza/glTF/Sponza.gltf", "Sponza");
-	create_object(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), "res://models/crystal_ball_table/fortune_teller_table.glb", "Fortune Table");
+	// create_object(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f), "res://models/crystal_ball_table/fortune_teller_table.glb", "Fortune Table");
 	// for (int i = 0; i < 20; ++i) { // testing the shadows
 	// 	float x = (rand() % 200 - 100) * 1.2f;
 	// 	float y = (rand() % 40);
@@ -88,10 +88,16 @@ void Space::init_glass() {
 }
 
 void Space::init_lights() {
-	lights.reserve(3); light_spheres.reserve(3);
-	add_light(glm::vec3(14.0f, 13.0f, 20.5), 50.f, glm::vec3(1.0f, 0.3f, 0.2f), 84.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
-	add_light(glm::vec3(-10.0f, 11.0f, -22.0), 100.f, glm::vec3(0.0f, 0.58f, 1.0f), 271.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);
-	add_light(glm::vec3(-10.0f, 12.0f, 10.0), 50.f, glm::vec3(0.31f, 0.78f, 0.48f), 21.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, LightType::Point);	
+	lighting_data.sun_direction = glm::vec3(1.0f, 1.0f, 1.0f);
+	lighting_data.sun_color = glm::vec3(1.0f, 1.0f, 0.930f);
+	lighting_data.sun_intensity = 1.0f;
+	lighting_data.ambient_color = glm::vec3(0.1f);
+	lighting_data.ambient_intensity = 1.0f;
+
+	lights.reserve(MAX_LIGHTS); light_spheres.reserve(MAX_LIGHTS);
+	add_light(glm::vec3(14.0f, 13.0f, 20.5), 50.f, glm::vec3(1.0f, 0.3f, 0.2f), 84.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, 1.0f, LightType::Point);
+	add_light(glm::vec3(-10.0f, 11.0f, -22.0), 100.f, glm::vec3(0.0f, 0.58f, 1.0f), 271.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, 1.0f, LightType::Point);
+	add_light(glm::vec3(-10.0f, 12.0f, 10.0), 50.f, glm::vec3(0.31f, 0.78f, 0.48f), 21.0f, glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, 1.0f, LightType::Point);	
 }
 
 void Space::init_lines() {
@@ -124,7 +130,11 @@ void Space::tick(float delta, ButtonMap bm)
 	glass.tick(delta, bm);
         
 	ui::stats_overlay(camera, renderer);
-	ui::settings_panel(*this, raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, lights, glass, line_manager, objects);
+	ui::settings_panel(*this, raymarcher, raymarcher.get_raymarch_settings(), voxel_grid, sun, lighting_data, lights, glass, line_manager, objects);
+
+	lighting_data.sun_direction = sun.get_direction();
+	lighting_data.sun_color = sun.get_color();
+	lighting_data.sun_intensity = sun.get_intensity();
 
 	const std::size_t count = std::min(lights.size(), light_spheres.size());
 	for (std::size_t i = 0; i < count; ++i) {
@@ -140,21 +150,20 @@ void Space::enqueue_renderables() {
 	renderer.update_light_matrix(-sun.get_direction(), glm::vec3(0.0f));
 	renderer.begin_frame();
 
-	// lights
-	renderer.submit_lighting_data(lights);
+	renderer.submit_lighting_data(lighting_data, lights);
 	for (auto& light_sphere : light_spheres) { // the light objects (hard to see em otherwise)
-		light_sphere->enqueue(renderer, resources, camera_pos, sun.get_direction(), sun.get_color());
+		light_sphere->enqueue(renderer, resources, camera_pos);
 	}
 
 	skybox.enqueue(renderer, resources, camera_pos);
 	sun.enqueue(renderer, camera_pos);
 
 	for (auto& b : objects) {
-		b->enqueue(renderer, resources, camera_pos, sun.get_direction(), sun.get_color());
+		b->enqueue(renderer, resources, camera_pos);
 	}
 	
-	voxel_grid.enqueue(renderer, resources, camera_pos, sun.get_direction(), sun.get_color());
-	raymarcher.enqueue(renderer, camera_pos, sun.get_direction(), sun.get_color(), voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
+	voxel_grid.enqueue(renderer, resources, camera_pos);
+	raymarcher.enqueue(renderer, camera_pos, voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
 	
 	line_manager.enqueue(renderer);
 	glass.enqueue(renderer, this_frames_button_map);
@@ -168,9 +177,22 @@ void Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scal
 }
 
 void Space::add_light(glm::vec3 position, float radius, glm::vec3 color, float intensity, 
-					  glm::vec3 direction, float volumetric_intensity, LightType type) {
-	Light new_light{position, radius, color, intensity, direction, volumetric_intensity, type};
-	lights.push_back(std::move(new_light));
+					  glm::vec3 direction, float angle, float volumetric_intensity, LightType type) {
+	if (lights.size() >= MAX_LIGHTS) {
+		std::cerr << "Max light count reached, cannot add more lights." << std::endl;
+		return;
+	}
+	Light light{};
+	light.position = position;
+	light.radius = radius;
+	light.color = color;
+	light.intensity = intensity;
+	light.direction = direction;
+	light.angle = angle;
+	light.type = type;
+	light.volumetric_multiplier = volumetric_intensity;
+	
+	lights.push_back(std::move(light));
 	
 																	// invert the scale to invert the normals x) now its lit up! :)
 	Object* new_light_object = new Object(position, glm::vec3(0.0f), glm::vec3(-0.4f), "res://shaders/core/default_shader.vs", "res://models/sphere.obj");
@@ -179,7 +201,7 @@ void Space::add_light(glm::vec3 position, float radius, glm::vec3 color, float i
 }
 
 void Space::remove_light(std::size_t index) {
-	if (index >= lights.size() || index >= light_spheres.size()) {
+	if (index >= lights.size() || index >= light_spheres.size()) { // TODO: look over this logic
 		return;
 	}
 

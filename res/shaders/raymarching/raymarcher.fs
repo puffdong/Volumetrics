@@ -9,17 +9,19 @@ in vec3 v_ray;
 struct Light {
     vec4 position_radius; // position, radius
     vec4 color_intensity; // color, intensity
-    vec4 misc;            // volumetric_multiplier, type (0 = point, 1 = directional), padding padding
+    vec4 direction_angle; // direction, angle
+    vec4 params;          // x = type, y = volumetric multiplier, zw = padding
 };
 
 layout(std140) uniform b_light_block {
+    vec4 sun_direction; // .w = padding
+    vec4 sun_color_intensity; // rgb + intensity
+    vec4 ambient_color_intensity; // rgb + intensity
+    ivec4 light_count_misc; // x = light count, yzw = padding
+
     Light u_lights[16];
 };
 
-uniform int u_light_count;
-
-uniform vec3 u_sun_dir;
-uniform vec4 u_sun_color; // .w = intensity 
 uniform mat4 u_light_space_matrix;
 uniform sampler2D u_shadow_map;
 
@@ -56,7 +58,7 @@ uniform float u_absorption_coefficient;
 uniform float u_scattering_coefficient;
 uniform float u_extincion_coefficient;
 uniform float u_anisotropy;
-uniform float u_sun_intensity_multiplier;
+uniform float u_sun_intensity_multiplier; // semi-duplicate of sun_color_intensity.w
 
 uint voxel_value_at(ivec3 cell) { // removing the boundary check increases performance
     return texelFetch(u_voxels, cell, 0).r; // opengl takes care of clamping out-of-bounds
@@ -147,15 +149,15 @@ vec4 do_raymarch(vec3 ray_origin, vec3 ray_direction, float start_distance, floa
     float sigma_s = u_scattering_coefficient;
     float sigma_t = u_scattering_coefficient + u_absorption_coefficient;
 
-    vec3 sun_vec = normalize(u_sun_dir);
+    vec3 sun_vec = normalize(sun_direction.xyz);
     float cos_theta = dot(sun_vec, ray_direction);
     float phase = henyey_greenstein(cos_theta, u_anisotropy);
 
-    vec3 ambient_light = u_base_color; // treated as light hitting from all directions
-    vec3 ambient_intensity = vec3(0.1); // todo: make this a uniform
+    vec3 ambient_light = ambient_color_intensity.rgb; // treated as light hitting from all directions
+    vec3 ambient_intensity = vec3(ambient_color_intensity.w); // todo: make this a uniform
 
-    vec3 sun_color = u_sun_color.rgb;
-    float sun_intensity = u_sun_color.w * u_sun_intensity_multiplier;
+    vec3 sun_color = sun_color_intensity.rgb;
+    float sun_intensity = sun_color_intensity.w * u_sun_intensity_multiplier;
 
     Light point_light = u_lights[0];
 

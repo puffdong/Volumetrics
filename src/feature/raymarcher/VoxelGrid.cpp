@@ -45,7 +45,7 @@ void VoxelGrid::tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selec
 
 }
 
-void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos, glm::vec3 sun_direction, glm::vec4 sun_color) {
+void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos) {
     _shader->hot_reload_if_changed();
     _shader->bind();
     _shader->set_uniform_mat4("u_proj", renderer.get_proj());
@@ -79,8 +79,6 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec
         _selection_box_shader->set_uniform_mat4("u_model", model);
         _selection_box_shader->set_uniform_mat4("u_proj", renderer.get_proj());
         _selection_box_shader->set_uniform_mat4("u_view", renderer.get_view());
-        _selection_box_shader->set_uniform_vec3("u_sun_dir", sun_direction);
-        _selection_box_shader->set_uniform_vec3("u_sun_color", sun_color);
 
         RenderCommand cmd{};
         cmd.vao = _cube_model_vao;

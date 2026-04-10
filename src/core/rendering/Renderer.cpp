@@ -312,8 +312,9 @@ void Renderer::submit(RenderPass pass, const RenderCommand& cmd)
     queues[int(pass)].push_back(cmd);
 }
 
-void Renderer::submit_lighting_data(std::vector<Light> lights) { // I ADMIT, THIS IS NOT NICE, BUT WE HACKING AND THEN WE SLASHING
-    current_frame_light_list = lights; // THAT IS HOW I ROLL, WE GLUE STUFF TOGETHER THEN WE ARCHITECHT IT LATER WHEN I FIGURE OUT THE DETAILS
+void Renderer::submit_lighting_data(const LightingData& lighting_data, const std::vector<Light>& lights) {
+    light_manager.upload(lighting_data, lights);
+    light_manager.bind(0);
 }
 
 void Renderer::flush(RenderPass pass)
@@ -325,35 +326,11 @@ void Renderer::flush(RenderPass pass)
 }
 
 void Renderer::execute_pipeline(bool voxel_grid_debug_view) {
-    // Shadow pass
-    glViewport(0, 0, shadow_resolution, shadow_resolution);
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_map, 0);
+    run_shadow_pass();
 
-    glDisable(GL_SCISSOR_TEST);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // we only doing depth
-    glClearDepth(1.0);
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    shadow_shader->bind();
-    shadow_shader->set_uniform_mat4("u_light_space_matrix", light_space_matrix);
-
-    for (const auto& cmd : queues[int(RenderPass::Shadow)]) {
-        apply_state(cmd.state);
-        execute_command(cmd);
-    }
-
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // now let there be color again!
-
-    // --- Ping-pong roles ---
     GLuint src_color = ping_color;
     GLuint dst_color = pong_color;
 
-    // Skypass, Forward
     glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
     glViewport(0, 0, r_width, r_height);
 
@@ -371,61 +348,9 @@ void Renderer::execute_pipeline(bool voxel_grid_debug_view) {
     flush(RenderPass::Skypass);
     flush(RenderPass::Forward);
 
-    // Raymarch Bounds
-    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, raymarch_bounds_depth, 0);
-    if (!voxel_grid_debug_view) glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    flush(RenderPass::RaymarchBounds);
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-    // Volumetrics
-    glBindFramebuffer(GL_FRAMEBUFFER, volumetric_fbo);
-    glViewport(0, 0, r_width, r_height);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0); // we want to read from this one! disable it!
-
-    glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT); // de-attachment of depth means we can skip clearing it
-
-    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, ping_pong_depth);
-    glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, raymarch_bounds_depth);
-
-    flush(RenderPass::Volumetrics);
-
-    // Composite (skypass and forward) + (volumetrics)
-    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-    glViewport(0, 0, r_width, r_height);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst_color, 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-    // Don't write to depth (what?)
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
-
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-
-    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, src_color);
-    glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, volumetric_color);
-    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, ping_pong_depth);
-    glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, raymarch_bounds_depth);
-
-    bool changed = composite_shader->hot_reload_if_changed();
-    composite_shader->bind();
-    if (changed) {
-        upload_composite_shader_uniforms();
-    }
-
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-    glViewport(0, 0, r_width, r_height);
+    run_raymarch_bounds_pass(voxel_grid_debug_view);
+    run_volumetrics_pass();
+    run_composite_pass(); // Composite (skypass and forward) + (volumetrics)
 
     for (const auto& cmd : queues[int(RenderPass::UI)]) {
         { GLuint t = src_color; src_color = dst_color; dst_color = t; } // ping pong
@@ -471,6 +396,90 @@ void Renderer::execute_pipeline(bool voxel_grid_debug_view) {
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void Renderer::run_shadow_pass() {
+    glViewport(0, 0, shadow_resolution, shadow_resolution);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_map, 0);
+
+    glDisable(GL_SCISSOR_TEST);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // we only doing depth
+    glClearDepth(1.0);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    shadow_shader->bind();
+    shadow_shader->set_uniform_mat4("u_light_space_matrix", light_space_matrix);
+
+    for (const auto& cmd : queues[int(RenderPass::Shadow)]) {
+        apply_state(cmd.state);
+        execute_command(cmd);
+    }
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // now let there be color again!
+}
+
+void Renderer::run_raymarch_bounds_pass(bool voxel_grid_debug_view) {
+    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, raymarch_bounds_depth, 0);
+    if (!voxel_grid_debug_view) glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    flush(RenderPass::RaymarchBounds);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+}
+
+void Renderer::run_volumetrics_pass() {
+    glBindFramebuffer(GL_FRAMEBUFFER, volumetric_fbo);
+    glViewport(0, 0, r_width, r_height);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0); // we want to read from this one! disable it!
+
+    glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT); // de-attachment of depth means we can skip clearing it
+
+    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, ping_pong_depth);
+    glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, raymarch_bounds_depth);
+
+    flush(RenderPass::Volumetrics);
+}
+
+void Renderer::run_composite_pass() {
+    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+    glViewport(0, 0, r_width, r_height);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pong_color, 0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    // Don't write to depth (what?)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
+
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+
+    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, ping_color);
+    glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, volumetric_color);
+    glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, ping_pong_depth);
+    glActiveTexture(GL_TEXTURE3); glBindTexture(GL_TEXTURE_2D, raymarch_bounds_depth);
+
+    bool changed = composite_shader->hot_reload_if_changed();
+    composite_shader->bind();
+    if (changed) {
+        upload_composite_shader_uniforms();
+    }
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+    glViewport(0, 0, r_width, r_height);
+}
+
 void Renderer::apply_state(RenderState s) { // figure out what to do with this
     auto apply = [](bool desired, bool enabled_cap, int GL_FUNC)
     {
@@ -507,10 +516,7 @@ void Renderer::execute_command(const RenderCommand& c)
     }
 
     if (c.attach_lights) { // attach light info if desired
-        light_manager.upload(current_frame_light_list);
-        light_manager.bind(0);
         c.shader->set_uniform_block("b_light_block", 0);
-        c.shader->set_uniform_int("u_light_count", light_manager.get_light_count());
     }
 
     switch (c.draw_type)
