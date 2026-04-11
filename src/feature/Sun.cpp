@@ -111,9 +111,10 @@ void Sun::init_billboard_model() {
     index_count = static_cast<GLsizei>(indices.size());
 }
 
-void Sun::enqueue(Renderer& renderer, glm::vec3 camera_pos) {
+void Sun::enqueue(Renderer& renderer) {
     if (!shader) return;
     
+    glm::vec3 camera_pos = renderer.get_camera_pos();
     glm::vec3 sun_pos = camera_pos + (glm::normalize(direction) * sun_distance);
 
     glm::mat4 look_at = glm::lookAt(sun_pos, camera_pos, glm::vec3(0.0f, 1.0f, 0.0f));

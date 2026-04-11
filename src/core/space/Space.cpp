@@ -152,14 +152,14 @@ void Space::enqueue_renderables() {
 
 	renderer.submit_lighting_data(lighting_data, lights);
 	for (auto& light_sphere : light_spheres) { // the light objects (hard to see em otherwise)
-		light_sphere->enqueue(renderer, resources, camera_pos);
+		light_sphere->enqueue(renderer, resources);
 	}
 
-	skybox.enqueue(renderer, resources, camera_pos);
-	sun.enqueue(renderer, camera_pos);
+	skybox.enqueue(renderer, resources);
+	sun.enqueue(renderer);
 
 	for (auto& b : objects) {
-		b->enqueue(renderer, resources, camera_pos);
+		b->enqueue(renderer, resources);
 	}
 	
 	voxel_grid.enqueue(renderer, resources, camera_pos);

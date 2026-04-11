@@ -14,7 +14,7 @@ public:
 
     void init(ResourceManager& resources);
     void tick(float delta);
-    void enqueue(Renderer& renderer, glm::vec3 camera_pos);
+    void enqueue(Renderer& renderer);
 
     glm::vec3 get_direction() const { return direction; }
     float get_pitch() const { return pitch; }

@@ -57,6 +57,7 @@ public:
     inline float get_near() const { return near; };
     inline float get_far() const { return far; };
     inline float get_aspect_ratio() const { return aspect_ratio; };
+    inline glm::vec3 get_camera_pos() const { return camera_pos; };
     inline glm::mat4 get_view() const { return view; }
     inline glm::mat4 get_proj() const { return proj; };
 

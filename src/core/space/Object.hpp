@@ -49,7 +49,7 @@ public:
     
     void init(ResourceManager& resources, const std::string& name = "");
     void tick(float delta);
-    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos);
+    void enqueue(Renderer& renderer, ResourceManager& resources);
 
     // getters n' setters
     UUID<Object> get_id() const { return _id; };

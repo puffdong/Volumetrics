@@ -38,7 +38,7 @@ glm::mat4 Object::get_model_matrix() const {
     return m;
 }
 
-void Object::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos) {
+void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
     if (!_visible) return;
 
     glm::mat4 proj = renderer.get_proj();

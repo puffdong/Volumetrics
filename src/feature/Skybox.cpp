@@ -42,7 +42,7 @@ void Skybox::init(ResourceManager& resources) {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
-void Skybox::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos)
+void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
 {
 	shader->hot_reload_if_changed();
 	shader->bind();

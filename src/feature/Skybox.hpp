@@ -16,5 +16,5 @@ struct Skybox {
 	Skybox();
 	
 	void init(ResourceManager& resources);
-    void enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos);
+    void enqueue(Renderer& renderer, ResourceManager& resources);
 };
