@@ -79,8 +79,9 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
             cmd.index_offset = primitive.index_byte_offset;
             cmd.shader = shader;
             cmd.textures.push_back(shadow_bind);
-            cmd.model_matrix = world_model;
+            cmd.transform = world_model;
             cmd.attach_lights = true;
+            cmd.cast_shadows = _cast_shadows;
 
             // Default to object-level material when no per-primitive glTF material is present.
             shader->set_uniform_int("u_use_diffuse_texture", 0);
@@ -97,19 +98,6 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
             }
 
             renderer.submit(RenderPass::Forward, cmd);
-
-            if (_cast_shadows) {
-                RenderCommand shadow_cmd{};
-                shadow_cmd.vao = primitive.vao;
-                shadow_cmd.draw_type = primitive.index_count > 0 ? DrawType::Elements : DrawType::Arrays;
-                shadow_cmd.count = primitive.index_count > 0 ? primitive.index_count : primitive.vertex_count;
-                shadow_cmd.index_type = primitive.index_type;
-                shadow_cmd.index_offset = primitive.index_byte_offset;
-                shadow_cmd.shader = renderer.get_shadow_shader(); // todo: streamline this, why append the shader in which the renderer already owns?
-                shadow_cmd.attach_lights = false;
-                shadow_cmd.model_matrix = world_model;
-                renderer.submit(RenderPass::Shadow, shadow_cmd);
-            }
         }
     }
 }

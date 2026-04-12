@@ -147,7 +147,6 @@ void Space::enqueue_renderables() {
 	glm::vec3 camera_pos = camera.get_position();
 	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
 	renderer.set_camera_pos(camera_pos);
-	renderer.update_light_matrix(-sun.get_direction(), glm::vec3(0.0f));
 	renderer.begin_frame();
 
 	renderer.submit_lighting_data(lighting_data, lights);

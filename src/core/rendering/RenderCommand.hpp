@@ -1,5 +1,4 @@
 #pragma once
-#include "core/resources/Resource.hpp"
 #include "core/rendering/Shader.hpp"
 #include "glm/glm.hpp"
 
@@ -36,9 +35,10 @@ struct RenderCommand
     size_t index_offset       = 0;               // more gltf stuff
     Shader* shader            = nullptr;
 
-    glm::mat4 model_matrix    = glm::mat4(1.0f); // u_model
+    glm::mat4 transform       = glm::mat4(1.0f);
     std::vector<TextureBinding> textures;
     RenderState state;
     bool attach_lights = false;
+    bool cast_shadows = false;
 };
 

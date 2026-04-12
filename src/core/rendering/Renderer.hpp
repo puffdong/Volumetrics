@@ -42,7 +42,7 @@ public:
 
     void begin_frame();
     void submit(RenderPass pass, const RenderCommand& cmd);
-    void submit_lighting_data(const LightingData& lighting_data, const std::vector<Light>& lights); // this sucks because we are copying crap
+    void submit_lighting_data(const LightingData& lighting_data, const std::vector<Light>& lights);
     void execute_pipeline(bool voxel_grid_debug_view = false);
     void flush(RenderPass pass);
     
@@ -101,10 +101,10 @@ public:
     glm::mat4 get_light_space_matrix() const { return light_space_matrix; }
     unsigned int get_shadow_map_texture_id() const { return shadow_map; }
     Shader* get_shadow_shader() const { return shadow_shader; }
-    void update_light_matrix(glm::vec3 direction, glm::vec3 target);
     
 private:
     void init_shadow_resources();
+    void update_light_matrix(glm::vec3 direction, glm::vec3 target);
     Shader* shadow_shader;
     int shadow_resolution = 4096;
     unsigned int shadow_fbo = 0;

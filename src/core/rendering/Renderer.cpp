@@ -309,12 +309,19 @@ void Renderer::begin_frame()
 
 void Renderer::submit(RenderPass pass, const RenderCommand& cmd)
 {
+    if (cmd.cast_shadows) {
+        RenderCommand shadow_cmd = cmd;
+        shadow_cmd.shader = shadow_shader;
+        shadow_cmd.attach_lights = false;
+        queues[int(RenderPass::Shadow)].push_back(shadow_cmd);
+    }
     queues[int(pass)].push_back(cmd);
 }
 
 void Renderer::submit_lighting_data(const LightingData& lighting_data, const std::vector<Light>& lights) {
     light_manager.upload(lighting_data, lights);
     light_manager.bind(0);
+    update_light_matrix(-lighting_data.sun_direction, glm::vec3(0.0f)); // target is origin for now
 }
 
 void Renderer::flush(RenderPass pass)
@@ -410,11 +417,12 @@ void Renderer::run_shadow_pass() {
     glClearDepth(1.0);
     glClear(GL_DEPTH_BUFFER_BIT);
 
+    apply_state(RenderState{}); // default state 
+
     shadow_shader->bind();
     shadow_shader->set_uniform_mat4("u_light_space_matrix", light_space_matrix);
 
-    for (const auto& cmd : queues[int(RenderPass::Shadow)]) {
-        apply_state(cmd.state);
+    for (auto& cmd : queues[int(RenderPass::Shadow)]) {
         execute_command(cmd);
     }
 
@@ -506,7 +514,7 @@ void Renderer::execute_command(const RenderCommand& c)
     glUseProgram(program_id);
 
     // set common uniforms
-    c.shader->set_uniform_mat4("u_model", c.model_matrix); // todo: do some blocks, man.
+    c.shader->set_uniform_mat4("u_model", c.transform); // todo: do some blocks, man.
     c.shader->set_uniform_vec3("u_camera_pos", camera_pos); 
 
     for (const auto& t : c.textures) {
