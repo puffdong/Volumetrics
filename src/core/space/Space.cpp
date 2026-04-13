@@ -145,11 +145,8 @@ void Space::tick(float delta, ButtonMap bm)
 void Space::enqueue_renderables() {
 	glm::mat4 view_matrix = camera.get_view_matrix();
 	glm::vec3 camera_pos = camera.get_position();
-	renderer.set_view(view_matrix); // renderer should have all the knowledge! maybe a better way to do this?!
-	renderer.set_camera_pos(camera_pos);
-	renderer.begin_frame();
+	renderer.submit_frame_data(view_matrix, camera_pos, lighting_data, lights);
 
-	renderer.submit_lighting_data(lighting_data, lights);
 	for (auto& light_sphere : light_spheres) { // the light objects (hard to see em otherwise)
 		light_sphere->enqueue(renderer, resources);
 	}
@@ -162,11 +159,10 @@ void Space::enqueue_renderables() {
 	}
 	
 	voxel_grid.enqueue(renderer, resources, camera_pos);
-	raymarcher.enqueue(renderer, camera_pos, voxel_grid.get_voxel_texture_id(), voxel_grid.get_grid_dim(), voxel_grid.get_position(), voxel_grid.get_cell_size());
+	raymarcher.enqueue(renderer, camera_pos, voxel_grid.get_voxel_texture_id());
 	
 	line_manager.enqueue(renderer);
 	glass.enqueue(renderer, this_frames_button_map);
-	renderer.execute_pipeline(voxel_grid.is_debug_view_visible());
 }
 
 void Space::create_object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::string& model_asset, const std::string& name) {

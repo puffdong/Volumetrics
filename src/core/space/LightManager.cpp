@@ -59,13 +59,11 @@ void LightManager::upload(const LightingData& lighting_data, const std::vector<L
 
     glBindBuffer(GL_UNIFORM_BUFFER, _ubo);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GpuLightBlock), &block);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0); // we are constantly re-uploading the same data every frame
-    // would be nice to keep a cache if nothing happened. 
-    // eh we will get to that at some point
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     _current_count = active_light_count;
 }
 
-void LightManager::bind(unsigned int binding_point) const { // same thinking as a texture
+void LightManager::bind(unsigned int binding_point) const {
     glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, _ubo);
 }

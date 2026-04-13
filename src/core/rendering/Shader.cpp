@@ -18,6 +18,7 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
 
     _vertex_file = {vertex_path, std::filesystem::last_write_time(vertex_path), ShaderType::VERTEX};
     _fragment_file = {fragment_path, std::filesystem::last_write_time(fragment_path), ShaderType::FRAGMENT};
+    _debug_output = true;
 }
 
 Shader::~Shader() {
@@ -198,7 +199,17 @@ void Shader::set_uniform_mat4(const std::string& name, const glm::mat4& matrix) 
 }
 
 void Shader::set_uniform_block(const std::string& block_name, unsigned int binding_point) {
-	glUniformBlockBinding(_rendering_id, get_uniform_block_index(block_name), binding_point);
+    int block_index = get_uniform_block_index(block_name);
+    if (block_index == GL_INVALID_INDEX) {
+        if (_debug_output) {
+            block_error_count++;
+            if (block_error_count < 5) {
+                std::cout << "!!!: can't set block '" << block_name << "' in " << _shader_name << " because it doesn't exist!" << std::endl;
+            }
+        }
+        return;
+    }       
+	glUniformBlockBinding(_rendering_id, block_index, binding_point);
 	if (_debug_output) {
 		while (GLenum error = glGetError()) {
             block_error_count++;

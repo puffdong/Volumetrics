@@ -6,6 +6,14 @@ void Raymarcher::init(Shader* shader) {
     _shader = shader;
     _shader->set_debug_output(true);
 
+    if (_settings_ubo == 0) {
+        glGenBuffers(1, &_settings_ubo);
+    }
+
+    glBindBuffer(GL_UNIFORM_BUFFER, _settings_ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(RaymarchSettings), nullptr, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
     perlin_texture = PerlinNoiseTexture();
     init_perlin(perlin_texture, 128, 128, 128, 0.05f,42);
     generate_perlin(perlin_texture);
@@ -16,18 +24,20 @@ void Raymarcher::tick(float delta) {
     _time += delta;
 }
 
-void Raymarcher::enqueue(Renderer& renderer, glm::vec3 camera_pos, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size) {
+void Raymarcher::enqueue(Renderer& renderer, glm::vec3 camera_pos, unsigned int voxel_tex) {
     if (!_visible) return;
 
     _shader->hot_reload_if_changed();
     _shader->bind();
-    upload_uniforms(renderer, camera_pos, grid_dim, grid_origin, cell_size);
+    _shader->set_uniform_block("b_raymarch_settings", 2);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 2, _settings_ubo);
+    _shader->set_uniform_block("b_voxel_grid", 3); // magic variable from VoxelGrid
+    upload_uniforms(renderer, camera_pos);
 
     TextureBinding shadow_bind{ renderer.get_shadow_map_texture_id(), GL_TEXTURE_2D, 5, "u_shadow_map" };
     TextureBinding perlin_noise{ perlin_texture.texture_id, GL_TEXTURE_3D, 8, "u_noise_texture" };
     TextureBinding vox_tex{ voxel_tex, GL_TEXTURE_3D, 7, "u_voxels" };
     
-
     RenderCommand cmd{};
     cmd.draw_type = DrawType::FullscreenQuad;
     cmd.shader = _shader;
@@ -40,7 +50,7 @@ void Raymarcher::enqueue(Renderer& renderer, glm::vec3 camera_pos, unsigned int 
     renderer.submit(RenderPass::Volumetrics, cmd);
 }
 
-void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size) {
+void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos) {
     glm::mat4 proj = renderer.get_proj();
     glm::mat4 view = renderer.get_view();
     glm::mat4 inverted_proj_view = glm::inverse(proj * view);
@@ -60,19 +70,7 @@ void Raymarcher::upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::
     _shader->set_uniform_int("u_scene_depth", 2);
     _shader->set_uniform_int("u_raymarch_depth", 3);
 
-    // voxel grid params
-    _shader->set_uniform_ivec3("u_grid_dim", grid_dim);
-    _shader->set_uniform_vec3("u_grid_origin", grid_origin);
-    _shader->set_uniform_float("u_cell_size", cell_size);
-
-    // raymarch parameters
-    _shader->set_uniform_int("u_max_steps", raymarch_settings.max_steps);
-    _shader->set_uniform_float("u_step_size", raymarch_settings.step_size);
-    _shader->set_uniform_int("u_max_light_steps", raymarch_settings.max_light_steps);
-    _shader->set_uniform_float("u_light_step_size", raymarch_settings.light_step_size);
-    _shader->set_uniform_vec3("u_base_color", raymarch_settings.base_color);
-    _shader->set_uniform_float("u_absorption_coefficient", raymarch_settings.absorption_coefficient);
-    _shader->set_uniform_float("u_scattering_coefficient", raymarch_settings.scattering_coefficient);
-    _shader->set_uniform_float("u_anisotropy", raymarch_settings.anisotropy);
-    _shader->set_uniform_float("u_sun_intensity_multiplier", raymarch_settings.sun_intensity_multiplier);
+    glBindBuffer(GL_UNIFORM_BUFFER, _settings_ubo);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(RaymarchSettings), &raymarch_settings);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

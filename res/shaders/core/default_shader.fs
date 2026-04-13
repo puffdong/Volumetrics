@@ -18,6 +18,14 @@ layout(std140) uniform b_light_block {
     Light u_lights[16];
 };
 
+layout(std140) uniform b_camera_block {
+	mat4 u_proj;
+	mat4 u_view;
+	mat4 u_proj_view;
+	vec3 u_camera_pos;
+	float padding_c;
+};
+
 uniform mat4 u_light_space_matrix;
 
 uniform sampler2D u_shadow_map;
@@ -29,12 +37,9 @@ in vec3 v_frag_pos;
 in vec4 v_frag_pos_ls; // light space position
 
 uniform mat4 u_model_matrix;
-uniform mat4 u_world_matrix;
 uniform sampler2D u_texture1;
 uniform sampler2D u_diffuse_texture;
 uniform bool u_use_diffuse_texture;
-
-uniform vec3 u_camera_pos;
 uniform bool u_is_selected;
 
 // Material uniforms

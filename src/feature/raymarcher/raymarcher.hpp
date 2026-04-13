@@ -16,6 +16,7 @@ struct RaymarchSettings {
 
     float anisotropy = 0.35f; // for the HG phase function
     float sun_intensity_multiplier = 20.f;
+    float _padding0 = 0.0f;
 };
 
 class Raymarcher {
@@ -27,12 +28,13 @@ private:
     RaymarchSettings raymarch_settings;
     PerlinNoiseTexture perlin_texture;
     
+    unsigned int _settings_ubo = 0;
     
 public:
     Raymarcher() = default;
     void init(Shader* shader);
     void tick(float delta);
-    void enqueue(Renderer& renderer, glm::vec3 camera_pos, unsigned int voxel_tex, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
+    void enqueue(Renderer& renderer, glm::vec3 camera_pos, unsigned int voxel_tex);
 
     void set_visibility(const bool v) { _visible = v; };
     bool is_visible() const { return _visible; };
@@ -40,5 +42,5 @@ public:
     PerlinNoiseTexture& get_perlin_texture() { return perlin_texture; };
 
 private:
-    void upload_uniforms(Renderer& renderer, glm::vec3 camera_pos, glm::ivec3 grid_dim, glm::vec3 grid_origin, float cell_size);
+    void upload_uniforms(Renderer& renderer, glm::vec3 camera_pos);
 };

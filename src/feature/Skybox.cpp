@@ -46,8 +46,6 @@ void Skybox::enqueue(Renderer& renderer, ResourceManager& resources)
 {
 	shader->hot_reload_if_changed();
 	shader->bind();
-	shader->set_uniform_mat4("u_proj", renderer.get_proj());
-	shader->set_uniform_mat4("u_view", renderer.get_view());
 	
 	TextureBinding tex{};
 	tex.id = skybox_tex;

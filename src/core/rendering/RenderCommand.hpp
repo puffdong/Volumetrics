@@ -40,5 +40,15 @@ struct RenderCommand
     RenderState state;
     bool attach_lights = false;
     bool cast_shadows = false;
+    bool camera_data = false; // if true, the renderer will set the camera block uniform buffer
+    // todo: could 
+};
+
+// Uniform Block Structs
+struct VoxelGridBlock {
+    glm::vec3 grid_origin; 
+    float cell_size; // world units per cell
+    glm::ivec3 grid_dim; // (width, height, depth)
+    int _padding; // to make it 16 byte aligned
 };
 

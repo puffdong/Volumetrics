@@ -54,8 +54,6 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
     shader->set_uniform_vec4("u_specular_color", material.specular_color);
     shader->set_uniform_vec4("u_material_params", material.params);
     shader->set_uniform_int("u_is_selected", _selected ? 1 : 0);
-    shader->set_uniform_mat4("u_proj", renderer.get_proj());
-    shader->set_uniform_mat4("u_view", view);
     shader->set_uniform_mat3("u_normal_matrix", normal_matrix);
     shader->set_uniform_mat4("u_light_space_matrix", renderer.get_light_space_matrix());
 
@@ -67,7 +65,7 @@ void Object::enqueue(Renderer& renderer, ResourceManager& resources) {
         const Mesh& mesh = gpu_model.meshes[instance.mesh_index];
         const glm::mat4 world_model = model * instance.transform;
         const glm::mat3 world_normal_matrix = glm::transpose(glm::inverse(glm::mat3(world_model)));
-        shader->set_uniform_mat4("u_mvp", proj * view * world_model);
+        // shader->set_uniform_mat4("u_mvp", proj * view * world_model);
         shader->set_uniform_mat3("u_normal_matrix", world_normal_matrix);
 
         for (const auto& primitive : mesh.primitives) {

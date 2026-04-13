@@ -2,8 +2,15 @@
 layout (location = 0) in vec2 a_pos;
 layout (location = 1) in vec2 a_uv;
 
+layout(std140) uniform b_camera_block {
+	mat4 u_proj;
+	mat4 u_view;
+	mat4 u_proj_view;
+	vec3 u_camera_pos;
+	float padding_c;
+};
+
 uniform mat4 u_invprojview;
-uniform vec3 u_camera_pos;
 
 out vec2 v_uv;
 out vec3 v_origin;

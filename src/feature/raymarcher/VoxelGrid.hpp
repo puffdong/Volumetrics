@@ -37,6 +37,8 @@ private:
 	bool _render_selection_box = false;
 	glm::vec3 _selection_pos;
 	uint8_t _selection_value = 255u;
+
+	unsigned int _voxel_grid_ubo = 0;
 	
 public:
 	VoxelGrid() = default;

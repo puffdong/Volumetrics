@@ -3,8 +3,14 @@ layout(location = 0) in vec3 a_pos;
 layout(location = 1) in vec3 a_normal;
 layout(location = 2) in vec2 a_texcoord;
 
-uniform mat4 u_view;
-uniform mat4 u_proj;
+layout(std140) uniform b_camera_block {
+	mat4 u_view;
+	mat4 u_proj;
+	mat4 u_proj_view;
+	vec3 u_camera_pos;
+	float padding_c;
+};
+
 
 out vec3 v_dir;
 

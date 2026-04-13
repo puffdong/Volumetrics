@@ -29,6 +29,14 @@ void VoxelGrid::init(ResourceManager& resources) {
 
     init_instance_buffer();
     create_voxel_texture();
+
+    if (_voxel_grid_ubo == 0) {
+        glGenBuffers(1, &_voxel_grid_ubo);
+    }
+
+    glBindBuffer(GL_UNIFORM_BUFFER, _voxel_grid_ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(VoxelGridBlock), nullptr, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void VoxelGrid::tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selection_ray_dir, bool mouse_pointer_active, bool mouse_clicked) {
@@ -48,11 +56,14 @@ void VoxelGrid::tick(float delta, glm::vec3 selection_ray_start, glm::vec3 selec
 void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec3 camera_pos) {
     _shader->hot_reload_if_changed();
     _shader->bind();
-    _shader->set_uniform_mat4("u_proj", renderer.get_proj());
-    _shader->set_uniform_mat4("u_view", renderer.get_view());
-    _shader->set_uniform_ivec3("u_grid_dim", glm::ivec3(_width, _height, _depth));
-    _shader->set_uniform_vec3("u_grid_origin", _position);
-    _shader->set_uniform_float("u_voxel_size", _cell_size);
+
+    VoxelGridBlock voxel_grid_data{_position, _cell_size, glm::ivec3(_width, _height, _depth), 0};
+    glBindBuffer(GL_UNIFORM_BUFFER, _voxel_grid_ubo);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(VoxelGridBlock), &voxel_grid_data);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    _shader->set_uniform_block("b_voxel_grid", 3);
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, 3, _voxel_grid_ubo);
 
     TextureBinding bind{ _voxel_tex, GL_TEXTURE_3D, 6, "u_voxels" };
 
@@ -63,7 +74,7 @@ void VoxelGrid::enqueue(Renderer& renderer, ResourceManager& resources, glm::vec
     cmd.count      = _cube_model_index_count;
     cmd.instance_count = _num_occupied_voxels;
     cmd.shader     = _shader;
-    cmd.attach_lights = true;
+    cmd.attach_lights = false;
     cmd.textures.push_back(bind);
 
     renderer.submit(RenderPass::RaymarchBounds, cmd);

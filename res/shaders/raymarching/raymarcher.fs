@@ -5,6 +5,14 @@ in vec2 v_uv;
 in vec3 v_origin;
 in vec3 v_ray;
 
+layout(std140) uniform b_camera_block {
+	mat4 u_proj;
+	mat4 u_view;
+	mat4 u_proj_view;
+	vec3 u_camera_pos;
+	float padding_c;
+};
+
 // lights
 struct Light {
     vec4 position_radius; // position, radius
@@ -22,13 +30,34 @@ layout(std140) uniform b_light_block {
     Light u_lights[16];
 };
 
+layout(std140) uniform b_raymarch_settings {
+    int u_max_steps;
+    float u_step_size;
+    int u_max_light_steps;
+    float u_light_step_size;
+
+    vec3 u_base_color;
+    float u_absorption_coefficient;
+
+    float u_scattering_coefficient;
+    float u_anisotropy;
+    float u_sun_intensity_multiplier;
+    float padding_0;
+};
+
+layout(std140) uniform b_voxel_grid {
+    vec3 u_grid_origin;
+    float u_cell_size; // world units per cell
+    ivec3 u_grid_dim; // width, height, depth
+    float padding_b;
+};
+
 uniform mat4 u_light_space_matrix;
 uniform sampler2D u_shadow_map;
 
 // standard uniforms
 uniform float u_time;
 uniform vec2 u_resolution;
-uniform vec3 u_camera_pos;
 uniform vec3 u_camera_forward;
 uniform mat4 u_invprojview;
 
@@ -36,29 +65,10 @@ uniform mat4 u_invprojview;
 uniform sampler2D u_scene_depth;
 uniform sampler2D u_raymarch_depth;
 uniform sampler3D u_noise_texture;
-
-// voxels
 uniform usampler3D u_voxels; // GL_R8UI
-uniform ivec3 u_grid_dim; // (width, height, depth)
-uniform vec3 u_grid_origin;
-uniform float u_cell_size; // world units per cell
 
 uniform float u_near_plane;
 uniform float u_far_plane;
-
-uniform int u_max_steps;
-uniform float u_step_size;
-uniform int u_max_light_steps;
-uniform float u_hit_step_size; // unused
-uniform float u_light_step_size;
-uniform float u_max_distance;
-uniform float u_min_distance;
-uniform vec3 u_base_color;
-uniform float u_absorption_coefficient;
-uniform float u_scattering_coefficient;
-uniform float u_extincion_coefficient;
-uniform float u_anisotropy;
-uniform float u_sun_intensity_multiplier; // semi-duplicate of sun_color_intensity.w
 
 uint voxel_value_at(ivec3 cell) { // removing the boundary check increases performance
     return texelFetch(u_voxels, cell, 0).r; // opengl takes care of clamping out-of-bounds
@@ -134,7 +144,7 @@ float do_sunlight_march(vec3 start_pos, vec3 sun_dir) {
             float density = sample_density(ray_pos, v);
             optical_depth += density * sigma_t * u_light_step_size;
         } 
-        distance_traveled += u_light_step_size;    
+        distance_traveled += u_light_step_size;
     }
 
     return exp(-optical_depth);

@@ -13,12 +13,27 @@
 void GLClearError();
 bool GLLogCall(const char* function, const char* file, int line);
 
+// uniform blocks. 
+// binding block = 0 (reserved)
+struct CameraBlock {
+    glm::mat4 view;
+    glm::mat4 proj;
+    glm::mat4 proj_view;
+    glm::vec3 camera_pos; // .xyz = camera position
+    float padding;
+};
+
+// light block reserved at 1
+
 class Renderer {
 private:
     LightManager light_manager;
     Shader* composite_shader;
     Shader* copy_present_shader;
     RenderState current {};
+
+    CameraBlock camera_block;
+    unsigned int _camera_ubo = 0;
 
     int viewport_width;
     int viewport_height;
@@ -27,9 +42,6 @@ private:
 	float near = 1.0f;
 	float far = 512.0f;
 	float aspect_ratio = 16.f / 9.0f;
-	glm::mat4 proj;
-    glm::mat4 view;
-    glm::vec3 camera_pos = glm::vec3(0.0f);
 
     glm::vec3 sun_dir = glm::normalize(glm::vec3(1.0f));
 
@@ -42,14 +54,12 @@ public:
 
     void begin_frame();
     void submit(RenderPass pass, const RenderCommand& cmd);
-    void submit_lighting_data(const LightingData& lighting_data, const std::vector<Light>& lights);
+    void submit_frame_data(const glm::mat4& view_matrix, const glm::vec3& camera_position, const LightingData& lighting_data, const std::vector<Light>& lights);
     void execute_pipeline(bool voxel_grid_debug_view = false);
     void flush(RenderPass pass);
     
     void set_projection_matrix(float aspect_ratio, float fov, float near_plane = 1.0f, float far_plane = 512.0f);
     void set_fov(float fov);
-    void set_view(glm::mat4 v) { view = v; };
-    void set_camera_pos(const glm::vec3& pos);
     
     glm::vec2 get_viewport_size() const;
 
@@ -57,12 +67,13 @@ public:
     inline float get_near() const { return near; };
     inline float get_far() const { return far; };
     inline float get_aspect_ratio() const { return aspect_ratio; };
-    inline glm::vec3 get_camera_pos() const { return camera_pos; };
-    inline glm::mat4 get_view() const { return view; }
-    inline glm::mat4 get_proj() const { return proj; };
+    inline glm::vec3 get_camera_pos() const { return camera_block.camera_pos; };
+    inline glm::mat4 get_view() const { return camera_block.view; }
+    inline glm::mat4 get_proj() const { return camera_block.proj; };
 
 private:
     void init_quad();
+    void init_uniform_buffer_storage();
     unsigned int quad_vao = 0;
     unsigned int quad_vbo = 0;
 

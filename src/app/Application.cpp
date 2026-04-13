@@ -296,8 +296,11 @@ int Application::run() {
         float current_time = glfwGetTime();
         float delta_time = current_time - last_time;
         last_time = current_time;
+        renderer.begin_frame();
         space.tick(delta_time, button_map);
         space.enqueue_renderables();
+
+        renderer.execute_pipeline();
         
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

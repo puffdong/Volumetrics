@@ -134,8 +134,6 @@ void Line::enqueue(Renderer& renderer) {
     }
 
     shader->bind();
-    shader->set_uniform_mat4("u_projection", renderer.get_proj());
-    shader->set_uniform_mat4("u_view", renderer.get_view());
     shader->set_uniform_int("u_depth_texture", 2);
     shader->set_uniform_vec2("u_resolution", renderer.get_viewport_size());
     shader->set_uniform_float("u_far", renderer.get_far());

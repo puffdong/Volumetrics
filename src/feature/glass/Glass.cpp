@@ -33,7 +33,7 @@ void Glass::enqueue(Renderer& renderer, const ButtonMap& button_map) {
     
     shader->set_uniform_vec3("u_mouse_pos", mouse);
     shader->set_uniform_vec2("u_glass_pane_position", position);
-    shader->set_uniform_float("u_glass_radius", 15.0); // 5 pixels
+    shader->set_uniform_float("u_radius", 15.0); // 5 pixels
     shader->set_uniform_int("u_src_color", 0); // get it access to the u_src_color framebuffer texture!
     shader->set_uniform_int("u_depth_texture", 2);
 

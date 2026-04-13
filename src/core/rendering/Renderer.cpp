@@ -68,6 +68,7 @@ void Renderer::init_renderer(int width, int height)
     init_quad();
     init_shadow_resources();
     init_framebuffers(width, height);
+    init_uniform_buffer_storage();
     glViewport(0,0, width, height);
 }
 
@@ -89,6 +90,16 @@ void Renderer::init_quad() {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+}
+
+void Renderer::init_uniform_buffer_storage() {
+    if (_camera_ubo == 0) {
+        glGenBuffers(1, &_camera_ubo);
+    }
+
+    glBindBuffer(GL_UNIFORM_BUFFER, _camera_ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraBlock), nullptr, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Renderer::init_framebuffers(int width, int height)
@@ -276,15 +287,11 @@ void Renderer::set_projection_matrix(float new_aspect_ratio, float new_fov, floa
     far = far_plane;
 
     fov = new_fov;
-    proj = glm::perspective(glm::radians(fov), aspect_ratio, near, far);
+    camera_block.proj = glm::perspective(glm::radians(fov), aspect_ratio, near, far);
 }
 
 void Renderer::set_fov(float fov) {
     set_projection_matrix(aspect_ratio, fov, near, far); 
-}
-
-void Renderer::set_camera_pos(const glm::vec3& pos) {
-    camera_pos = pos;
 }
 
 void Renderer::update_light_matrix(glm::vec3 direction, glm::vec3 target) {
@@ -303,7 +310,7 @@ glm::vec2 Renderer::get_viewport_size() const {
 }
 
 void Renderer::begin_frame()
-{
+{   
     for (auto& q : queues) q.clear();
 }
 
@@ -318,9 +325,11 @@ void Renderer::submit(RenderPass pass, const RenderCommand& cmd)
     queues[int(pass)].push_back(cmd);
 }
 
-void Renderer::submit_lighting_data(const LightingData& lighting_data, const std::vector<Light>& lights) {
+void Renderer::submit_frame_data(const glm::mat4& view_matrix, const glm::vec3& camera_position, const LightingData& lighting_data, const std::vector<Light>& lights) {
+    camera_block.view = view_matrix;
+    camera_block.camera_pos = camera_position;
     light_manager.upload(lighting_data, lights);
-    light_manager.bind(0);
+    light_manager.bind(1);
     update_light_matrix(-lighting_data.sun_direction, glm::vec3(0.0f)); // target is origin for now
 }
 
@@ -333,6 +342,12 @@ void Renderer::flush(RenderPass pass)
 }
 
 void Renderer::execute_pipeline(bool voxel_grid_debug_view) {
+    camera_block.proj_view = camera_block.proj * camera_block.view;
+    glBindBuffer(GL_UNIFORM_BUFFER, _camera_ubo);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(CameraBlock), &camera_block);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, _camera_ubo); // camera block is always at binding point 0
+
     run_shadow_pass();
 
     GLuint src_color = ping_color;
@@ -514,17 +529,17 @@ void Renderer::execute_command(const RenderCommand& c)
     glUseProgram(program_id);
 
     // set common uniforms
-    c.shader->set_uniform_mat4("u_model", c.transform); // todo: do some blocks, man.
-    c.shader->set_uniform_vec3("u_camera_pos", camera_pos); 
+    c.shader->set_uniform_mat4("u_model", c.transform);
+    c.shader->set_uniform_block("b_camera_block", 0);
 
     for (const auto& t : c.textures) {
         glActiveTexture(GL_TEXTURE0 + t.unit);
         glBindTexture(t.target, t.id);
         if (t.uniform_name) c.shader->set_uniform_int(t.uniform_name, t.unit);
     }
-
-    if (c.attach_lights) { // attach light info if desired
-        c.shader->set_uniform_block("b_light_block", 0);
+    
+    if (c.attach_lights) {
+        c.shader->set_uniform_block("b_light_block", 1);
     }
 
     switch (c.draw_type)
